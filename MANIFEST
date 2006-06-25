@@ -1,0 +1,12 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Search-Tools.t
+lib/Search/Tools.pm
+lib/Search/Tools/HiLiter.pm
+lib/Search/Tools/Snipper.pm
+lib/Search/Tools/Keywords.pm
+lib/Search/Tools/RegExp.pm
+lib/Search/Tools/RegExp/Keywords.pm
+lib/Search/Tools/RegExp/Keyword.pm
