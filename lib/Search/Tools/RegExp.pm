@@ -3,9 +3,8 @@ package Search::Tools::RegExp;
 use 5.006;
 use strict;
 use warnings;
-use locale;
-use POSIX qw (locale_h);
 use Carp;
+use Encode;
 use Search::Tools::Keywords;
 use Search::Tools::RegExp::Keywords;
 use Search::Tools::RegExp::Keyword;
@@ -14,7 +13,6 @@ use Search::Tools::XML;
 use base qw( Class::Accessor::Fast );
 
 our $VERSION = '0.01';
-
 
 my %char2entity = ();
 while (my ($e, $n) = each(%Search::Tools::XML::HTML_ents))
@@ -34,11 +32,17 @@ for (0 .. 255)
 # this might miss comments inside tags
 # or CDATA attributes
 # unless HTML::Parser is used
-our $TagRE       = qr{<[^>]+>}s;
-our $WordChar    = '\w./-';
-our $BegChar     = '\w./-';
-our $EndChar     = '\w';
-our $PhraseDelim = '"';            # phrase delimiter
+our $TagRE = qr/<[^>]+>/s;
+
+# takes 2x as long to match a real utf8 char but that's the cost of being more thorough
+our $UTF8Char = qr/\p{L}\p{M}*/;
+
+#our $UTF8Char = '\w';
+
+our $WordChar    = "$UTF8Char./-";
+our $BegChar     = "$UTF8Char./-";
+our $EndChar     = $UTF8Char;
+our $PhraseDelim = '"';
 
 # regexp for what constitutes whitespace in an HTML doc
 # it's not as simple as \s|&nbsp; so we define it separately
@@ -73,7 +77,6 @@ sub _init
         qw/
           kw
           kw_opts
-          lang
           wildcard
           word_characters
           begin_characters
@@ -98,15 +101,6 @@ sub _init
               )
              )
       unless $self->kw;
-
-    # if language was specified, set our locale so default \w works
-    if ($self->lang)
-    {
-        setlocale(LC_CTYPE, $self->lang);
-
-        #my $w = join('',(sort grep /\w/, map { chr() } 0 .. 255));
-        #carp $self->lang . " will match \\w = $w";
-    }
 
     $self->{wildcard} ||= $self->{kw_opts}->{wildcard} || '*';
     $self->{word_characters}  ||= $WordChar;
@@ -165,7 +159,6 @@ sub _init
       qr/$WhiteSpace|[^$self->{word_characters}]/is, '+', $igf;
 
 }
-
 
 sub isHTML { $_[1] =~ m/[<>]|&[#\w]+;/ }
 
@@ -237,7 +230,7 @@ ${escaped}
 (
 [^$wild]|\Z
 )
-/xis;    # no -o because we might have multiple $q's
+/xis;
 
     my (@char) = split(//, $q);
 
@@ -286,7 +279,7 @@ ${safe}
 (
 ${end_bound}
 )
-/xis;    # no -o because we have multiple $safe's
+/xis;
 
     return ($plain, $html);
 }

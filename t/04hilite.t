@@ -1,6 +1,7 @@
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 use File::Slurp;
+use Data::Dumper;
 
 BEGIN
 {
@@ -22,8 +23,12 @@ EOF
 
 my @q = ('squiggle', 'type', 'course', '"human events"');
 
-ok(my $h = Search::Tools::HiLiter->new(query => \@q), "hiliter");
+ok(my $re = Search::Tools::RegExp->new(), "RE");
+ok(my $h = Search::Tools::HiLiter->new(query => $re->build(\@q)), "hiliter");
 ok(my $s = Search::Tools::Snipper->new(query => $h->rekw), "snipper");
+
+#diag( Dumper( $re ) );
+
 ok(my $snip = $s->snip($text), "snip");
 #diag($snip);
 #diag($s->snipper_name);

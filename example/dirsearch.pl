@@ -20,7 +20,9 @@ my $snipper =
   Search::Tools->snipper(
                          query               => $query,
                          collapse_whitespace => 1,
-                         re_snip             => 1
+                         re_snip             => 1,
+                         occur               => 4,
+                         context             => 12
                         );
 timetick('  end snipper');
 

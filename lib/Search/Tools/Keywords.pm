@@ -4,8 +4,13 @@ use 5.006;
 use strict;
 use warnings;
 
+# make sure we get correct ->utf8 encoding
+use POSIX qw(locale_h);
+use locale;
+
 use Carp;
 use Data::Dumper;
+use Encode;
 use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
@@ -37,9 +42,28 @@ sub _init
           or_word
           not_word
           wildcard
+          locale
+          charset
           /
     );
 
+    $self->{locale}  ||= setlocale(LC_CTYPE);
+    $self->{charset} ||= ($self->{locale} =~ m/^.+?\.(.+)/ || 'iso-8859-1');
+
+}
+
+sub _make_utf8
+{
+    my $self = shift;
+    my $str  = shift;
+
+    # make sure our query is UTF-8
+    if (!Encode::is_utf8($str))
+    {
+        #carp "converting $str from " . $self->charset . " -> utf8";
+        Encode::from_to($str, $self->charset, 'utf8');
+    }
+    return $str;
 }
 
 sub extract
@@ -58,6 +82,7 @@ sub extract
     if ($stopwords)
     {
         $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
+        $_ = $self->_make_utf8($_) for @$stopwords;
     }
     my $esc_wildcard = quotemeta($wildcard);
 
@@ -72,6 +97,7 @@ sub extract
 
   Q: for my $q (@query)
     {
+        $q = $self->_make_utf8($q);
         my $p = $parser->parse($q, 1);
         $self->_get_v(\%uniq, $p, $c);
     }

@@ -1,6 +1,5 @@
 Revision history for Perl extension Search::HiLiter.
 
 0.01  Thu Jun 22 08:06:59 2006
-	- original version; created by h2xs 1.23 with options
-		-XA -n Search::HiLiter
+	- original version
 
