@@ -6,6 +6,7 @@ WriteMakefile(
     VERSION_FROM      => 'lib/Search/Tools.pm', # finds $VERSION
     PREREQ_PM         => {
               'Search::QueryParser' => '0.1',
+              'Encode'              => '0.1'
                          }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Search/Tools.pm', # retrieve abstract from module

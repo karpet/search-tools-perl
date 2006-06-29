@@ -9,6 +9,7 @@ use Search::Tools::Keywords;
 use Search::Tools::RegExp;
 use Search::Tools::Snipper;
 use Search::Tools::HiLiter;
+use Search::Tools::Transliterate;
 use Search::Tools::XML;
 
 our $VERSION = '0.01';
@@ -31,6 +32,12 @@ sub snipper
 {
     my $class = shift;
     return Search::Tools::Snipper->new(@_);
+}
+
+sub transliterate
+{
+    my $class = shift;
+    return Searc::Tools::Transliterate->new->convert(@_);
 }
 
 1;
@@ -111,6 +118,10 @@ See also the specific module documentation for individual requirements.
 
 
 =head1 METHODS
+
+=head2 transliterate( I<text> )
+
+See Search::Tools::Transliterate convert().
 
 The following convenience methods are simple class methods around the 
 indicated module. Each of them requires a C<query> key/value pair
