@@ -1,6 +1,6 @@
 package Search::Tools;
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 use Carp;
@@ -102,7 +102,7 @@ more general purpose features.
 
 =head1 REQUIREMENTS
 
-Perl 5.6 or later is required.
+Perl 5.8 or later is required. This is for full UTF-8 support.
 
 The following CPAN modules are required:
 

@@ -6,7 +6,7 @@ package Search::Tools::Snipper;
 #
 # TODO support stopwords in phrases
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 

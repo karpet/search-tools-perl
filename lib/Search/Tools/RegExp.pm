@@ -1,6 +1,6 @@
 package Search::Tools::RegExp;
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 use Carp;
@@ -332,6 +332,14 @@ Search::Tools::RegExp - build regular expressions from search queries
 =head1 VARIABLES
 
 
+=head1 BUGS and LIMITATIONS
+
+All new() params should be flagged as UTF-8 strings. If you include non-ASCII chars
+in your regular expressions, etc., you should convert them first to UTF-8 with the standard
+Encode module.
+
+The special HTML chars < and > can pose problems in regexps against markup, so they
+are ignored in any regexp params you pass to new().
 
 =head1 AUTHOR
 
