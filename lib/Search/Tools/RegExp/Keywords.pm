@@ -34,6 +34,7 @@ sub _init
           ignore_last_char
           start_bound
           end_bound
+          kw
           /
     );
 }
@@ -123,6 +124,10 @@ value is inherited from S::T::RegExp.
 
 The regular expression class used in constructing the regular expressions. This
 value is inherited from S::T::RegExp.
+
+=head2 kw
+
+Get the original S::T::Keywords object from which the object is derived.
 
 =head1 AUTHOR
 

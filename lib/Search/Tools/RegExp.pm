@@ -85,9 +85,16 @@ sub _init
           end_bound
           ignore_first_char
           ignore_last_char
+          stemmer
 
           /
     );
+
+    $self->{wildcard} ||= $self->{kw_opts}->{wildcard} || '*';
+    $self->{word_characters}  ||= $WordChar;
+    $self->{end_characters}   ||= $EndChar;
+    $self->{begin_characters} ||= $BegChar;
+
     $self->kw(
               Search::Tools::Keywords->new(
                           %{
@@ -95,17 +102,16 @@ sub _init
                                 || {
                                   ignore_first_char => $self->ignore_first_char,
                                   ignore_last_char  => $self->ignore_last_char,
-                                  wildcard          => $self->wildcard
+                                  wildcard          => $self->wildcard,
+                                  stemmer           => $self->stemmer,
+                                  word_characters   => $self->word_characters,
+                                  begin_characters  => $self->begin_characters,
+                                  end_characters    => $self->end_characters
                                 }
                             }
               )
              )
       unless $self->kw;
-
-    $self->{wildcard} ||= $self->{kw_opts}->{wildcard} || '*';
-    $self->{word_characters}  ||= $WordChar;
-    $self->{end_characters}   ||= $EndChar;
-    $self->{begin_characters} ||= $BegChar;
 
     # a search for a '<' or '>' should still highlight,
     # since &lt; or &gt; can be indexed as literal < and >
@@ -194,6 +200,7 @@ sub build
                                   ignore_last_char  => $self->ignore_last_char,
                                   start_bound       => $self->start_bound,
                                   end_bound         => $self->end_bound,
+                                  kw                => $self->kw,
       );
 
     return $kw;

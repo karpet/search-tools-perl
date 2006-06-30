@@ -37,7 +37,7 @@ sub snipper
 sub transliterate
 {
     my $class = shift;
-    return Searc::Tools::Transliterate->new->convert(@_);
+    return Search::Tools::Transliterate->new->convert(@_);
 }
 
 1;

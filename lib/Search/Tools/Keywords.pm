@@ -152,7 +152,8 @@ sub extract
             my (@w) = split /\s+/;
           W: for my $w (@w)
             {
-                my $f = $self->stemmer($w);
+                my $func = $self->stemmer;
+                my $f = &$func($self,$w);
 
                 #warn "w: $w\nf: $f\n";
 

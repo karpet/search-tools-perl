@@ -48,6 +48,16 @@ it to taste with:
  my $tr = Search::Tools::Transliterate->new;
  $Search::Tools::Transliterate::Map{mychar} = 'my transliteration';
 
+=head1 BUGS
+
+You might consider the whole attempt as a bug. It's really an attempt to 
+accomodate applications that don't support Unicode. Perhaps we shouldn't even
+try. But for things like curly quotes and other 'smart' punctuation, it's often
+helpful to render the UTF-8 character as B<something> rather than just letting
+a character without a direct translation slip into the ether.
+
+That said, if a character has no mapping (and there are plenty that do not)
+a single space will be used.
 
 =head1 AUTHOR
 
@@ -135,6 +145,9 @@ sub convert
     my $self   = shift;
     my $buf    = shift;
     my $newbuf = '';
+    
+    # don't bother unless we have non-ascii bytes
+    return $buf unless $buf =~ m/[^\x{00}-\x{7f}]/o;
 
     Encode::_utf8_off($buf);
 

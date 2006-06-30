@@ -62,7 +62,7 @@ sub _init
     $self->{max_chars} ||= 300;
     $self->{context}   ||= 8;
     $self->{word_len}  ||= 5;
-    $self->{show}      ||= 0;
+    $self->{show}      ||= 1;
     for (qw/collapse_whitespace/)
     {
         $self->{$_} = 1 unless defined $self->{$_};
@@ -181,8 +181,10 @@ sub _build_query
 sub snip
 {
     my $self = shift;
-    my $text = shift or croak "need text to snip()";
+    my $text = shift or return '';
     my $func = $self->snipper;
+    
+    #carp "snipping: $text";
 
     # phrases must use re_snip()
     # so check if any of our queries contain a space
@@ -195,6 +197,8 @@ sub snip
     return $text if length($text) < $self->max_chars;
 
     my $s = &$func($self, $text);
+    
+    #carp "snipped: $s";
 
     # sanity check
     $s = $self->_dumb_snip($s) if (length($s) > ($self->max_chars * 2));
@@ -214,14 +218,18 @@ sub _loop_snip
     my $self = shift;
     $self->snipper_name('loop_snip');
 
-    my $txt = shift || return '';
+    my $txt = shift or return '';
 
     my $regexp = $self->{_qre};
 
-    #warn $regexp;
+    #carp "loop snip: $txt";
+    
+    #carp "regexp: $regexp";
 
     # no matches
     return $self->_dumb_snip($txt) unless $txt =~ m/$regexp/;
+
+    #carp "loop snip: $txt";
 
     #timetick('start loop_snip()');
 
@@ -568,6 +576,7 @@ sub _dumb_snip
     #timetick('start dumb_snip()');
     my $self = shift;
     return '' unless $self->show;
+    
     my $txt = shift;
     my $max = $self->max_chars;
     $self->snipper_name('dumb_snip');
