@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use Carp;
-use Data::Dumper;
+#use Data::Dumper;      # just for debugging
 use Search::Tools::XML;
 use Search::Tools::RegExp;
 

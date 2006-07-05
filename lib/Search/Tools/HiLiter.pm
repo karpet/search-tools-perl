@@ -4,7 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Carp;
-use Data::Dumper;
+#use Data::Dumper;      # just for debugging
 use Search::Tools::RegExp;
 
 use base qw( Class::Accessor::Fast );

@@ -16,6 +16,8 @@ This module requires these other modules and libraries:
 
   Class::Accessor::Fast
   Search::QueryParser
+  Encode
+  Carp
 
 COPYRIGHT AND LICENCE
 

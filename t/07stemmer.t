@@ -10,11 +10,13 @@ my %q = (
 ok(
     my $re = Search::Tools::RegExp->new(
         lang    => 'en_us',
-        kw_opts => {stopwords => 'the brown'},
-        stemmer => sub {
+        kw_opts => {
+         stopwords => 'the brown', 
+         stemmer => sub {
             my $w = $_[1];
             $w =~ s/s$//;
             return $w;
+         }
         }
     ),
 

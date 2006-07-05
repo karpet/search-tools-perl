@@ -9,7 +9,7 @@ use POSIX qw(locale_h);
 use locale;
 
 use Carp;
-use Data::Dumper;
+#use Data::Dumper;      # just for debugging
 use Encode;
 use Search::QueryParser;
 
@@ -160,7 +160,7 @@ sub extract
         # if stem ne word, break into chars and find first N common
         # rejoin $uniq
 
-        #warn "stemming ON\n";
+        #carp "stemming ON\n";
 
       K: for (keys %words)
         {
@@ -322,12 +322,12 @@ stemmed. It should return exactly one value: the stemmed word.
 Example stemmer function:
 
  use Lingua::Stem;
- my $stemmer = Lingua::Stem->new(-locale => 'EN-US');
+ my $stemmer = Lingua::Stem->new;
  
  sub mystemfunc
  {
      my ($kw,$word) = @_;
-     return $stemmer->stem($word);
+     return $stemmer->stem($word)->[0];
  }
  
  # and pass to Keywords new() method:

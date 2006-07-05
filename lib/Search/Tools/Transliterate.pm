@@ -4,8 +4,10 @@ require 5.008;
 use strict;
 use warnings;
 use Carp;
-use Data::Dumper;
+#use Data::Dumper;      # just for debugging
 use Encode;
+
+our $VERSION = '0.01';
 
 
 =pod
