@@ -57,8 +57,20 @@ This affects things like the unescape* methods.
 
 =head1 VARIABLES
 
- # TODO
+=head2 %Ents
+
+Basic HTML/XML characters that must be escaped:
+
+ '>' => '&gt;',
+ '<' => '&lt;',
+ '&' => '&amp;',
+ '"' => '&quot;',
+ "'" => '&apos;'
  
+=head2 %HTML_ents
+
+Complete map of all named HTML entities to their decimal values.
+
 =cut
 
 our %Ents = (

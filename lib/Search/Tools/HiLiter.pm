@@ -3,17 +3,8 @@ package Search::Tools::HiLiter;
 use 5.008;
 use strict;
 use warnings;
-
-#
-# TODO support stopwords in phrases
-#
-
-
-
 use Carp;
 use Data::Dumper;
-#use Time::TimeTick;
-
 use Search::Tools::RegExp;
 
 use base qw( Class::Accessor::Fast );
@@ -212,8 +203,6 @@ sub html
     my $text = shift or croak "need text to light()";
     my @q    = $self->keywords;
 
-    #timetick('start html()');
-
     ###################################################################
     # 1.	create hash of query -> [ array of real HTML to hilite ]
     # 	    using the prebuilt regexp
@@ -257,7 +246,6 @@ sub html
 
     }
 
-    #timetick('end html()');
     return $text;
 }
 
@@ -375,7 +363,6 @@ sub plain
     my $text = shift or croak "need text to light()";
     my @q    = $self->keywords;
 
-    #timetick('start plain()');
 
   Q: for my $query (@q)
     {
@@ -411,8 +398,6 @@ sub plain
         }
 
     }
-
-    #timetick('end plain()');
 
     return $text;
 

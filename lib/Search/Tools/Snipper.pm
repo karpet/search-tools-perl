@@ -4,7 +4,6 @@ package Search::Tools::Snipper;
 # TODO GNU grep does this much better and faster.
 # could we XS some of that beauty?
 #
-# TODO support stopwords in phrases
 
 use 5.008;
 use strict;
@@ -12,17 +11,13 @@ use warnings;
 
 use Carp;
 use Data::Dumper;
-#use Time::TimeTick;
-
 use Search::Tools::XML;
 use Search::Tools::RegExp;
 
 use base qw( Class::Accessor::Fast );
 
 our $VERSION = '0.01';
-
-our $ellip = ' ... ';
-
+our $ellip   = ' ... ';
 
 sub new
 {
@@ -110,7 +105,6 @@ sub _init
 
 }
 
-
 sub _word_regexp
 {
 
@@ -183,7 +177,7 @@ sub snip
     my $self = shift;
     my $text = shift or return '';
     my $func = $self->snipper;
-    
+
     #carp "snipping: $text";
 
     # phrases must use re_snip()
@@ -197,7 +191,7 @@ sub snip
     return $text if length($text) < $self->max_chars;
 
     my $s = &$func($self, $text);
-    
+
     #carp "snipped: $s";
 
     # sanity check
@@ -223,15 +217,13 @@ sub _loop_snip
     my $regexp = $self->{_qre};
 
     #carp "loop snip: $txt";
-    
+
     #carp "regexp: $regexp";
 
     # no matches
     return $self->_dumb_snip($txt) unless $txt =~ m/$regexp/;
 
     #carp "loop snip: $txt";
-
-    #timetick('start loop_snip()');
 
     my $context = $self->context;
     my $occur   = $self->occur;
@@ -311,8 +303,6 @@ sub _loop_snip
 
     $self->_escape($snippet);
 
-    #timetick('end loop_snip()');
-
     return $snippet;
 
 }
@@ -321,8 +311,6 @@ sub _re_snip
 {
 
     # get first N matches for each q, then take one of each till we have $occur
-
-    #timetick('start re_snip()');
 
     my $self = shift;
     my $text = shift;
@@ -401,8 +389,6 @@ sub _re_match
     # if escape = 0 and if prefix or suffix contains a < or >, try to include entire tagset.
 
     my ($self, $text, $re, $total, $snips, $ranges, $Nchar, $max_snips) = @_;
-
-    #timetick('start re_match');
 
     my $t_len = length $$text;
 
@@ -563,8 +549,6 @@ sub _re_match
         last if $cnt >= $max_snips;
     }
 
-    #timetick("end re_match - total is $$total");
-
     return $cnt;
 }
 
@@ -573,10 +557,9 @@ sub _dumb_snip
 
     # just grap the first X chars and return
 
-    #timetick('start dumb_snip()');
     my $self = shift;
     return '' unless $self->show;
-    
+
     my $txt = shift;
     my $max = $self->max_chars;
     $self->snipper_name('dumb_snip');
@@ -587,8 +570,6 @@ sub _dumb_snip
     $self->_escape($show);
 
     $self->count(1 + $self->count);
-
-    #timetick('end dumb_snip()');
 
     return $show;
 

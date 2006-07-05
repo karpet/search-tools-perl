@@ -60,6 +60,7 @@ sub _make_utf8
     # make sure our query is UTF-8
     if (!Encode::is_utf8($str))
     {
+
         #carp "converting $str from " . $self->charset . " -> utf8";
         Encode::from_to($str, $self->charset, 'utf8');
     }
@@ -102,13 +103,27 @@ sub extract
         $self->_get_v(\%uniq, $p, $c);
     }
 
-    #carp "parsed: " . Dumper( \%uniq );
+    #carp "parsed: " . Dumper(\%uniq);
 
+    my $count = scalar(keys %uniq);
     # remove any stopwords
-    # NOTE this leaves stopwords inside phrases
-    delete $uniq{$_} for @$stopwords;
+    # including splitting up phrases
+    for my $stop (@$stopwords)
+    {
+        delete $uniq{$stop};
 
-    #carp "stopwords: " . Dumper( \%uniq );
+        for my $u (grep { m/(\A|\ )$stop(\ |\Z)/ } keys %uniq)
+        {
+            delete $uniq{$u};
+            for my $w (split(m/\s+/, $u))
+            {
+                next if $w =~ m/^(\Q$stop\E|$and_word|$or_word|$not_word)$/i;
+                $uniq{$w} = $count++;
+            }
+        }
+    }
+
+    #carp "stopwords: " . Dumper(\%uniq);
 
     # remove any ignore chars
   W: for my $w (keys %uniq)
@@ -153,7 +168,7 @@ sub extract
           W: for my $w (@w)
             {
                 my $func = $self->stemmer;
-                my $f = &$func($self,$w);
+                my $f    = &$func($self, $w);
 
                 #warn "w: $w\nf: $f\n";
 
@@ -249,6 +264,12 @@ Search::Tools::Keywords - extract keywords from a search query
             );
             
  my @words = $kw->extract( $query );
+ # returns:
+ #   quick
+ #   fox
+ #   brown
+ #   lazy dog
+ #   jumped
  
  
 =head1 DESCRIPTION
@@ -289,22 +310,70 @@ then only C<foo> is returned. Likewise:
  
 would return only C<foo>.
 
+B<NOTE:> All queries are converted to UTF-8. See the C<charset> param.
 
 =head2 stemmer
 
+The stemmer function is used to find the root 'stem' of a word. There are many
+stemming algorithms available, including many on CPAN. The stemmer function
+should expect to receive two parameters: the Keywords object and the word to be
+stemmed. It should return exactly one value: the stemmed word.
+
+Example stemmer function:
+
+ use Lingua::Stem;
+ my $stemmer = Lingua::Stem->new(-locale => 'EN-US');
+ 
+ sub mystemfunc
+ {
+     my ($kw,$word) = @_;
+     return $stemmer->stem($word);
+ }
+ 
+ # and pass to Keywords new() method:
+ 
+ my $keyword_obj = Search::Tools::Keyword->new(stemmer => \&mystemfunc);
+     
 =head2 stopwords
+
+A list of common words that should be ignored in parsing out keywords. 
+
+B<NOTE:> If a stopword is contained in a phrase, then the phrase 
+will be split into its separate words based on whitespace.
 
 =head2 ignore_first_char
 
+String of characters to strip from the beginning of all words.
+
 =head2 ignore_last_char
+
+String of characters to strip from the end of all words.
 
 =head2 and_word
 
+Default: C<and>
+
 =head2 or_word
+
+Default: C<or>
 
 =head2 not_word
 
+Default: C<not>
+
 =head2 wildcard
+
+Default: C<*>
+
+=head2 locale
+
+Set a locale explicitly for a Keywords object. The C<charset> value is extracted
+from the locale. If not set, the locale is inherited from the C<LC_CTYPE> environment
+variable.
+
+=head2 charset
+
+Base charset used for converting queries to UTF-8. If not set, extracted from C<locale>.
 
 =head1 AUTHOR
 

@@ -3,10 +3,10 @@ use Test::More tests => 7;
 BEGIN { use_ok('Search::Tools::RegExp') }
 
 my %q = (
-    'the quick'                         => 'quick',         # stopwords
-    '"the quick brown fox"'             => '"the quick brown fox"', # phrase stopwords
-    
-);
+    'the quick'             => 'quick',        # stopwords
+    '"the quick brown fox"' => 'quick fox',    # phrase stopwords
+
+        );
 
 ok(
     my $re =
@@ -22,12 +22,13 @@ ok(my $kw = $re->build([keys %q]), "build re");
 
 for my $w ($kw->keywords)
 {
-    my $r = $kw->re($w);
+    my $r     = $kw->re($w);
+    my $plain = $r->plain;
+    my $html  = $r->html;
 
-    #diag($w);
-    like($w, $r->plain, $w);
-    like($w, $r->html,  $w);
+    like($w, qr{^$plain$}, $w);
+    like($w, qr{^$html$},  $w);
 
-    #diag($r->plain);
+    #diag($plain);
 
 }

@@ -87,7 +87,7 @@ while (<DATA>)
 {
     chomp;
     my ($from, $to) = (m/^(<U.+?>)\ (.+)$/);
-    $Map{Utag_to_chr($from)} = Utag_to_chr($to);
+    $Map{_Utag_to_chr($from)} = _Utag_to_chr($to);
 }
 
 # add/override latin1
@@ -113,7 +113,7 @@ our $valid_utf8_regexp = <<EOE;
 EOE
 
 
-sub Utag_to_chr
+sub _Utag_to_chr
 {
     my $t = shift;
 
