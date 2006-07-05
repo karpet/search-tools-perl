@@ -27,4 +27,6 @@ lib/Search/Tools/RegExp.pm
 lib/Search/Tools/RegExp/Keywords.pm
 lib/Search/Tools/RegExp/Keyword.pm
 lib/Search/Tools/XML.pm
-META.yml                                 Module meta-data (added by MakeMaker)
+example/dirsearch.pl
+example/qp.pl
+example/swish-e.pl
