@@ -12,7 +12,7 @@ use Search::Tools::HiLiter;
 use Search::Tools::Transliterate;
 use Search::Tools::XML;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub regexp
 {

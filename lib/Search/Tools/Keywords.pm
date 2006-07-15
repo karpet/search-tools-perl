@@ -15,7 +15,7 @@ use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new
 {
@@ -269,7 +269,6 @@ Search::Tools::Keywords - extract keywords from a search query
  #   fox
  #   brown
  #   lazy dog
- #   jumped
  
  
 =head1 DESCRIPTION
@@ -283,7 +282,7 @@ complicated. In order to separate the wheat from the chafe, the supporting
 words and symbols are removed and just the actual search terms (keywords)
 are returned.
 
-This class is used internally be Search::Tools::RegExp. You probably don't need
+This class is used internally by Search::Tools::RegExp. You probably don't need
 to use it directly. But if you do, read on.
 
 =head1 METHODS

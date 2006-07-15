@@ -601,14 +601,14 @@ __END__
 
 =head1 NAME
 
-Search::Tools::Snippet - extract keywords in context
+Search::Tools::Snipper - extract keywords in context
 
 =head1 SYNOPSIS
 
  my $query = [ qw/ quick dog / ];
  my $text  = 'the quick brown fox jumped over the lazy dog';
  
- my $s = Search::Tools::Snippet->new(
+ my $s = Search::Tools::Snipper->new(
             occur       => 3,
             context     => 8,
             word_len    => 5,
@@ -621,7 +621,7 @@ Search::Tools::Snippet - extract keywords in context
  
 =head1 DESCRIPTION
 
-Search::Tools::Snippet extracts keywords and their context from a larger
+Search::Tools::Snipper extracts keywords and their context from a larger
 block of text. The larger block may be plain text or HTML/XML.
 
 

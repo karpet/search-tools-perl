@@ -4,4 +4,5 @@ Revision history for Perl extension Search::HiLiter.
 	- original version
 
 0.02	added example/ scripts
-
+        fixed S::T::K SYNOPSIS to reflect reality
+	minor POD fixes
