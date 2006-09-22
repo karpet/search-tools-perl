@@ -290,7 +290,7 @@ to use it directly. But if you do, read on.
 =head2 new( %opts )
 
 The new() method instantiates a S::T::K object. With the exception
-of extract(), all the following methods are can be passed as key/value
+of extract(), all the following methods can be passed as key/value
 pairs in new().
  
 =head2 extract( I<query> )
