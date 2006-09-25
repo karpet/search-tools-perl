@@ -17,7 +17,9 @@ use POSIX qw(locale_h);
 use locale;
 
 use Carp;
+use Data::Dump qw/dump/;
 use SWISH::API::Stat;
+#use SWISH::API;
 use Search::Tools;
 use Getopt::Long;
 use Encode;
@@ -114,7 +116,8 @@ else
 sub open_index
 {
     my $i = shift;
-    my $swish = SWISH::API::Stat->new("$i");
+    my $swish = SWISH::API::Stat->new(indexes => "$i", log => *{STDERR});
+    #my $swish = SWISH::API->new("$i");
 
     if ($swish->Error)
     {
@@ -136,6 +139,8 @@ sub search
         $search->SetSearchLimit($property, $low, $high);
         $swish->AbortLastError if $swish->Error;
     }
+    
+    #carp dump $search;
 
     # then in a loop
     my $results = $search->Execute($q);
@@ -148,7 +153,8 @@ sub search
     # Display a list of results
 
     my $hits = $results->Hits;
-    $maxresults ||= $hits;
+    my $limit = $maxresults || $hits;
+    
     if (!$hits)
     {
         print "No Results\n";
@@ -206,7 +212,7 @@ sub search
 
         while (my $result = $results->NextResult)
         {
-            last if ++$count > $maxresults;
+            last if ++$count > $limit;
 
             print "~" x 80 . "\n";
 
