@@ -6,3 +6,5 @@ Revision history for Perl extension Search::HiLiter.
 0.02	added example/ scripts
         fixed S::T::K SYNOPSIS to reflect reality
 	minor POD fixes
+        added is_valid_utf8() method to S::T::Transliterate
+           along with valid utf8 check in convert()
