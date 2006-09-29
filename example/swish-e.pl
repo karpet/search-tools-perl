@@ -308,6 +308,11 @@ sub to_utf8
 {
     return unless defined($_[0]);
     return($_[0]) if Encode::is_utf8($_[0]);
-    return($_[0]) if Search::Tools::Transliterate->is_valid_utf8($_[0]);
+    if (Search::Tools::Transliterate->is_valid_utf8($_[0]))
+    {
+        my $s = shift @_;
+        Encode::_utf8_on($s);
+        return $s;
+    }
     return Encode::encode_utf8(Encode::decode($charset, $_[0], 1));
 }
