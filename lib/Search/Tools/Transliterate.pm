@@ -43,7 +43,7 @@ check if the internal Perl C<utf8> flag is set or not.
 
 =head2 convert( I<text> )
 
-Returns UTF8 I<text> converted with all single bytes, transliterated according
+Returns UTF-8 I<text> converted with all single bytes, transliterated according
 to %Map. Will croak if I<text> is not valid UTF-8, so if in doubt, check first with
 is_valid_utf8().
 
@@ -106,7 +106,7 @@ for (128 .. 255)
 }
 
 
-# A Regexp string to match valid UTF8 bytes
+# A Regexp string to match valid UTF-8 bytes
 # this info comes from page 78 of "The Unicode Standard 4.0"
 # published by the Unicode Consortium
 # cribbed from Test::utf8 methinks...
@@ -189,11 +189,11 @@ sub convert
     # don't bother unless we have non-ascii bytes
     return $buf unless $buf =~ m/[^\x{00}-\x{7f}]/o;
     
-    # make sure we've got valid UTF8 to start with
+    # make sure we've got valid UTF-8 to start with
     my $pos = _invalid_sequence_at_byte($buf);
     if(defined($pos))
     {
-        croak "bad UTF8 byte at $pos";
+        croak "bad UTF-8 byte at $pos";
     }
 
     Encode::_utf8_off($buf);
