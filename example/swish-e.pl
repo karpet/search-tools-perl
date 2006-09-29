@@ -6,7 +6,7 @@
 # plus Search::Tools stuff
 #
 
-require 5.008;
+require 5.8.1;
 use strict;
 use warnings;
 
@@ -19,13 +19,15 @@ use locale;
 use Carp;
 use Data::Dump qw/dump/;
 use SWISH::API::Stat;
-#use SWISH::API;
+
 use Search::Tools;
 use Getopt::Long;
 use Encode;
 use Text::Wrap;
 use File::Basename;
 use Time::HiRes;
+
+binmode STDOUT, ':raw'; # is this really needed?
 
 
 my %skip       = ();                # properties to skip in output
@@ -53,8 +55,13 @@ my $usage = <<HELP;
     and highlighted using the Search::Tools modules.
 
     $script is NOT a replacement for the swish-e tool. It
-    is an example of using SWISH::API and Search::Tools
+    is an example of using SWISH::API::Stat and Search::Tools
     together.
+    
+    $script output will all be in UTF-8 regardless of how
+    the properties are stored in the Swish-e index. The current
+    LOCALE env settings will be applied to non UTF-8 strings when
+    converting to UTF-8.
     
     Options:
     
@@ -115,8 +122,9 @@ else
 
 sub open_index
 {
-    my $i = shift;
+    my $i     = shift;
     my $swish = SWISH::API::Stat->new(indexes => "$i", log => *{STDERR});
+
     #my $swish = SWISH::API->new("$i");
 
     if ($swish->Error)
@@ -129,9 +137,9 @@ sub open_index
 
 sub search
 {
-    my $q      = shift;
-        
-    my $start = [Time::HiRes::gettimeofday()];
+    my $q = shift;
+
+    my $start  = [Time::HiRes::gettimeofday()];
     my $search = $swish->New_Search_Object;
 
     if ($property)
@@ -139,7 +147,7 @@ sub search
         $search->SetSearchLimit($property, $low, $high);
         $swish->AbortLastError if $swish->Error;
     }
-    
+
     #carp dump $search;
 
     # then in a loop
@@ -152,9 +160,9 @@ sub search
 
     # Display a list of results
 
-    my $hits = $results->Hits;
+    my $hits  = $results->Hits;
     my $limit = $maxresults || $hits;
-    
+
     if (!$hits)
     {
         print "No Results\n";
@@ -164,10 +172,9 @@ sub search
 
         print "Found $hits hits\n";
         print "Search time: ";
-        printf("%0.4f sec\n", Time::HiRes::tv_interval(
-				$start, [Time::HiRes::gettimeofday()]
-				));
-                
+        printf("%0.4f sec\n",
+               Time::HiRes::tv_interval($start, [Time::HiRes::gettimeofday()]));
+
         my $start_display = [Time::HiRes::gettimeofday()];
 
         my $kwre = Search::Tools->regexp(
@@ -227,6 +234,7 @@ sub search
 
                 my $v = $result->Property($n) || '';
                 $v = to_utf8($v);
+                
 
                 if ($n eq 'swishlastmodified')
                 {
@@ -250,11 +258,15 @@ sub search
             }
 
         }
-        
+
         print "Render time: ";
-        printf("%0.4f sec\n", Time::HiRes::tv_interval(
-				$start_display, [Time::HiRes::gettimeofday()]
-				));
+        printf(
+               "%0.4f sec\n",
+               Time::HiRes::tv_interval(
+                                        $start_display,
+                                        [Time::HiRes::gettimeofday()]
+                                       )
+              );
 
     }
 
@@ -287,7 +299,15 @@ sub stem
 
 }
 
+# there are lots of ways to determine if a byte string is UTF8
+# but some are more fool-proof than others.
+# since SWISH::API returns byte strings, Perl can't tell whether to flag them
+# internally as utf8. so we have to manually check.
+# we try a couple ways before manually decoding per current locale
 sub to_utf8
 {
+    return unless defined($_[0]);
+    return($_[0]) if Encode::is_utf8($_[0]);
+    return($_[0]) if Search::Tools::Transliterate->is_valid_utf8($_[0]);
     return Encode::encode_utf8(Encode::decode($charset, $_[0], 1));
 }

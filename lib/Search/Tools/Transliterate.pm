@@ -4,10 +4,10 @@ require 5.008;
 use strict;
 use warnings;
 use Carp;
-#use Data::Dumper;      # just for debugging
+#use Data::Dump qw/dump/;      # just for debugging
 use Encode;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =pod
@@ -36,10 +36,17 @@ by Markus Kuhn http://www.cl.cam.ac.uk/~mgk25/.
 
 Create new instance.
 
+=head2 is_valid_utf8( I<text> )
+
+Returns true if I<text> is a valid sequence of UTF-8 bytes. It does B<not>
+check if the internal Perl C<utf8> flag is set or not.
+
 =head2 convert( I<text> )
 
-Returns I<text> converted with all single bytes, transliterated according
-to %Map.
+Returns UTF8 I<text> converted with all single bytes, transliterated according
+to %Map. Will croak if I<text> is not valid UTF-8, so if in doubt, check first with
+is_valid_utf8().
+
 
 =head1 VARIABLES
 
@@ -76,7 +83,7 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::Tools, Unicode::Map, Encode
+Search::Tools, Unicode::Map, Encode, Test::utf8
 
 =cut
 
@@ -102,6 +109,7 @@ for (128 .. 255)
 # A Regexp string to match valid UTF8 bytes
 # this info comes from page 78 of "The Unicode Standard 4.0"
 # published by the Unicode Consortium
+# cribbed from Test::utf8 methinks...
 our $valid_utf8_regexp = <<EOE;
         [\x{00}-\x{7f}]
       | [\x{c2}-\x{df}][\x{80}-\x{bf}]
@@ -142,6 +150,36 @@ sub _init
     @$self{keys %extra} = values %extra;
 }
 
+# cribbed from Test::utf8
+sub _invalid_sequence_at_byte($)
+{
+  my $string = shift;
+
+  # examine the bytes that make up the string (not the chars)
+  # by turning off the utf8 flag (no, use bytes doens't
+  # work, we're dealing with a regexp)
+  Encode::_utf8_off($string);
+
+  # work out the index of the first non matching byte
+  my $result = $string =~ m/^($valid_utf8_regexp)*/ogx;
+
+  # if we matched all the string return the empty list
+  my $pos = pos $string || 0;
+  return if $pos == length($string);
+
+  # otherwise return the position we found
+  return $pos
+}
+
+
+sub is_valid_utf8
+{
+    my $self = shift;
+    my $buf = shift;
+    return defined(_invalid_sequence_at_byte($buf)) ? 0 : 1;
+}
+
+
 sub convert
 {
     my $self   = shift;
@@ -150,6 +188,13 @@ sub convert
     
     # don't bother unless we have non-ascii bytes
     return $buf unless $buf =~ m/[^\x{00}-\x{7f}]/o;
+    
+    # make sure we've got valid UTF8 to start with
+    my $pos = _invalid_sequence_at_byte($buf);
+    if(defined($pos))
+    {
+        croak "bad UTF8 byte at $pos";
+    }
 
     Encode::_utf8_off($buf);
 
