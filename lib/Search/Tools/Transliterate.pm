@@ -41,6 +41,13 @@ Create new instance.
 Returns true if I<text> is a valid sequence of UTF-8 bytes. It does B<not>
 check if the internal Perl C<utf8> flag is set or not.
 
+
+=head2 is_ascii( I<text> )
+
+If I<text> contains no bytes above 127, then returns true (1). Otherwise,
+returns false (0). Used by convert() internally to check I<text> prior
+to transliterating.
+
 =head2 convert( I<text> )
 
 Returns UTF-8 I<text> converted with all single bytes, transliterated according
@@ -179,6 +186,13 @@ sub is_valid_utf8
     return defined(_invalid_sequence_at_byte($buf)) ? 0 : 1;
 }
 
+sub is_ascii
+{
+    my $self = shift;
+    my $buf = shift;
+    return $buf =~ m/[^\x{00}-\x{7f}]/o ? 0 : 1;
+}
+
 
 sub convert
 {
@@ -187,7 +201,7 @@ sub convert
     my $newbuf = '';
     
     # don't bother unless we have non-ascii bytes
-    return $buf unless $buf =~ m/[^\x{00}-\x{7f}]/o;
+    return $buf if $self->is_ascii($buf); 
     
     # make sure we've got valid UTF-8 to start with
     my $pos = _invalid_sequence_at_byte($buf);
