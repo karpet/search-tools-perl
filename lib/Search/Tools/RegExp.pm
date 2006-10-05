@@ -12,7 +12,7 @@ use Search::Tools::XML;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my %char2entity = ();
 while (my ($e, $n) = each(%Search::Tools::XML::HTML_ents))
@@ -302,17 +302,17 @@ Search::Tools::RegExp - build regular expressions from search queries
 
 =head1 SYNOPSIS
 
- my $re = Search::Tools::RegExp->new();
+ my $regexp = Search::Tools::RegExp->new();
  
- my $kw = $re->build('the quick brown fox');
+ my $kw = $regexp->build('the quick brown fox');
  
  for my $w ($kw->keywords)
  {
-    my $re = $kw->re( $w );
+    my $r = $kw->re( $w );
     
     # each of these are regular expressions
-    print $re->plain;
-    print $re->html;
+    print $r->plain;
+    print $r->html;
  }
  
  
