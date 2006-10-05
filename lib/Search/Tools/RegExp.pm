@@ -58,6 +58,15 @@ my @whitesp = (
 
 our $WhiteSpace = join('|', @whitesp);
 
+my @acc = qw(
+  wildcard
+  word_characters
+  ignore_first_char
+  ignore_last_char
+  stemmer
+  phrase_delim
+  );
+
 sub new
 {
     my $class = shift;
@@ -74,43 +83,32 @@ sub _init
     @$self{keys %extra} = values %extra;
 
     $self->mk_accessors(
-        qw/
+        qw(
           kw
           kw_opts
-          wildcard
-          word_characters
-          begin_characters
-          end_characters
           start_bound
           end_bound
-          ignore_first_char
-          ignore_last_char
-          stemmer
-
-          /
+          begin_characters
+          end_characters
+          ),
+        @acc
     );
 
     $self->{wildcard} ||= $self->{kw_opts}->{wildcard} || '*';
     $self->{word_characters}  ||= $WordChar;
     $self->{end_characters}   ||= $EndChar;
     $self->{begin_characters} ||= $BegChar;
+    $self->{phrase_delim} ||= $PhraseDelim;
 
-    $self->kw(
-              Search::Tools::Keywords->new(
-                          %{
-                              $self->kw_opts
-                                || {
-                                  ignore_first_char => $self->ignore_first_char,
-                                  ignore_last_char  => $self->ignore_last_char,
-                                  wildcard          => $self->wildcard,
-                                  stemmer           => $self->stemmer,
-                                  word_characters   => $self->word_characters,
-                                  begin_characters  => $self->begin_characters,
-                                  end_characters    => $self->end_characters
-                                }
-                            }
-              )
-             )
+    $self->{kw_opts} ||= {};
+
+    # inherit our opts
+    for (@acc)
+    {
+        $self->{kw_opts}->{$_} ||= $self->{$_};
+    }
+
+    $self->kw(Search::Tools::Keywords->new(%{$self->kw_opts}))
       unless $self->kw;
 
     # a search for a '<' or '>' should still highlight,
@@ -373,7 +371,11 @@ Default is derived from end_characters.
 
 =item stemmer
 
-Stemming SUB ref passed through to the default Search::Tools::Keywords object.
+Stemming code ref passed through to the default Search::Tools::Keywords object.
+
+=item phrase_delim
+
+Phrase delimiter. Defaults to C<$PhraseDelim>.
 
 =back
 

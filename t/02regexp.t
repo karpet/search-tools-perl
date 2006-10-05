@@ -1,4 +1,4 @@
-use Test::More tests => 63;
+use Test::More tests => 59;
 
 BEGIN { use_ok('Search::Tools::RegExp') }
 

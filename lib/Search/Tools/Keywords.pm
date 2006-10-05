@@ -9,10 +9,10 @@ use POSIX qw(locale_h);
 use locale;
 
 use Carp;
-#use Data::Dumper;      # just for debugging
+use Data::Dump qw/ pp /;    # just for debugging
 use Encode;
 use Search::QueryParser;
-
+use Search::Tools::RegExp;
 use Search::Tools::Transliterate;
 
 use base qw( Class::Accessor::Fast );
@@ -40,17 +40,22 @@ sub _init
           stopwords
           ignore_first_char
           ignore_last_char
+          word_characters
+          phrase_delim
           and_word
           or_word
           not_word
           wildcard
           locale
           charset
+          debug
           /
     );
 
     $self->{locale}  ||= setlocale(LC_CTYPE);
     $self->{charset} ||= ($self->{locale} =~ m/^.+?\.(.+)/ || 'iso-8859-1');
+    
+    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 
 }
 
@@ -58,7 +63,7 @@ sub _make_utf8
 {
     my $self = shift;
     my $str  = shift;
-    
+
     # simple byte check first
     if (Search::Tools::Transliterate->is_valid_utf8($str))
     {
@@ -80,20 +85,24 @@ sub extract
 {
     my $self      = shift;
     my $query     = shift or croak "need query to extract keywords";
-    my $stopwords = $self->stopwords;
+    my $stopwords = $self->stopwords || [];
     my $and_word  = $self->and_word || 'and';
     my $or_word   = $self->or_word || 'or';
     my $not_word  = $self->not_word || 'not';
     my $wildcard  = $self->wildcard || '*';
-    my $igf       = quotemeta($self->ignore_first_char || '');
-    my $igl       = quotemeta($self->ignore_last_char || '');
+    my $phrase    = $self->phrase_delim || '"';
+    my $igf       = $self->ignore_first_char
+      || '^' . $Search::Tools::RegExp::BegChar;
+    my $igl = $self->ignore_last_char || '^' . $Search::Tools::RegExp::EndChar;
+    my $wordchar = $self->word_characters
+      || $Search::Tools::RegExp::WordChar;
+
+    my $word_re = qr/^[$igf]*([$wordchar]+)[$igl]*$/;
 
     my @query = @{ref $query ? $query : [$query]};
-    if ($stopwords)
-    {
-        $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
-        $_ = $self->_make_utf8($_) for @$stopwords;
-    }
+    $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
+    my %stophash = map { $self->_make_utf8(lc($_)) => 1 } @$stopwords;
+
     my $esc_wildcard = quotemeta($wildcard);
 
     my (%words, %uniq, $c);
@@ -107,43 +116,75 @@ sub extract
 
   Q: for my $q (@query)
     {
-        $q = $self->_make_utf8($q);
-        my $p = $parser->parse($q, 1);
+        my $p = $parser->parse($self->_make_utf8($q), 1);
         $self->_get_v(\%uniq, $p, $c);
     }
 
-    #carp "parsed: " . Dumper(\%uniq);
+    $self->debug && carp "parsed: " . pp(\%uniq);
 
     my $count = scalar(keys %uniq);
-    # remove any stopwords
-    # including splitting up phrases
-    for my $stop (@$stopwords)
-    {
-        delete $uniq{$stop};
 
-        for my $u (grep { m/(\A|\ )$stop(\ |\Z)/ } keys %uniq)
+    # parse uniq into word tokens
+    # including removing stop words
+
+    U: for my $u (sort { $uniq{$a} <=> $uniq{$b} } keys %uniq)
+    {
+
+        my $n = $uniq{$u};
+
+        my $isphrase = $u =~ m/\Q$phrase\E/;
+
+        my @w = ();
+
+        TOK: for my $w (split(m/\s+/, $self->_make_utf8($u)))
         {
-            delete $uniq{$u};
-            for my $w (split(m/\s+/, $u))
+        
+            next TOK unless $w =~ m/\S/;
+        
+            $w =~ s/\Q$phrase\E//g;
+
+            my ($tok) = ($w =~ m/$word_re/);
+
+            unless ($tok =~ m/\S/)
             {
-                next if $w =~ m/^(\Q$stop\E|$and_word|$or_word|$not_word)$/i;
-                $uniq{$w} = $count++;
+                $self->debug && carp "no token for '$w' $word_re";
+                next TOK;
             }
+
+            if (exists $stophash{lc($tok)})
+            {
+                $self->debug && carp "$tok = stopword";
+                next TOK;
+            }
+
+            unless ($isphrase)
+            {
+                next TOK if lc($tok) eq lc($or_word);
+                next TOK if lc($tok) eq lc($and_word);
+                next TOK if lc($tok) eq lc($not_word);
+            }
+
+            # final sanity check
+            if (!Encode::is_utf8($tok))
+            {
+                carp "$tok is NOT utf8";
+                next TOK;
+            }
+
+            #$self->debug && carp "pushing $tok into wordlist";
+            push(@w, $tok);
+
         }
+        
+        next U unless @w;
+        
+        #$self->debug && carp "joining \@w: " . pp(\@w);
+
+        $words{join(' ', @w)} = $n + $count++;
+
     }
 
-    #carp "stopwords: " . Dumper(\%uniq);
-
-    # remove any ignore chars
-  W: for my $w (keys %uniq)
-    {
-        my $before = $w;
-        $w =~ s/(\A|\s+)[$igf]*/$1/gi if $igf;
-        $w =~ s/[$igl]*(\Z|\s+)/$1/gi if $igl;
-        $words{$w} = $uniq{$before};
-    }
-
-    #carp "ignorechars: " . Dumper( \%words );
+    $self->debug && carp "tokenized: " . pp(\%words);
 
     # make sure we don't have 'foo' and 'foo*'
     for (keys %words)
@@ -158,7 +199,7 @@ sub extract
         }
     }
 
-    #carp "wildcard: " . Dumper( \%words );
+    $self->debug && carp "wildcards removed: " . pp(\%words);
 
     # if any words need to be stemmed
     if ($self->stemmer)
@@ -208,7 +249,7 @@ sub extract
 
     }
 
-    #carp "stemmer: " . Dumper( \%words );
+    $self->debug && carp "steming done: " . pp(\%words);
 
     # sort keeps query in same order as we entered
     return (sort { $words{$a} <=> $words{$b} } keys %words);
@@ -260,6 +301,9 @@ Search::Tools::Keywords - extract keywords from a search query
 
 =head1 SYNOPSIS
 
+ use Search::Tools::Keywords;
+ use Search::Tools::RegExp;
+ 
  my $query = 'the quick fox color:brown and "lazy dog" not jumped';
  
  my $kw = Search::Tools::Keywords->new(
@@ -269,7 +313,10 @@ Search::Tools::Keywords - extract keywords from a search query
             not_word            => 'not',
             stemmer             => &your_stemmer_here,       
             ignore_first_char   => '\+\-',
-            ignore_last_char    => ''
+            ignore_last_char    => '',
+            word_characters     => $Search::Tools::RegExp::WordChar,
+            debug               => 0,
+            phrase_delim        => '"'
             );
             
  my @words = $kw->extract( $query );

@@ -3,8 +3,14 @@ Revision history for Perl extension Search::HiLiter.
 0.01  Thu Jun 22 08:06:59 2006
 	- original version
 
-0.02	added example/ scripts
-        fixed S::T::K SYNOPSIS to reflect reality
-	minor POD fixes
-        added is_valid_utf8() method to S::T::Transliterate
-           along with valid utf8 check in convert()
+0.02
+    * added example/ scripts
+    * fixed S::T::K SYNOPSIS to reflect reality
+    * POD fixes
+    * added is_valid_utf8() method to S::T::Transliterate
+      along with valid utf8 check in convert()
+    * rewrote S::T::Keywords logic to:
+        * correctly parse stopwords (all are compared with lc())
+        * return phrases as phrases
+        * additional UTF-8 checks
+        * parse according to RegExp character definitions
