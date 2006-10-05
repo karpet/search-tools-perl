@@ -1,6 +1,6 @@
 package Search::Tools::RegExp::Keyword;
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 use Carp;
@@ -38,9 +38,9 @@ Search::Tools::RegExp::Keyword - access regular expressions for a keyword
 
 =head1 SYNOPSIS
 
- my $re = Search::Tools::RegExp->new();
+ my $regexp = Search::Tools::RegExp->new();
  
- my $kw = $re->build('the quick brown fox');
+ my $kw = $regexp->build('the quick brown fox');
  
  for my $w ($kw->keywords)
  {

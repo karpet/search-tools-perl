@@ -13,9 +13,11 @@ use Carp;
 use Encode;
 use Search::QueryParser;
 
+use Search::Tools::Transliterate;
+
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new
 {
@@ -56,8 +58,15 @@ sub _make_utf8
 {
     my $self = shift;
     my $str  = shift;
+    
+    # simple byte check first
+    if (Search::Tools::Transliterate->is_valid_utf8($str))
+    {
+        Encode::_utf8_on($str);
+        return $str;
+    }
 
-    # make sure our query is UTF-8
+    # make sure our query is really UTF-8
     if (!Encode::is_utf8($str))
     {
 
@@ -336,9 +345,10 @@ Example stemmer function:
 =head2 stopwords
 
 A list of common words that should be ignored in parsing out keywords. 
+May be either a string that will be split on whitespace, or an array ref.
 
 B<NOTE:> If a stopword is contained in a phrase, then the phrase 
-will be split into its separate words based on whitespace.
+will be tokenized into words based on whitespace, then the stopwords removed.
 
 =head2 ignore_first_char
 

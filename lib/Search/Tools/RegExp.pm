@@ -39,8 +39,8 @@ our $UTF8Char = qr/\p{L}\p{M}*/;
 
 #our $UTF8Char = '\w';
 
-our $WordChar    = "$UTF8Char./-";
-our $BegChar     = "$UTF8Char./-";
+our $WordChar    = "$UTF8Char-";
+our $BegChar     = "$UTF8Char-";
 our $EndChar     = $UTF8Char;
 our $PhraseDelim = '"';
 
@@ -318,19 +318,107 @@ Search::Tools::RegExp - build regular expressions from search queries
  
 =head1 DESCRIPTION
 
-
+Build regular expressions for a string of text.
 
 =head1 METHODS
 
 =head2 new
 
-=head2 isHTML
+Create new object. The following parameters are also accessors:
 
-=head2 build
+=over
+
+=item kw
+
+A Search::Tools::Keywords object. If you want to pass in one instead of having
+one made for you.
+
+=item kw_opts
+
+Options to pass to the internal Search::Tools::Keywords object. If you pass in
+a I<kw> value, this option is ignored.
+
+=item wildcard
+
+The wildcard character. Default is C<*>.
+
+=item word_characters
+
+Regexp for what characters constitute a 'word'. Default is any UTF-8 character
+plus C<->. See the $UTF8Char variable.
+
+=item begin_characters
+
+Regexp for what characters may start a 'word'. Default is C<$BegChar>.
+
+=item end_characters
+
+Regexp for what characters may end a 'word'. Default is C<$EndChar>.
+
+=item start_bound
+
+Default is derived from begin_characters.
+
+=item end_bound
+
+Default is derived from end_characters.
+
+=item ignore_first_char
+
+Default is derived from begin_characters.
+
+=item ignore_last_char
+
+Default is derived from end_characters.
+
+=item stemmer
+
+Stemming SUB ref passed through to the default Search::Tools::Keywords object.
+
+=back
+
+=head2 isHTML( I<str> )
+
+Returns true if I<str> contains anything that looks like HTML markup: 
+
+ < > or &[#\w]+;
+
+This is a naive check but useful for internal purposes.
+
+=head2 build( I<str> )
+
+Returns a Search::Tools::RegExp::Keywords object.
 
 
 =head1 VARIABLES
 
+The following package variables are defined:
+
+=over
+
+=item UTF8Char
+
+Regexp defining a valid UTF-8 word character.
+
+ \p{L}\p{M}*
+
+=item WordChar
+
+Default word_characters regexp.
+
+=item BeginChar
+
+Default begin_characters regexp.
+
+=item EndChar
+
+Default end_characters regexp.
+
+=item PhraseDelim
+
+Phrase delimiter character. Default is double-quote '"'.
+
+=back
 
 =head1 BUGS and LIMITATIONS
 
@@ -338,7 +426,7 @@ All new() params should be flagged as UTF-8 strings. If you include non-ASCII ch
 in your regular expressions, etc., you should convert them first to UTF-8 with the standard
 Encode module.
 
-The special HTML chars < and > can pose problems in regexps against markup, so they
+The special HTML chars &, < and > can pose problems in regexps against markup, so they
 are ignored in any regexp params you pass to new().
 
 =head1 AUTHOR
