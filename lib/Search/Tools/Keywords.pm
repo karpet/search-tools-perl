@@ -145,7 +145,7 @@ sub extract
 
             my ($tok) = ($w =~ m/$word_re/);
 
-            unless ($tok =~ m/\S/)
+            unless ($tok)
             {
                 $self->debug && carp "no token for '$w' $word_re";
                 next TOK;
