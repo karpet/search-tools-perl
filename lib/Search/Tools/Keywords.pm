@@ -97,7 +97,7 @@ sub extract
     my $wordchar = $self->word_characters
       || $Search::Tools::RegExp::WordChar;
 
-    #my $word_re = qr/[$igf]*([$wordchar]+)[$igl]*/;
+    my $word_re = qr/[$igf]*([$wordchar]+)[$igl]*/;
     #my $word_re = qr/[$igf]*([\w\-]+)[$igl]*/;
 
     my @query = @{ref $query ? $query : [$query]};
