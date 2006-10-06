@@ -96,15 +96,17 @@ sub extract
     my $igl = $self->ignore_last_char || '^' . $Search::Tools::RegExp::EndChar;
     my $wordchar = $self->word_characters
       || $Search::Tools::RegExp::WordChar;
+      
+    my $esc_wildcard = quotemeta($wildcard);
 
-    my $word_re = qr/[$igf]*([$wordchar]+)[$igl]*/;
+    my $word_re = qr/[$igf]*([$wordchar]+($esc_wildcard)?)[$igl]*/;
     #my $word_re = qr/[$igf]*([\w\-]+)[$igl]*/;
 
     my @query = @{ref $query ? $query : [$query]};
     $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
     my %stophash = map { $self->_make_utf8(lc($_)) => 1 } @$stopwords;
 
-    my $esc_wildcard = quotemeta($wildcard);
+    
 
     my (%words, %uniq, $c);
 
@@ -155,6 +157,8 @@ sub extract
                     $self->debug && carp "no token for '$w' $word_re";
                     next TOK;
                 }
+                
+                $self->debug && carp "found token: $tok";
 
                 if (exists $stophash{lc($tok)})
                 {

@@ -34,12 +34,13 @@ for (0 .. 255)
 # unless HTML::Parser is used
 our $TagRE = qr/<[^>]+>/s;
 
-# takes 2x as long to match a real utf8 char but that's the cost of being more thorough
-our $UTF8Char = qr/\p{L}\p{M}*/;
+# takes 2x as long to match against the long version
+# and perl treats \w equally well against diacritics.
+# see example/utf8re.pl
+#our $UTF8Char = qr/\p{L}\p{M}*/;
+our $UTF8Char = '\w';
 
-#our $UTF8Char = '\w';
-
-our $WordChar    = $UTF8Char;
+our $WordChar    = $UTF8Char . quotemeta("'-"); # contractions and compounds ok.
 our $BegChar     = $UTF8Char;
 our $EndChar     = $UTF8Char;
 our $PhraseDelim = '"';
@@ -98,7 +99,7 @@ sub _init
     $self->{word_characters}  ||= $WordChar;
     $self->{end_characters}   ||= $EndChar;
     $self->{begin_characters} ||= $BegChar;
-    $self->{phrase_delim} ||= $PhraseDelim;
+    $self->{phrase_delim}     ||= $PhraseDelim;
 
     $self->{kw_opts} ||= {};
 
@@ -318,6 +319,36 @@ Search::Tools::RegExp - build regular expressions from search queries
 
 Build regular expressions for a string of text.
 
+
+=head1 VARIABLES
+
+The following package variables are defined:
+
+=over
+
+=item UTF8Char
+
+Regexp defining a valid UTF-8 word character. Default C<\w>.
+
+=item WordChar
+
+Default word_characters regexp. Defaults to C<UTF8Char> plus C<'> and C<->.
+
+=item BeginChar
+
+Default begin_characters regexp.
+
+=item EndChar
+
+Default end_characters regexp.
+
+=item PhraseDelim
+
+Phrase delimiter character. Default is double-quote '"'.
+
+=back
+
+
 =head1 METHODS
 
 =head2 new
@@ -342,8 +373,7 @@ The wildcard character. Default is C<*>.
 
 =item word_characters
 
-Regexp for what characters constitute a 'word'. Default is any UTF-8 character
-plus C<->. See the $UTF8Char variable.
+Regexp for what characters constitute a 'word'. Default is C<$WordChar>.
 
 =item begin_characters
 
@@ -391,36 +421,6 @@ This is a naive check but useful for internal purposes.
 
 Returns a Search::Tools::RegExp::Keywords object.
 
-
-=head1 VARIABLES
-
-The following package variables are defined:
-
-=over
-
-=item UTF8Char
-
-Regexp defining a valid UTF-8 word character.
-
- \p{L}\p{M}*
-
-=item WordChar
-
-Default word_characters regexp.
-
-=item BeginChar
-
-Default begin_characters regexp.
-
-=item EndChar
-
-Default end_characters regexp.
-
-=item PhraseDelim
-
-Phrase delimiter character. Default is double-quote '"'.
-
-=back
 
 =head1 BUGS and LIMITATIONS
 

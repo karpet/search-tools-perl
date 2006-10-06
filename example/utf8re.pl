@@ -15,7 +15,7 @@ my %text = (
 );
 
 my $w_re = qr/(\w+)/;
-my $u_re = qr/((\p{L}\p{M}*)+)/;
+my $u_re = qr/((\p{L}\p{M}*|[\-\_0-9])+)/;
 my $st   = Search::Tools::Transliterate->new;
 
 binmode STDOUT, ':utf8';

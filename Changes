@@ -14,3 +14,5 @@ Revision history for Perl extension Search::HiLiter.
         * return phrases as phrases
         * additional UTF-8 checks
         * parse according to RegExp character definitions
+    * changed default UTF8Char regexp in S::T::RegExp
+    * changed default WordChar regexp in S::T::RegExp

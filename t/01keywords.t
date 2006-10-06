@@ -11,7 +11,7 @@ my %q = (
     'field:(foo not bar and (baz or goo))' => 'foo baz goo',   #compound
     'foo?bar\@biz'                         => 'foo bar biz',   # nonwordchars
     "don't ask me why, please don't?"      =>
-      "don't ask me why please don't",                         # contractions
+      "ask me why please don't",    # contractions (NOTE duplicate is removed)
 );
 
 ok(my $kw = Search::Tools::Keywords->new(stopwords => 'the'),
