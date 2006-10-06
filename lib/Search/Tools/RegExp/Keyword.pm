@@ -71,15 +71,17 @@ for a query keyword.
 
 =head1 METHODS
 
-
 =head2 new
 
-Instantiate an object. This method is used internally by Search::Tools::RegExp->build().
-
+Create an object. Used internally.
 
 =head2 word
 
 Returns the original keyword on which the regular expressions are based.
+
+=head2 phrase
+
+Returns true if the keyword was treated as a phrase.
 
 =head2 plain
 

@@ -147,6 +147,21 @@ parameter.
 =head2 hiliter
 
 
+=head1 COMMON ACCESSORS
+
+The following common accessors are inherited by every module in Search::Tools:
+
+    stopwords
+    wildcard
+    word_characters
+    ignore_first_char
+    ignore_last_char
+    stemmer
+    phrase_delim
+    debug
+
+See each module's documentation for more details.
+
 =head1 AUTHOR
 
 Peter Karman C<perl@peknet.com>

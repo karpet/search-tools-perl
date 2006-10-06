@@ -181,9 +181,9 @@ sub build
       Search::Tools::RegExp::Keywords->new(
                                hash        => $q2regexp,
                                array       => $q_array,
+                               kw          => $self->kw,
                                start_bound => $self->start_bound,
                                end_bound   => $self->end_bound,
-                               kw          => $self->kw,
                                map { $_ => $self->$_ } @Search::Tools::Accessors
       );
 
@@ -195,8 +195,8 @@ sub _build
     my $self      = shift;
     my $q         = shift or croak "need query to build()";
     my $wild      = $self->word_characters;
-    my $st_bound  = $self->start_bound;
-    my $end_bound = $self->end_bound;
+    my $st_bound  = $self->{start_bound};
+    my $end_bound = $self->{end_bound};
     my $wc        = $self->word_characters;
     my $tpb       = $self->{text_phrase_bound};
     my $hpb       = $self->{html_phrase_bound};
@@ -293,12 +293,18 @@ Search::Tools::RegExp - build regular expressions from search queries
  {
     my $r = $kw->re( $w );
     
+    # the word itself
+    printf("the word is %s\n", $r->word);
+    
+    # is it flagged as a phrase?
+    print "the word is a phrase\n" if $r->phrase;
+    
     # each of these are regular expressions
     print $r->plain;
     print $r->html;
  }
  
- 
+
 =head1 DESCRIPTION
 
 Build regular expressions for a string of text.
@@ -319,19 +325,23 @@ Regexp defining a valid UTF-8 word character. Default C<\w>.
 
 =item WordChar
 
-Default word_characters regexp. Defaults to C<UTF8Char> plus C<'> and C<->.
+Default word_characters regexp. Defaults to C<UTF8Char> plus C<'>, C<.> and C<->.
 
 =item IgnFirst
 
-Default ignore_first_char regexp.
+Default ignore_first_char regexp. Defaults to C<'> and C<->.
 
 =item IgnLast
 
-Default ignore_last_char regexp.
+Default ignore_last_char regexp. Defaults to C<'>, C<.> and C<->.
 
 =item PhraseDelim
 
 Phrase delimiter character. Default is double-quote '"'.
+
+=item Wildcard
+
+Character to use as a wildcard. Default is asterik '*'.
 
 =back
 
@@ -351,27 +361,19 @@ one made for you.
 
 =item wildcard
 
-The wildcard character. Default is C<*>.
+The wildcard character. Default is C<$Wildcard>.
 
 =item word_characters
 
 Regexp for what characters constitute a 'word'. Default is C<$WordChar>.
 
-=item start_bound
-
-Default is derived from begin_characters.
-
-=item end_bound
-
-Default is derived from end_characters.
-
 =item ignore_first_char
 
-Default is C<'> and C<->.
+Default is C<$IgnFirst>.
 
 =item ignore_last_char
 
-Default is C<'> and C<-> and C<.>.
+Default is C<$IgnLast>.
 
 =item stemmer
 
@@ -380,6 +382,14 @@ Stemming code ref passed through to the default Search::Tools::Keywords object.
 =item phrase_delim
 
 Phrase delimiter. Defaults to C<$PhraseDelim>.
+
+=item stopwords
+
+Words to be ignored.
+
+=item debug
+
+Turn on helpful info on stderr.
 
 =back
 
@@ -399,7 +409,7 @@ Returns a Search::Tools::RegExp::Keywords object.
 =head1 BUGS and LIMITATIONS
 
 The special HTML chars &, < and > can pose problems in regexps against markup, so they
-are ignored in any regexp params you pass to new().
+are ignored if you include them in C<word_characters> in new().
 
 =head1 AUTHOR
 
