@@ -39,8 +39,8 @@ our $UTF8Char = qr/\p{L}\p{M}*/;
 
 #our $UTF8Char = '\w';
 
-our $WordChar    = "$UTF8Char-";
-our $BegChar     = "$UTF8Char-";
+our $WordChar    = $UTF8Char;
+our $BegChar     = $UTF8Char;
 our $EndChar     = $UTF8Char;
 our $PhraseDelim = '"';
 

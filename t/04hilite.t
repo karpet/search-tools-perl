@@ -59,7 +59,7 @@ ok($l = $h->light($snip), "new light");
 
 ok($h = Search::Tools::HiLiter->new(query=>'quick brown fox* "jumped over the too lazy"', tty=>1),  "nosnip hiliter");
 $text = read_file('t/test.html');
-ok($l = $h->light($text),   "noship light");
+ok($l = $h->light($text),   "nosnip light");
 #diag($l);
 
 

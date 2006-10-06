@@ -54,7 +54,7 @@ sub _init
 
     $self->{locale}  ||= setlocale(LC_CTYPE);
     $self->{charset} ||= ($self->{locale} =~ m/^.+?\.(.+)/ || 'iso-8859-1');
-    
+
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 
 }
@@ -97,7 +97,8 @@ sub extract
     my $wordchar = $self->word_characters
       || $Search::Tools::RegExp::WordChar;
 
-    my $word_re = qr/^[$igf]*([$wordchar]+)[$igl]*$/;
+    #my $word_re = qr/[$igf]*([$wordchar]+)[$igl]*/;
+    #my $word_re = qr/[$igf]*([\w\-]+)[$igl]*/;
 
     my @query = @{ref $query ? $query : [$query]};
     $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
@@ -127,7 +128,9 @@ sub extract
     # parse uniq into word tokens
     # including removing stop words
 
-    U: for my $u (sort { $uniq{$a} <=> $uniq{$b} } keys %uniq)
+    $self->debug && carp "word_re: $word_re";
+
+  U: for my $u (sort { $uniq{$a} <=> $uniq{$b} } keys %uniq)
     {
 
         my $n = $uniq{$u};
@@ -136,51 +139,64 @@ sub extract
 
         my @w = ();
 
-        TOK: for my $w (split(m/\s+/, $self->_make_utf8($u)))
+      TOK: for my $w (split(m/\s+/, $self->_make_utf8($u)))
         {
-        
+
             next TOK unless $w =~ m/\S/;
-        
+
             $w =~ s/\Q$phrase\E//g;
 
-            my ($tok) = ($w =~ m/$word_re/);
-
-            unless ($tok)
+            while ($w =~ m/$word_re/g)
             {
-                $self->debug && carp "no token for '$w' $word_re";
-                next TOK;
-            }
+                my $tok = $1;
 
-            if (exists $stophash{lc($tok)})
-            {
-                $self->debug && carp "$tok = stopword";
-                next TOK;
-            }
+                unless ($tok)
+                {
+                    $self->debug && carp "no token for '$w' $word_re";
+                    next TOK;
+                }
 
-            unless ($isphrase)
-            {
-                next TOK if lc($tok) eq lc($or_word);
-                next TOK if lc($tok) eq lc($and_word);
-                next TOK if lc($tok) eq lc($not_word);
-            }
+                if (exists $stophash{lc($tok)})
+                {
+                    $self->debug && carp "$tok = stopword";
+                    next TOK;
+                }
 
-            # final sanity check
-            if (!Encode::is_utf8($tok))
-            {
-                carp "$tok is NOT utf8";
-                next TOK;
-            }
+                unless ($isphrase)
+                {
+                    next TOK if lc($tok) eq lc($or_word);
+                    next TOK if lc($tok) eq lc($and_word);
+                    next TOK if lc($tok) eq lc($not_word);
+                }
 
-            #$self->debug && carp "pushing $tok into wordlist";
-            push(@w, $tok);
+                # final sanity check
+                if (!Encode::is_utf8($tok))
+                {
+                    carp "$tok is NOT utf8";
+                    next TOK;
+                }
+
+                #$self->debug && carp "pushing $tok into wordlist";
+                push(@w, $tok);
+
+            }
 
         }
-        
-        next U unless @w;
-        
-        #$self->debug && carp "joining \@w: " . pp(\@w);
 
-        $words{join(' ', @w)} = $n + $count++;
+        next U unless @w;
+
+        #$self->debug && carp "joining \@w: " . pp(\@w);
+        if ($isphrase)
+        {
+            $words{join(' ', @w)} = $n + $count++;
+        }
+        else
+        {
+            for (@w)
+            {
+                $words{$_} = $n + $count++;
+            }
+        }
 
     }
 

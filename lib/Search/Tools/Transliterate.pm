@@ -4,11 +4,11 @@ require 5.008;
 use strict;
 use warnings;
 use Carp;
+
 #use Data::Dump qw/dump/;      # just for debugging
 use Encode;
 
 our $VERSION = '0.02';
-
 
 =pod
 
@@ -94,9 +94,6 @@ Search::Tools, Unicode::Map, Encode, Test::utf8
 
 =cut
 
-
-
-
 # build map
 our %Map = ();
 while (<DATA>)
@@ -111,7 +108,6 @@ for (128 .. 255)
 {
     $Map{chr($_)} = chr($_);
 }
-
 
 # A Regexp string to match valid UTF-8 bytes
 # this info comes from page 78 of "The Unicode Standard 4.0"
@@ -128,7 +124,6 @@ our $valid_utf8_regexp = <<EOE;
       | [\x{f1}-\x{f3}][\x{80}-\x{bf}][\x{80}-\x{bf}][\x{80}-\x{bf}]
       |         \x{f4} [\x{80}-\x{8f}][\x{80}-\x{bf}][\x{80}-\x{bf}]
 EOE
-
 
 sub _Utag_to_chr
 {
@@ -160,52 +155,54 @@ sub _init
 # cribbed from Test::utf8
 sub _invalid_sequence_at_byte($)
 {
-  my $string = shift;
+    my $string = shift;
 
-  # examine the bytes that make up the string (not the chars)
-  # by turning off the utf8 flag (no, use bytes doens't
-  # work, we're dealing with a regexp)
-  Encode::_utf8_off($string);
+    # examine the bytes that make up the string (not the chars)
+    # by turning off the utf8 flag (no, use bytes doesn't
+    # work, we're dealing with a regexp)
+    Encode::_utf8_off($string);
 
-  # work out the index of the first non matching byte
-  my $result = $string =~ m/^($valid_utf8_regexp)*/ogx;
+    # work out the index of the first non matching byte
+    my $result = $string =~ m/^($valid_utf8_regexp)*/ogx;
 
-  # if we matched all the string return the empty list
-  my $pos = pos $string || 0;
-  return if $pos == length($string);
+    # if we matched all the string return the empty list
+    my $pos = pos $string || 0;
+    if ($pos == length($string))
+    {
+        Encode::_utf8_on($string);  # do we really need this??
+        return;
+    }
 
-  # otherwise return the position we found
-  return $pos
+    # otherwise return the position we found
+    return $pos;
 }
-
 
 sub is_valid_utf8
 {
     my $self = shift;
-    my $buf = shift;
+    my $buf  = shift;
     return defined(_invalid_sequence_at_byte($buf)) ? 0 : 1;
 }
 
 sub is_ascii
 {
     my $self = shift;
-    my $buf = shift;
+    my $buf  = shift;
     return $buf =~ m/[^\x{00}-\x{7f}]/o ? 0 : 1;
 }
-
 
 sub convert
 {
     my $self   = shift;
     my $buf    = shift;
     my $newbuf = '';
-    
+
     # don't bother unless we have non-ascii bytes
-    return $buf if $self->is_ascii($buf); 
-    
+    return $buf if $self->is_ascii($buf);
+
     # make sure we've got valid UTF-8 to start with
     my $pos = _invalid_sequence_at_byte($buf);
-    if(defined($pos))
+    if (defined($pos))
     {
         croak "bad UTF-8 byte at $pos";
     }
@@ -240,7 +237,7 @@ sub convert
 
 1;
 
-# map taken directly from 
+# map taken directly from
 # http://www.cl.cam.ac.uk/~mgk25/download/transtab.tar.gz
 # by Markus Kuhn
 
