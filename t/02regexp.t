@@ -1,4 +1,4 @@
-use Test::More tests => 63;
+use Test::More tests => 59;
 
 BEGIN { use_ok('Search::Tools::RegExp') }
 
@@ -17,7 +17,7 @@ ok(
     my $re =
       Search::Tools::RegExp->new(
                                  lang    => 'en_us',
-                                 kw_opts => {stopwords => 'the'}
+                                 stopwords => 'the'
                                 ),
 
     "re object"

@@ -30,11 +30,13 @@ ok(my $s = Search::Tools::Snipper->new(query => $h->rekw), "snipper");
 #diag( Dumper( $re ) );
 
 ok(my $snip = $s->snip($text), "snip");
+
 #diag($snip);
 #diag($s->snipper_name);
 #diag($s->count);
 
 ok(my $l = $h->light($snip), "light");
+
 #diag($l);
 
 # and again
@@ -47,19 +49,29 @@ ok($h = Search::Tools::HiLiter->new(query => \@q), "new hiliter");
 ok($s = Search::Tools::Snipper->new(query => $h->rekw), "new snipper");
 
 ok($snip = $s->snip($text), "new snip");
+
 #diag($snip);
 #diag($s->snipper_name);
 #diag($s->count);
 
 ok($l = $h->light($snip), "new light");
-#diag($l);
 
+#diag($l);
 
 # now just a raw html file without snipping
 
-ok($h = Search::Tools::HiLiter->new(query=>'quick brown fox* "jumped over the too lazy"', tty=>1),  "nosnip hiliter");
+ok(
+    $h =
+      Search::Tools::HiLiter->new(
+          query =>
+            q/o'reilly the quick brown fox* jumped! "jumped over the too lazy"/,
+          #tty       => 1,
+          #no_html   => 1,
+          stopwords => 'the'
+      ),
+    "nosnip hiliter"
+  );
 $text = read_file('t/test.html');
-ok($l = $h->light($text),   "nosnip light");
+ok($l = $h->light($text), "nosnip light");
 #diag($l);
-
 

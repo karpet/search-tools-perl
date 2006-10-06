@@ -7,13 +7,14 @@ use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-__PACKAGE__->mk_ro_accessors(qw/plain html word/);
+__PACKAGE__->mk_ro_accessors(qw/plain html word phrase/);
 
 sub new
 {
-    my $class = shift;
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
     my $self  = {};
     bless($self, $class);
     $self->_init(@_);
@@ -25,6 +26,8 @@ sub _init
     my $self  = shift;
     my %extra = @_;
     @$self{keys %extra} = values %extra;
+    
+    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 }
 
 1;

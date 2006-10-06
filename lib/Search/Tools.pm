@@ -14,6 +14,19 @@ use Search::Tools::XML;
 
 our $VERSION = '0.02';
 
+# accessors that every object should inherit from its parent
+our @Accessors = qw(
+    stopwords
+    wildcard
+    word_characters
+    ignore_first_char
+    ignore_last_char
+    stemmer
+    phrase_delim
+    debug
+    
+    );
+
 sub regexp
 {
     my $class = shift;

@@ -10,13 +10,14 @@ use strict;
 use warnings;
 
 use Carp;
+
 #use Data::Dumper;      # just for debugging
 use Search::Tools::XML;
 use Search::Tools::RegExp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $ellip   = ' ... ';
 
 sub new
@@ -35,7 +36,7 @@ sub _init
     @$self{keys %extra} = values %extra;
 
     $self->mk_accessors(
-        qw/
+        qw(
           query
           rekw
           occur
@@ -47,17 +48,21 @@ sub _init
           snipper
           snipper_name
           snipper_force
-          re_snip
+          snipper_type
           count
           collapse_whitespace
-          /
+          ),
+          @Search::Tools::Accessors
     );
+    
+    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 
-    $self->{occur}     ||= 5;
-    $self->{max_chars} ||= 300;
-    $self->{context}   ||= 8;
-    $self->{word_len}  ||= 5;
-    $self->{show}      ||= 1;
+    $self->{snipper_type} ||= 'loop';
+    $self->{occur}        ||= 5;
+    $self->{max_chars}    ||= 300;
+    $self->{context}      ||= 8;
+    $self->{word_len}     ||= 5;
+    $self->{show}         ||= 1;
     for (qw/collapse_whitespace/)
     {
         $self->{$_} = 1 unless defined $self->{$_};
@@ -92,7 +97,7 @@ sub _init
 
     # default snipper is loop_snip since it is fastest for single words
     # but we can specify re_snip if we want
-    if ($self->re_snip)
+    if ($self->snipper_type eq 're')
     {
         $self->snipper(\&_re_snip);
     }
@@ -114,13 +119,13 @@ sub _word_regexp
     my $wc   = $self->rekw->word_characters;
     $self->{_wc_regexp} = qr/[^$wc]+/io; # regexp for splitting into swish-words
 
-    my $igf = $self->rekw->begin_characters;
-    my $igl = $self->rekw->end_characters;
+    my $igf = $self->rekw->ignore_first_char;
+    my $igl = $self->rekw->ignore_last_char;
     for ($igf, $igl)
     {
         if ($_)
         {
-            $_ = "[^$_]*";
+            $_ = "[$_]*";
         }
         else
         {

@@ -7,11 +7,12 @@ use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new
 {
-    my $class = shift;
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
     my $self  = {};
     bless($self, $class);
     $self->_init(@_);
@@ -25,18 +26,15 @@ sub _init
     @$self{keys %extra} = values %extra;
 
     $self->mk_ro_accessors(
-        qw/
-          wildcard
-          word_characters
-          begin_characters
-          end_characters
-          ignore_first_char
-          ignore_last_char
+        qw(
           start_bound
           end_bound
           kw
-          /
+          ),
+          @Search::Tools::Accessors
     );
+    
+    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 }
 
 sub keywords

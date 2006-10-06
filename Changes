@@ -16,3 +16,16 @@ Revision history for Perl extension Search::HiLiter.
         * parse according to RegExp character definitions
     * changed default UTF8Char regexp in S::T::RegExp
     * changed default WordChar regexp in S::T::RegExp
+    * begin_characters and end_characters are no longer supported
+      since they were logically just the inverse of ignore_*_char plus
+      word_characters. The entire regexp construction was refactored
+      with that in mind.
+    * @Search::Tools::Accessors now provides (saner) way for subclasses
+      to inherit attributes like word_characters, stemmer, stopwords, etc.
+    * S::T::RegExp kw_opts is no longer supported
+    * stopwords are intentionally left in phrases, as are special boolean words
+    * added ->phrase accessor to S::T::R::Keyword
+    * S::T::HiLiter now higlights all phrases before singles so that
+      any overlap privileges the phrase match. Example would be 'foo and "foo bar"'
+      where the phrase "foo bar" should receive precedence over single word 'foo'.
+      

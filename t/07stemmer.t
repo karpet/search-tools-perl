@@ -9,14 +9,14 @@ my %q = (
 
 ok(
     my $re = Search::Tools::RegExp->new(
-        lang    => 'en_us',
-        kw_opts => {
-         stopwords => 'the brown', 
-         stemmer => sub {
+        lang => 'en_us',
+
+        stopwords => 'the brown',
+        stemmer   => sub {
             my $w = $_[1];
             $w =~ s/s$//;
             return $w;
-         }
+
         }
     ),
 
@@ -32,9 +32,9 @@ for my $w ($kw->keywords)
     my $plain = $r->plain;
     my $html  = $r->html;
 
-    like($w, qr{^$plain$}, $w);
-    like($w, qr{^$html$},  $w);
+    like($w, qr{^$plain$}x, "$w plain");
+    like($w, qr{^$html$}x,  "$w html");
 
-    #diag($r->plain);
-
+    #diag($plain);
+    #diag($html);
 }

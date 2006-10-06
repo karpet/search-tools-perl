@@ -1,17 +1,18 @@
-use Test::More tests => 16;
+use Test::More tests => 17;
 BEGIN { use_ok('Search::Tools::Keywords') }
 
 my %q = (
     'the quick'                            => 'quick',         # stopwords
     'color:brown       fox'                => 'brown fox',     # fields
     '+jumped and +ran         -quickly'    => 'jumped ran',    # booleans
-    '"over the or lazy        and dog"'    => 'over lazy dog', # phrase
+    '"over the or lazy        and dog"'    => 'over the or lazy and dog', # phrase
     'foo* food bar'                        => 'foo* food bar', # wildcard
     'foo foo*'                             => 'foo*',          # unique wildcard
     'field:(foo not bar and (baz or goo))' => 'foo baz goo',   #compound
     'foo?bar\@biz'                         => 'foo bar biz',   # nonwordchars
-    "don't ask me why, please don't?"      =>
-      "ask me why please don't",    # contractions (NOTE duplicate is removed)
+    "O'reilly, don't ask me why, please don't!"      =>
+      "O'reilly ask me why please don't",    # contractions (NOTE duplicate don't is removed)
+    "'-edgy' aren't we?-"           => "edgy aren't we"  # edge case
 );
 
 ok(my $kw = Search::Tools::Keywords->new(stopwords => 'the'),

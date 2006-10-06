@@ -12,7 +12,7 @@ ok(
     my $re =
       Search::Tools::RegExp->new(
                                  lang    => 'en_us',
-                                 kw_opts => {stopwords => 'the brown'}
+                                 stopwords => 'the brown'
                                 ),
 
     "re object"
@@ -37,7 +37,7 @@ ok(
     $re =
       Search::Tools::RegExp->new(
                                  lang    => 'en_us',
-                                 kw_opts => {stopwords => [qw(the brown)]}
+                                 stopwords => [qw(the brown)]
                                 ),
 
     "re object"

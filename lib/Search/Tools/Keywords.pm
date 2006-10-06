@@ -11,17 +11,20 @@ use locale;
 use Carp;
 use Data::Dump qw/ pp /;    # just for debugging
 use Encode;
-use Search::QueryParser;
+use Search::Tools;
 use Search::Tools::RegExp;
 use Search::Tools::Transliterate;
 
+use Search::QueryParser;
+
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.03';
+our $VERSION = '0.02';
 
 sub new
 {
-    my $class = shift;
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
     my $self  = {};
     bless($self, $class);
     $self->_init(@_);
@@ -35,21 +38,14 @@ sub _init
     @$self{keys %extra} = values %extra;
 
     $self->mk_accessors(
-        qw/
-          stemmer
-          stopwords
-          ignore_first_char
-          ignore_last_char
-          word_characters
-          phrase_delim
+        qw(
           and_word
           or_word
           not_word
-          wildcard
           locale
           charset
-          debug
-          /
+          ),
+        @Search::Tools::Accessors
     );
 
     $self->{locale}  ||= setlocale(LC_CTYPE);
@@ -92,21 +88,18 @@ sub extract
     my $wildcard  = $self->wildcard || '*';
     my $phrase    = $self->phrase_delim || '"';
     my $igf       = $self->ignore_first_char
-      || '^' . $Search::Tools::RegExp::BegChar;
-    my $igl = $self->ignore_last_char || '^' . $Search::Tools::RegExp::EndChar;
+      || $Search::Tools::RegExp::IgnFirst;
+    my $igl = $self->ignore_last_char || $Search::Tools::RegExp::IgnLast;
     my $wordchar = $self->word_characters
       || $Search::Tools::RegExp::WordChar;
-      
+
     my $esc_wildcard = quotemeta($wildcard);
 
-    my $word_re = qr/[$igf]*([$wordchar]+($esc_wildcard)?)[$igl]*/;
-    #my $word_re = qr/[$igf]*([\w\-]+)[$igl]*/;
+    my $word_re = qr/([$wordchar]+($esc_wildcard)?)/;
 
     my @query = @{ref $query ? $query : [$query]};
     $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
     my %stophash = map { $self->_make_utf8(lc($_)) => 1 } @$stopwords;
-
-    
 
     my (%words, %uniq, $c);
 
@@ -120,6 +113,7 @@ sub extract
   Q: for my $q (@query)
     {
         my $p = $parser->parse($self->_make_utf8($q), 1);
+        $self->debug && carp "parsetree: " . pp($p);
         $self->_get_v(\%uniq, $p, $c);
     }
 
@@ -137,7 +131,12 @@ sub extract
 
         my $n = $uniq{$u};
 
-        my $isphrase = $u =~ m/\Q$phrase\E/;
+        # only phrases have space
+        # but due to our word_re, a single non-spaced string
+        # might actually be multiple word tokens
+        my $isphrase = $u =~ m/\s/;
+        
+        $self->debug && carp "$u -> isphrase";
 
         my @w = ();
 
@@ -152,18 +151,22 @@ sub extract
             {
                 my $tok = $1;
 
+                # strip ignorable chars
+                $tok =~ s/^[$igf]+//;
+                $tok =~ s/[$igl]+$//;
+
                 unless ($tok)
                 {
                     $self->debug && carp "no token for '$w' $word_re";
                     next TOK;
                 }
-                
+
                 $self->debug && carp "found token: $tok";
 
                 if (exists $stophash{lc($tok)})
                 {
                     $self->debug && carp "$tok = stopword";
-                    next TOK;
+                    next TOK unless $isphrase;
                 }
 
                 unless ($isphrase)
@@ -269,7 +272,7 @@ sub extract
 
     }
 
-    $self->debug && carp "steming done: " . pp(\%words);
+    $self->debug && carp "stemming done: " . pp(\%words);
 
     # sort keeps query in same order as we entered
     return (sort { $words{$a} <=> $words{$b} } keys %words);

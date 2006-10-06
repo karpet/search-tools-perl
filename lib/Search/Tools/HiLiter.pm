@@ -4,16 +4,18 @@ use 5.008;
 use strict;
 use warnings;
 use Carp;
+
 #use Data::Dumper;      # just for debugging
 use Search::Tools::RegExp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new
 {
-    my $class = shift;
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
     my $self  = {};
     bless($self, $class);
     $self->_init(@_);
@@ -27,7 +29,7 @@ sub _init
     @$self{keys %extra} = values %extra;
 
     $self->mk_accessors(
-        qw/
+        qw(
           query
           rekw
           tag
@@ -35,9 +37,17 @@ sub _init
           colors
           tty
           ttycolors
-          debug
-          /
+          no_html
+          ),
+        @Search::Tools::Accessors
     );
+
+    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+
+    if ($self->debug)
+    {
+        carp "debug level set at " . $self->debug;
+    }
 
     if (!$self->query)
     {
@@ -45,7 +55,9 @@ sub _init
     }
     elsif (ref $self->query eq 'ARRAY' or !ref $self->query)
     {
-        my $re = Search::Tools::RegExp->new;
+        my $re =
+          Search::Tools::RegExp->new(map { $_ => $self->$_ }
+                                     @Search::Tools::Accessors);
         $self->rekw($re->build($self->query));
     }
     elsif ($self->query->isa('Search::Tools::RegExp::Keywords'))
@@ -63,18 +75,15 @@ sub _init
         croak "Search:Tools::RegExp::Keywords object required";
     }
 
-    $self->{tag}       ||= 'span';
-    $self->{colors}    ||= ['#ffff99', '#99ffff', '#ffccff', '#ccccff'];
-    $self->{ttycolors} ||=
-      ['bold blue', 'bold red', 'bold green'];
+    $self->{tag} ||= 'span';
+    $self->{colors} ||= ['#ffff99', '#99ffff', '#ffccff', '#ccccff'];
+    $self->{ttycolors} ||= ['bold blue', 'bold red', 'bold green'];
 
     if ($self->tty)
     {
         eval { require Term::ANSIColor };
         $self->tty(0) if $@;
     }
-
-    $self->{debug} ||= 0;
 
     $self->_build_tags;
 
@@ -88,6 +97,27 @@ sub keywords
     return $self->rekw->keywords;
 }
 
+sub _phrases
+{
+    my $self = shift;
+    return grep { $self->rekw->re($_)->phrase } $self->keywords;
+}
+
+sub _singles
+{
+    my $self = shift;
+    return grep { !$self->rekw->re($_)->phrase } $self->keywords;
+}
+
+sub _kworder
+{
+    my $self = shift;
+
+    # do phrases first so that duplicates privilege phrases
+    $self->{_kworder} ||= [$self->_phrases, $self->_singles];
+    return @{$self->{_kworder}};
+}
+
 sub _build_tags
 {
     my $self = shift;
@@ -96,10 +126,11 @@ sub _build_tags
     my @colors    = @{$self->colors};
     my @ttycolors = @{$self->ttycolors};
     my $tag       = $self->tag;
-    
+
     my $n = 0;
     my $m = 0;
-    for my $q ($self->keywords)
+
+    for my $q ($self->_kworder)
     {
 
         # if tty flag is on, use ansicolor instead of html
@@ -119,10 +150,10 @@ sub _build_tags
 
         if ($self->tty)
         {
-            $tags{open} .= $hO if $self->debug;
+            $tags{open} .= $hO if $self->debug && !$self->no_html;
             $tags{open}  .= Term::ANSIColor::color($ttycolors[$m]);
             $tags{close} .= Term::ANSIColor::color('reset');
-            $tags{close} .= "</$tag>" if $self->debug;
+            $tags{close} .= "</$tag>" if $self->debug && !$self->no_html;
         }
         else
         {
@@ -158,7 +189,7 @@ sub light
     my $self = shift;
     my $text = shift or return '';
 
-    if (Search::Tools::RegExp->isHTML($text))
+    if (Search::Tools::RegExp->isHTML($text) && !$self->no_html)
     {
         return $self->html($text);
     }
@@ -201,7 +232,6 @@ sub html
 {
     my $self = shift;
     my $text = shift or croak "need text to light()";
-    my @q    = $self->keywords;
 
     ###################################################################
     # 1.	create hash of query -> [ array of real HTML to hilite ]
@@ -218,7 +248,7 @@ sub html
     # if the query text matched in the text, then we need to
     # use our prebuilt regexp
 
-  Q: for my $query (@q)
+  Q: for my $query ($self->_kworder)
     {
         my $re   = $self->rekw->re($query)->html;
         my $real = $self->_get_real_html(\$text, $re);
@@ -231,7 +261,7 @@ sub html
 
     ## 2
 
-  HILITE: for my $q (@q)
+  HILITE: for my $q ($self->_kworder)
     {
 
         my %uniq_reals = ();
@@ -333,12 +363,16 @@ sub _clean_up_hilites
     # empty hilites are useless
     my $empty = ($$text =~ s,\Q$o$c\E,,sgi) || 0;
 
+    #$self->debug and carp "looking for split entities: (&[\\w#]*)\Q$o\E(?:\Q$c\E)(${safe})\Q$c\E([\\w#]*;)";
+
     # to be safe: in some cases we might match against entities or within tag content.
     my $ent_split = (
         $$text =~
-          s/(&[\w#]*)\Q$o\E(?:\Q$c\E)(${safe})\Q$c\E([\w#]*;)/$1$2$3/igs # is i and s necessary?
+          s/(&[\w#]*)\Q$o\E(?:\Q$c\E)?(${safe})\Q$c\E([\w#]*;)/$1$2$3/igs # is i and s necessary?
       )
       || 0;
+
+    #$self->debug and carp "found $ent_split split entities";
 
     my $tag_split = 0;
     while (
@@ -347,7 +381,12 @@ sub _clean_up_hilites
           )
     {
 
-        carp "appears to split tag: $1$2$3" if $self->debug > 1;
+        my $first = $1;
+        my $second = $2;
+        my $third = $3;
+        carp "appears to split tag: $first - $second - $third" if $self->debug > 1;
+        
+        # TODO this would be one place to highlight text where attributes match
 
         $tag_split +=
           ($$text =~ s/(<[^<>]*)\Q$o\E($safe)\Q$c\E([^>]*>)/$1$2$3/gxsi);
@@ -361,14 +400,14 @@ sub plain
 {
     my $self = shift;
     my $text = shift or croak "need text to light()";
-    my @q    = $self->keywords;
 
-
-  Q: for my $query (@q)
+  Q: for my $query ($self->_kworder)
     {
         my $re = $self->rekw->re($query)->plain;
         my $o  = $self->open_tag($query);
         my $c  = $self->close_tag($query);
+
+        $self->debug > 1 and carp "looking for: $re against $query";
 
         # because s// fails to find duplicate instances like 'foo foo'
         # we use a while loop and increment pos()
@@ -383,11 +422,13 @@ sub plain
             my $m = $2 || $query;
             my $e = $3 || '';
 
+            $self->debug > 1 and carp "matched $s $m $e against $re";
+
             # use substr to do what s// would normally do if pos() wasn't an issue
             # -- is this a big speed diff?
             my $len       = length($s . $m . $e);
             my $pos       = pos($text);
-            my $newstring = $s . $o . $2 . $c . $e;
+            my $newstring = $s . $o . $m . $c . $e;
             substr($text, $pos - $len, $len, $newstring);
 
             last if $pos == length $text;
@@ -458,29 +499,17 @@ The following params are also supported. Each is available as a method as well:
 
 =over
 
-=item
+=item class
 
-class
+=item tag
 
-=item
+=item colors
 
-tag
+=item tty
 
-=item
+=item ttycolors
 
-colors
-
-=item
-
-tty
-
-=item
-
-ttycolors
-
-=item
-
-debug
+=item no_html
 
 =back
 
@@ -517,8 +546,14 @@ Set the colors used if tty() is true. See the Term::ANSIColor documentation for 
 Set to a value >= 1 to get debugging output. If used in conjuction with tty(), both
 tty colors and HTML tags are used for highlighting.
 
+=head2 no_html
+
+Set to a true value (1) to avoid HTML highlighting tags regardless of test for whether
+I<text> is HTML.
+
 =head2 keywords
 
+Returns the keywords derived from I<query>.
 
 =head1 AUTHOR
 
