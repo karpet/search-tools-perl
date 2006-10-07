@@ -10,6 +10,7 @@ t/04hilite.t
 t/05stopwords.t
 t/06xml.t
 t/07stemmer.t
+t/08transliterate.t
 t/Search-Tools.t
 t/chiradtest.htm
 t/greek_and_ojibwe.txt
@@ -30,3 +31,6 @@ lib/Search/Tools/XML.pm
 example/dirsearch.pl
 example/qp.pl
 example/swish-e.pl
+example/keywords.pl
+example/utf8re.pl
+META.yml                                 Module meta-data (added by MakeMaker)
