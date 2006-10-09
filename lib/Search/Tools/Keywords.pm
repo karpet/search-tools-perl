@@ -19,7 +19,7 @@ use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new
 {
@@ -48,8 +48,9 @@ sub _init
         @Search::Tools::Accessors
     );
 
-    $self->{locale}  ||= setlocale(LC_CTYPE);
-    $self->{charset} ||= ($self->{locale} =~ m/^.+?\.(.+)/ || 'iso-8859-1');
+    $self->{locale} ||= setlocale(LC_CTYPE);
+    my ($c) = ($self->{locale} =~ m/^.+?\.(.+)/);
+    $self->{charset} ||= $c || 'iso-8859-1';
 
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 
@@ -135,7 +136,7 @@ sub extract
         # but due to our word_re, a single non-spaced string
         # might actually be multiple word tokens
         my $isphrase = $u =~ m/\s/;
-        
+
         $self->debug && carp "$u -> isphrase";
 
         my @w = ();

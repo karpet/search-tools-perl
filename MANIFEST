@@ -11,6 +11,7 @@ t/05stopwords.t
 t/06xml.t
 t/07stemmer.t
 t/08transliterate.t
+t/09locale.t
 t/Search-Tools.t
 t/chiradtest.htm
 t/greek_and_ojibwe.txt

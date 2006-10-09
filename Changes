@@ -29,3 +29,6 @@ Revision history for Perl extension Search::HiLiter.
       any overlap privileges the phrase match. Example would be 'foo and "foo bar"'
       where the phrase "foo bar" should receive precedence over single word 'foo'.
       
+0.03
+    * fixed charset/locale issue in S::T::Keywords reported by Debbie Jones
+
