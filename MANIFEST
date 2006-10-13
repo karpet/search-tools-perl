@@ -12,6 +12,7 @@ t/06xml.t
 t/07stemmer.t
 t/08transliterate.t
 t/09locale.t
+t/10spellcheck.t
 t/Search-Tools.t
 t/chiradtest.htm
 t/greek_and_ojibwe.txt
@@ -28,6 +29,7 @@ lib/Search/Tools/Transliterate.pm
 lib/Search/Tools/RegExp.pm
 lib/Search/Tools/RegExp/Keywords.pm
 lib/Search/Tools/RegExp/Keyword.pm
+lib/Search/Tools/SpellCheck.pm
 lib/Search/Tools/XML.pm
 example/dirsearch.pl
 example/qp.pl
