@@ -6,12 +6,7 @@ use warnings;
 
 use Carp;
 use base qw( Class::Accessor::Fast );
-eval { require Text::Aspell; };
-if ($@)
-{
-    carp "required module Text::Aspell was not found.\n";
-    return 1;
-}
+use Text::Aspell;
 
 our $VERSION = '0.01';
 
