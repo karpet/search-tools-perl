@@ -32,3 +32,10 @@ Revision history for Perl extension Search::HiLiter.
 0.03
     * fixed charset/locale issue in S::T::Keywords reported by Debbie Jones
 
+0.04
+    * added S::T::SpellCheck
+    * fixed (finally I hope) charset/locale/lang issue by making it global
+      accessor and checking for C and POSIX
+    * reorged default settings in S::T::Keywords to set in new() rather
+      than each time in extract()
+    

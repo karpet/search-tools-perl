@@ -1,6 +1,8 @@
 use Test::More tests => 59;
 
-BEGIN { use_ok('Search::Tools::RegExp') }
+use Carp;
+
+use_ok('Search::Tools::RegExp');
 
 my %q = (
     'the quick'                         => 'quick',         # stopwords
@@ -16,7 +18,7 @@ my %q = (
 ok(
     my $re =
       Search::Tools::RegExp->new(
-                                 lang    => 'en_us',
+                                 locale    => 'en_US.iso-8859-1',
                                  stopwords => 'the'
                                 ),
 
@@ -29,7 +31,9 @@ for my $w ($kw->keywords)
 {
     my $r = $kw->re($w);
 
+    # interesting. diag() doesn't pring utf-8 correctly but carp does.
     #diag($w);
+    #carp $w;
     like($w, $r->plain, $w);
     like($w, $r->html,  $w);
 

@@ -23,7 +23,11 @@ our @Accessors = qw(
     ignore_last_char
     stemmer
     phrase_delim
+    ignore_case
     debug
+    locale
+    charset
+    lang
     
     );
 
@@ -158,7 +162,11 @@ The following common accessors are inherited by every module in Search::Tools:
     ignore_last_char
     stemmer
     phrase_delim
+    ignore_case
     debug
+    locale
+    charset
+    lang
 
 See each module's documentation for more details.
 

@@ -19,7 +19,7 @@ use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub new
 {
@@ -42,17 +42,26 @@ sub _init
           and_word
           or_word
           not_word
-          locale
-          charset
           ),
         @Search::Tools::Accessors
     );
 
+    # set defaults
     $self->{locale} ||= setlocale(LC_CTYPE);
-    my ($c) = ($self->{locale} =~ m/^.+?\.(.+)/);
-    $self->{charset} ||= $c || 'iso-8859-1';
-
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+    ($self->{lang}, $self->{charset}) = split(m/\./, $self->{locale});
+    $self->{lang} = 'en_US' if $self->{lang} =~ m/^(posix|c)$/i;
+    $self->{charset}           ||= 'iso-8859-1';
+    $self->{phrase_delim}      ||= '"';
+    $self->{and_word}          ||= 'and|near\d*';
+    $self->{or_word}           ||= 'or';
+    $self->{not_word}          ||= 'not';
+    $self->{wildcard}          ||= '*';
+    $self->{stopwords}         ||= [];
+    $self->{ignore_first_char} ||= $Search::Tools::RegExp::IgnFirst;
+    $self->{ignore_last_char}  ||= $Search::Tools::RegExp::IgnLast;
+    $self->{word_characters}   ||= $Search::Tools::RegExp::WordChar;
+    $self->{debug}             ||= $ENV{PERL_DEBUG} || 0;
+    $self->{ignore_case} = 1 unless defined $self->{ignore_case};
 
 }
 
@@ -72,8 +81,9 @@ sub _make_utf8
     if (!Encode::is_utf8($str))
     {
 
-        #carp "converting $str from " . $self->charset . " -> utf8";
+        $self->debug and carp "converting $str from " . $self->charset . " -> utf8";
         Encode::from_to($str, $self->charset, 'utf8');
+        $self->debug and carp "converted $str";
     }
     return $str;
 }
@@ -82,28 +92,22 @@ sub extract
 {
     my $self      = shift;
     my $query     = shift or croak "need query to extract keywords";
-    my $stopwords = $self->stopwords || [];
-    my $and_word  = $self->and_word || 'and';
-    my $or_word   = $self->or_word || 'or';
-    my $not_word  = $self->not_word || 'not';
-    my $wildcard  = $self->wildcard || '*';
-    my $phrase    = $self->phrase_delim || '"';
-    my $igf       = $self->ignore_first_char
-      || $Search::Tools::RegExp::IgnFirst;
-    my $igl = $self->ignore_last_char || $Search::Tools::RegExp::IgnLast;
-    my $wordchar = $self->word_characters
-      || $Search::Tools::RegExp::WordChar;
+    my $stopwords = $self->stopwords;
+    my $and_word  = $self->and_word;
+    my $or_word   = $self->or_word;
+    my $not_word  = $self->not_word;
+    my $wildcard  = $self->wildcard;
+    my $phrase    = $self->phrase_delim;
+    my $igf       = $self->ignore_first_char;
+    my $igl       = $self->ignore_last_char;
+    my $wordchar  = $self->word_characters;
 
     my $esc_wildcard = quotemeta($wildcard);
-
-    my $word_re = qr/([$wordchar]+($esc_wildcard)?)/;
-
-    my @query = @{ref $query ? $query : [$query]};
+    my $word_re      = qr/([$wordchar]+($esc_wildcard)?)/;
+    my @query        = @{ref $query ? $query : [$query]};
     $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
     my %stophash = map { $self->_make_utf8(lc($_)) => 1 } @$stopwords;
-
     my (%words, %uniq, $c);
-
     my $parser =
       Search::QueryParser->new(
                                rxAnd => qr{$and_word}i,
@@ -113,7 +117,9 @@ sub extract
 
   Q: for my $q (@query)
     {
-        my $p = $parser->parse($self->_make_utf8($q), 1);
+        $q = lc($q) if $self->ignore_case;
+        $q = $self->_make_utf8($q);
+        my $p = $parser->parse($q, 1);
         $self->debug && carp "parsetree: " . pp($p);
         $self->_get_v(\%uniq, $p, $c);
     }
@@ -135,9 +141,9 @@ sub extract
         # only phrases have space
         # but due to our word_re, a single non-spaced string
         # might actually be multiple word tokens
-        my $isphrase = $u =~ m/\s/;
+        my $isphrase = $u =~ m/\s/ || 0;
 
-        $self->debug && carp "$u -> isphrase";
+        $self->debug && carp "$u -> isphrase = $isphrase";
 
         my @w = ();
 
@@ -340,7 +346,10 @@ Search::Tools::Keywords - extract keywords from a search query
             ignore_last_char    => '',
             word_characters     => $Search::Tools::RegExp::WordChar,
             debug               => 0,
-            phrase_delim        => '"'
+            phrase_delim        => '"',
+            charset             => 'iso-8859-1',
+            lang                => 'en_US',
+            locale              => 'en_US.iso-8859-1'
             );
             
  my @words = $kw->extract( $query );
@@ -429,9 +438,15 @@ String of characters to strip from the beginning of all words.
 
 String of characters to strip from the end of all words.
 
+=head2 ignore_case
+
+All queries are run through Perl's built-in lc() function before
+parsing. The default is C<1> (true). Set to C<0> (false) to preserve
+case.
+
 =head2 and_word
 
-Default: C<and>
+Default: C<and|near\d*>
 
 =head2 or_word
 
@@ -447,19 +462,25 @@ Default: C<*>
 
 =head2 locale
 
-Set a locale explicitly for a Keywords object. The C<charset> value is extracted
-from the locale. If not set, the locale is inherited from the C<LC_CTYPE> environment
+Set a locale explicitly for a Keywords object.If not set, 
+the locale is inherited from the C<LC_CTYPE> environment
 variable.
+
+=head2 lang
+
+Base language. If not set, extracted from C<locale> or defaults to C<en_US>.
 
 =head2 charset
 
-Base charset used for converting queries to UTF-8. If not set, extracted from C<locale>.
+Base charset used for converting queries to UTF-8. If not set, 
+extracted from C<locale> or defaults to C<iso-8859-1>.
 
 =head1 AUTHOR
 
 Peter Karman C<perl@peknet.com>
 
-Based on the HTML::HiLiter regular expression building code, originally by the same author, 
+Based on the HTML::HiLiter regular expression building code, 
+originally by the same author, 
 copyright 2004 by Cray Inc.
 
 Thanks to Atomic Learning C<www.atomiclearning.com> 

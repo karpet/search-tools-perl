@@ -165,7 +165,7 @@ sub build
     my $q2regexp = {};
 
     for my $q (@$q_array)
-    {
+    {        
         my ($plain, $html) = $self->_build($q);
         $q2regexp->{$q} =
           Search::Tools::RegExp::Keyword->new(
@@ -222,7 +222,7 @@ ${escaped}
 )
 /xis;
 
-    my (@char) = split(//, $q);
+    my (@char) = split(m//, $q);
 
     my $counter = -1;
 

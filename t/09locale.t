@@ -1,11 +1,11 @@
 use Test::More tests => 2;
 
 use Search::Tools::Keywords;
-use POSIX qw(locale_h);
-use locale;
 
 BEGIN
 {
+    use POSIX qw(locale_h);
+    use locale;
     setlocale(LC_CTYPE, 'en_US.UTF-8');
 }
 
