@@ -8,7 +8,7 @@ use Carp;
 use base qw( Class::Accessor::Fast );
 use Text::Aspell;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new
 {
@@ -34,8 +34,18 @@ sub _init
           dict
           aspell
           kw
+          query
           )
     );
+    
+    if ($self->query)
+    {
+        unless ($self->query->isa('Search::Tools::RegExp::Keywords'))
+        {
+            croak "query must be a S::T::RegExp::Keywords object";
+        }
+        $self->kw( $self->query->kw );
+    }
 
     unless ($self->kw && $self->kw->isa('Search::Tools::Keywords'))
     {

@@ -8,11 +8,12 @@ use Carp;
 use Search::Tools::Keywords;
 use Search::Tools::RegExp;
 use Search::Tools::Snipper;
+use Search::Tools::SpellCheck;
 use Search::Tools::HiLiter;
 use Search::Tools::Transliterate;
 use Search::Tools::XML;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 # accessors that every object should inherit from its parent
 our @Accessors = qw(
@@ -57,6 +58,12 @@ sub transliterate
     return Search::Tools::Transliterate->new->convert(@_);
 }
 
+sub spellcheck
+{
+    my $class = shift;
+    return Search::Tools::SpellCheck->new(@_);
+}
+
 1;
 
 __END__
@@ -71,16 +78,33 @@ Search::Tools - tools for building search applications
 
  use Search::Tools;
  
- my $re = Search::Tools->regexp(query => 'the quick brown fox');
+ my $query = 'the quik brown fox';
  
- my $snipper = Search::Tools->snipper(query => $re);
+ my $re = Search::Tools->regexp(query => $query);
  
- my $hiliter = Search::Tools->hiliter(query => $re);
+ my $snipper    = Search::Tools->snipper(query => $re);
+ my $hiliter    = Search::Tools->hiliter(query => $re);
+ my $spellcheck = Search::Tools->spellcheck(query => $re);
+
+ my $suggestions = $spellcheck->suggest($query);
  
+ for my $s (@$suggestions)
+ {
+    if (! $s->{suggestions})
+    {
+        # $s->{word} was spelled correctly
+    }
+    elsif (@{ $s->{suggestions} })
+    {
+        print "Did you mean: " . join(' or ', @{$s->{suggestions}}) . "\n";
+    }
+ }
+
  for my $result (@search_results)
  {
     print $hiliter->light( $snipper->snip( $result->summary ) );
  }
+  
  
 =head1 DESCRIPTION
 
@@ -111,6 +135,10 @@ Contextual snippets showing query keywords
 
 Highlighting of keywords in context
 
+=item
+
+Spell check keywords and suggestions of alternate spellings.
+
 =back
 
 Search::Tools is derived from some of the features in HTML::HiLiter
@@ -128,6 +156,8 @@ The following CPAN modules are required:
 =item Class::Accessor::Fast
 
 =item Search::QueryParser
+
+=item Text::Aspell
 
 =back
 
@@ -150,6 +180,7 @@ parameter.
 
 =head2 hiliter
 
+=head2 spellcheck
 
 =head1 COMMON ACCESSORS
 
@@ -170,6 +201,10 @@ The following common accessors are inherited by every module in Search::Tools:
 
 See each module's documentation for more details.
 
+=head1 EXAMPLES
+
+See the tests in t/ for examples.
+ 
 =head1 AUTHOR
 
 Peter Karman C<perl@peknet.com>
@@ -190,6 +225,6 @@ same terms as Perl itself.
 
 HTML::HiLiter, SWISH::HiLiter, Search::Tools::Keywords,  Search::Tools::RegExp,
 Search::Tools::RegExp::Keywords, Search::Tools::RegExp::Keyword, Search::Tools::Snipper,
-Search::Tools::HiLiter
+Search::Tools::HiLiter, Search::Tools::SpellCheck
 
 =cut

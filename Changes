@@ -38,4 +38,12 @@ Revision history for Perl extension Search::HiLiter.
       accessor and checking for C and POSIX
     * reorged default settings in S::T::Keywords to set in new() rather
       than each time in extract()
-    
+   
+0.05
+    * added spellcheck() convenience method to S::T
+    * added t/11synopsis.t test
+    * changed POD to reflect new methods
+    * added query() accessor to S::T::SpellCheck
+    * thanks to Kezmega@sbcglobal.net for the above suggestions
+    * fixed POD example in S::T::HiLiter
+ 

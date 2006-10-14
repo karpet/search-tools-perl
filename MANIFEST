@@ -13,6 +13,7 @@ t/07stemmer.t
 t/08transliterate.t
 t/09locale.t
 t/10spellcheck.t
+t/11synopsis.t
 t/Search-Tools.t
 t/chiradtest.htm
 t/greek_and_ojibwe.txt

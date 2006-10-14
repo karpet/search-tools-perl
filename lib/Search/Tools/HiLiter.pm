@@ -4,13 +4,11 @@ use 5.008;
 use strict;
 use warnings;
 use Carp;
-
-#use Data::Dumper;      # just for debugging
 use Search::Tools::RegExp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new
 {
@@ -458,9 +456,9 @@ Search::Tools::HiLiter - extract and highlight search results in original text
  use Search::Tools::HiLiter;
  
  my $re = Search::Tools::RegExp->new;
- my $kw = $re->build('the quick brown fox');
+ my $rekw = $re->build('the quick brown fox');
  
- my $hiliter = Search::Tools::HiLiter->new( kw => $kw );
+ my $hiliter = Search::Tools::HiLiter->new( rekw => $rekw );
              
  for my $text (@texts)
  {
