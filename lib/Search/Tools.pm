@@ -13,7 +13,7 @@ use Search::Tools::HiLiter;
 use Search::Tools::Transliterate;
 use Search::Tools::XML;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 # accessors that every object should inherit from its parent
 our @Accessors = qw(

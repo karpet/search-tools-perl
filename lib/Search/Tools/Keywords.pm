@@ -19,7 +19,7 @@ use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 sub new
 {
@@ -81,7 +81,8 @@ sub _make_utf8
     if (!Encode::is_utf8($str))
     {
 
-        $self->debug and carp "converting $str from " . $self->charset . " -> utf8";
+        $self->debug
+          and carp "converting $str from " . $self->charset . " -> utf8";
         Encode::from_to($str, $self->charset, 'utf8');
         $self->debug and carp "converted $str";
     }
@@ -156,7 +157,7 @@ sub extract
 
             while ($w =~ m/$word_re/g)
             {
-                my $tok = $1;
+                my $tok = _untaint($1);
 
                 # strip ignorable chars
                 $tok =~ s/^[$igf]+//;
@@ -178,10 +179,12 @@ sub extract
 
                 unless ($isphrase)
                 {
-                    next TOK if lc($tok) eq lc($or_word);
-                    next TOK if lc($tok) eq lc($and_word);
-                    next TOK if lc($tok) eq lc($not_word);
+                    next TOK if $tok =~ m/^($and_word|$or_word|$not_word)$/i;
                 }
+
+                # if tainting was on, odd things can happen.
+                # so check one more time
+                $tok = $self->_make_utf8($tok);
 
                 # final sanity check
                 if (!Encode::is_utf8($tok))
@@ -284,6 +287,29 @@ sub extract
     # sort keeps query in same order as we entered
     return (sort { $words{$a} <=> $words{$b} } keys %words);
 
+}
+
+# stolen nearly verbatim from Taint::Runtime
+# it's unclear to me why our regexp results in tainted vars.
+# if we untaint $query in initial extract() set up,
+# subsequent matches against word_re still end up tainted.
+# might be a Unicode weirdness?
+sub _untaint
+{
+    my $str = shift;
+    my $ref = ref($str) ? $str : \$str;
+    if (!defined $$ref)
+    {
+        $$ref = undef;
+    }
+    else
+    {
+        $$ref =
+          ($$ref =~ /(.*)/)
+          ? $1
+          : do { confess("Couldn't find data to untaint") };
+    }
+    return ref($str) ? 1 : $str;
 }
 
 sub _get_v

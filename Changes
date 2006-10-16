@@ -47,3 +47,6 @@ Revision history for Perl extension Search::HiLiter.
     * thanks to Kezmega@sbcglobal.net for the above suggestions
     * fixed POD example in S::T::HiLiter
  
+0.06
+    * Kezmega@sbcglobal.net found a bug when running under -T taint mode.
+      fixed in S::T::Keywords.
