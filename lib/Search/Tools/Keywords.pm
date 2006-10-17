@@ -21,6 +21,8 @@ use base qw( Class::Accessor::Fast );
 
 our $VERSION = '0.05';
 
+my $trans = Search::Tools::Transliterate->new(debug => $ENV{PERL_DEBUG} || 0);
+
 sub new
 {
     my $proto = shift;
@@ -65,30 +67,6 @@ sub _init
 
 }
 
-sub _make_utf8
-{
-    my $self = shift;
-    my $str  = shift;
-
-    # simple byte check first
-    if (Search::Tools::Transliterate->is_valid_utf8($str))
-    {
-        Encode::_utf8_on($str);
-        return $str;
-    }
-
-    # make sure our query is really UTF-8
-    if (!Encode::is_utf8($str))
-    {
-
-        $self->debug
-          and carp "converting $str from " . $self->charset . " -> utf8";
-        Encode::from_to($str, $self->charset, 'utf8');
-        $self->debug and carp "converted $str";
-    }
-    return $str;
-}
-
 sub extract
 {
     my $self      = shift;
@@ -107,7 +85,8 @@ sub extract
     my $word_re      = qr/([$wordchar]+($esc_wildcard)?)/;
     my @query        = @{ref $query ? $query : [$query]};
     $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
-    my %stophash = map { $self->_make_utf8(lc($_)) => 1 } @$stopwords;
+    my %stophash =
+      map { $trans->to_utf8(lc($_), $self->charset) => 1 } @$stopwords;
     my (%words, %uniq, $c);
     my $parser =
       Search::QueryParser->new(
@@ -119,7 +98,7 @@ sub extract
   Q: for my $q (@query)
     {
         $q = lc($q) if $self->ignore_case;
-        $q = $self->_make_utf8($q);
+        $q = $trans->to_utf8($q, $self->charset);
         my $p = $parser->parse($q, 1);
         $self->debug && carp "parsetree: " . pp($p);
         $self->_get_v(\%uniq, $p, $c);
@@ -148,7 +127,7 @@ sub extract
 
         my @w = ();
 
-      TOK: for my $w (split(m/\s+/, $self->_make_utf8($u)))
+      TOK: for my $w (split(m/\s+/, $trans->to_utf8($u, $self->charset)))
         {
 
             next TOK unless $w =~ m/\S/;
@@ -184,7 +163,7 @@ sub extract
 
                 # if tainting was on, odd things can happen.
                 # so check one more time
-                $tok = $self->_make_utf8($tok);
+                $tok = $trans->to_utf8($tok, $self->charset);
 
                 # final sanity check
                 if (!Encode::is_utf8($tok))

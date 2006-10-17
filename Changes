@@ -50,3 +50,10 @@ Revision history for Perl extension Search::HiLiter.
 0.06
     * Kezmega@sbcglobal.net found a bug when running under -T taint mode.
       fixed in S::T::Keywords.
+      
+0.07
+    * added more utf8 methods to S::T::Transliterate.
+    * added $sane threshold to prevent segfaults when checking for valid_utf8 in
+      long strings (like file slurps)
+    
+    

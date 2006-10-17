@@ -1,20 +1,10 @@
-use Test::More;
+use Test::More tests => 15;
 
 BEGIN { use_ok('Search::Tools::Transliterate') }
 
-eval { require Encode };
-my $encodable = 1;
-if ($@)
-{
-    plan tests => 11;
-    $encodable = 0;
-}
-else
-{
-    plan tests => 12;
-}
+use Encode;
 
-ok(my $t = Search::Tools::Transliterate->new, "new transliterator");
+ok(my $t = Search::Tools::Transliterate->new(), "new transliterator");
 
 my $babel = do 't/quick_brown_babel.dmp';
 
@@ -32,20 +22,17 @@ for my $lang (sort keys %$babel)
 
 my $latin1 = 'ÈÉÊÃ ¾ ´ ª æ';
 
-ok(!$t->is_valid_utf8($latin1), "latin1 is not utf8");
-ok(!$t->is_ascii($latin1),      "latin1 is not ascii");
+ok(!$t->is_valid_utf8($latin1),   "latin1 is not utf8");
+ok(!$t->is_ascii($latin1),        "latin1 is not ascii");
+ok(!$t->is_flagged_utf8($latin1), "latin1 is not flagged utf8");
+ok($t->is_sane_utf8($latin1),
+    "latin1 is sane utf8 - doesn't claim to be utf8 and doesn't look like it");
 
 # and finally, transliterate our latin1
 
 ok(!eval { $t->convert($latin1); 1; }, "can't convert latin1");
 
-if ($encodable)
-{
-    ok(
-        my $utf8 =
-          Encode::encode_utf8(Encode::decode('iso-8859-1', $latin1, 1)),
-        "re-encode latin1 -> utf8"
-      );
-    ok(my $trans_latin1 = $t->convert($utf8), "$utf8 transliterated");
-    diag("$utf8 -> $trans_latin1") if $ENV{PERL_TEST};
-}
+ok(my $utf8 = Encode::encode_utf8(Encode::decode('iso-8859-1', $latin1, 1)),
+    "re-encode latin1 -> utf8");
+ok(my $trans_latin1 = $t->convert($utf8), "$utf8 transliterated");
+diag("$utf8 -> $trans_latin1") if $ENV{PERL_TEST};
