@@ -55,5 +55,6 @@ Revision history for Perl extension Search::HiLiter.
     * added more utf8 methods to S::T::Transliterate.
     * added $sane threshold to prevent segfaults when checking for valid_utf8 in
       long strings (like file slurps)
+    * changed example/swish-e.pl to use SWISH::API::Object
     
     

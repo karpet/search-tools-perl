@@ -17,8 +17,8 @@ use POSIX qw(locale_h);
 use locale;
 
 use Carp;
-use Data::Dump qw/dump/;
-use SWISH::API::Stat;
+use Data::Dump qw( dump );
+use SWISH::API::Object;
 
 use Search::Tools;
 use Getopt::Long;
@@ -27,8 +27,7 @@ use Text::Wrap;
 use File::Basename;
 use Time::HiRes;
 
-binmode STDOUT, ':raw'; # is this really needed?
-
+binmode STDOUT, ':raw';    # is this really needed?
 
 my %skip       = ();                # properties to skip in output
 my $debug      = 0;
@@ -93,6 +92,8 @@ GetOptions(
 
 die $usage if $help;
 
+my $trans = Search::Tools::Transliterate->new;
+
 my $swish = open_index($i);
 
 # ignoreWordCount not always on
@@ -123,7 +124,7 @@ else
 sub open_index
 {
     my $i     = shift;
-    my $swish = SWISH::API::Stat->new(indexes => "$i", log => *{STDERR});
+    my $swish = SWISH::API::Object->new(indexes => "$i", log => *{STDERR});
 
     #my $swish = SWISH::API->new("$i");
 
@@ -177,21 +178,18 @@ sub search
 
         my $start_display = [Time::HiRes::gettimeofday()];
 
+        my $wc  = $swish->HeaderValue($i, 'WordCharacters');
+        my $igf = $swish->HeaderValue($i, 'IgnoreFirstChar') || '';
+        my $igl = $swish->HeaderValue($i, 'IgnoreLastChar') || '';
+
         my $kwre = Search::Tools->regexp(
-            debug           => $debug,
-            query           => join(' ', $results->ParsedWords($i)),
-            stemmer         => \&stem,
-            word_characters =>
-              to_utf8(($swish->HeaderValue($i, 'WordCharacters'))[0]),
-            end_characters =>
-              to_utf8(($swish->HeaderValue($i, 'EndCharacters'))[0]),
-            begin_characters =>
-              to_utf8(($swish->HeaderValue($i, 'BeginCharacters'))[0]),
-            ignore_first_char =>
-              to_utf8(($swish->HeaderValue($i, 'IgnoreFirstChar'))[0]),
-            ignore_last_char =>
-              to_utf8(($swish->HeaderValue($i, 'IgnoreLastChar'))[0]),
-            charset => $charset,
+            debug             => $debug,
+            query             => join(' ', $results->ParsedWords($i)),
+            stemmer           => \&stem,
+            word_characters   => $trans->to_utf8($wc, $charset),
+            ignore_first_char => $trans->to_utf8($igf, $charset),
+            ignore_last_char  => $trans->to_utf8($igl, $charset),
+            charset           => $charset,
 
                                         );
         my $snipper = Search::Tools->snipper(debug => $debug, query => $kwre);
@@ -223,20 +221,22 @@ sub search
 
             print "~" x 80 . "\n";
 
-            my @props = $result->PropertyList;
-
-          PROP: for my $prop (sort { $a->Name cmp $b->Name } @props)
+          PROP: for my $prop ($swish->props)
             {
 
-                my $n = $prop->Name;
+                next PROP if exists $skip{$prop};
 
-                next PROP if exists $skip{$n};
+                my $v = $result->$prop || '';
+                unless(ref $v)
+                {
+                    $v = $trans->to_utf8($v);
+                }
+                else
+                {
+                    $v = dump($v);
+                }
 
-                my $v = $result->Property($n) || '';
-                $v = to_utf8($v);
-                
-
-                if ($n eq 'swishlastmodified')
+                if ($prop eq 'swishlastmodified')
                 {
                     $v = localtime($v);
                 }
@@ -249,11 +249,11 @@ sub search
                 # Text::Wrap has a undesirable effect of indenting on right side
                 # the same amount as left, so we hack around that for prettier printing
 
-                my $space   = ' ' x ($col - length($n));
+                my $space   = ' ' x ($col - length($prop));
                 my $gutter  = ' ' x $col;
                 my $wrapped = wrap("", "", $v);
                 $wrapped =~ s,\n,\n$gutter,g;
-                print($n, $space, $larrow, $wrapped, $rarrow, "\n");
+                print($prop, $space, $larrow, $wrapped, $rarrow, "\n");
 
             }
 
@@ -299,20 +299,3 @@ sub stem
 
 }
 
-# there are lots of ways to determine if a byte string is UTF8
-# but some are more fool-proof than others.
-# since SWISH::API returns byte strings, Perl can't tell whether to flag them
-# internally as utf8. so we have to manually check.
-# we try a couple ways before manually decoding per current locale
-sub to_utf8
-{
-    return unless defined($_[0]);
-    return($_[0]) if Encode::is_utf8($_[0]);
-    if (Search::Tools::Transliterate->is_valid_utf8($_[0]))
-    {
-        my $s = shift @_;
-        Encode::_utf8_on($s);
-        return $s;
-    }
-    return Encode::encode_utf8(Encode::decode($charset, $_[0], 1));
-}
