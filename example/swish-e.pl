@@ -22,12 +22,11 @@ use SWISH::API::Object;
 
 use Search::Tools;
 use Getopt::Long;
-use Encode;
 use Text::Wrap;
 use File::Basename;
 use Time::HiRes;
 
-binmode STDOUT, ':raw';    # is this really needed?
+binmode STDOUT, ':utf8';
 
 my %skip       = ();                # properties to skip in output
 my $debug      = 0;
@@ -212,8 +211,8 @@ sub search
         print "stemmed query: $stemmed\n";
 
         my $count  = 0;
-        my $larrow = Encode::encode_utf8(chr(187));
-        my $rarrow = Encode::encode_utf8(chr(171));
+        my $larrow = $trans->to_utf8(chr(187));
+        my $rarrow = $trans->to_utf8(chr(171));
 
         while (my $result = $results->NextResult)
         {
