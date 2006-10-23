@@ -211,7 +211,7 @@ sub _get_real_html
 
         if ($self->debug > 1)
         {
-            carp "$2  matches $re";
+            carp "$2 matches $re";
         }
 
         $m->{$2}++;

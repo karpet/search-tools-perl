@@ -109,14 +109,11 @@ sub _init
     #	the end of a string
     #	whatever we've defined as WhiteSpace
     #	any character that is not a WordChar
+    #   any character we explicitly ignore at start or end of word
     #
     # the \A and \Z (beginning and end) should help if the word butts up
     # against the beginning or end of a tagset
     # like <p>Word or Word</p>
-
-    my $igf =
-      $self->ignore_first_char ? qr/[$self->{ignore_first_char}]*/i : '';
-    my $igl = $self->ignore_last_char ? qr/[$self->{ignore_last_char}]*/i : '';
 
     my @start_bound = (
         '\A',
@@ -127,15 +124,15 @@ sub _init
                             # this might give unexpected results.
                             # NOTE that &nbsp; etc is in $WhiteSpace
         $WhiteSpace,
-        '[^' . $self->{word_characters} . ']'
+        '[^' . $self->{word_characters} . ']',
+        qr/[$self->{ignore_first_char}]+/i
                       );
 
-    push(@start_bound, $igf) if $igf;
-
-    my @end_bound =
-      ('\Z', '[<&]', $WhiteSpace, '[^' . $self->{word_characters} . ']');
-
-    push(@end_bound, $igl) if $igl;
+    my @end_bound = (
+                     '\Z', '[<&]', $WhiteSpace,
+                     '[^' . $self->{word_characters} . ']',
+                     qr/[$self->{ignore_last_char}]+/i
+                    );
 
     $self->{start_bound} ||= join('|', @start_bound);
 
@@ -147,10 +144,12 @@ sub _init
     #	any ignore_first_char
     # define for both text and html
 
-    $self->{text_phrase_bound} = join '', $igl,
-      qr/[\s\x20]|[^$self->{word_characters}]/is, '+', $igf;
-    $self->{html_phrase_bound} = join '', $igl,
-      qr/$WhiteSpace|[^$self->{word_characters}]/is, '+', $igf;
+    $self->{text_phrase_bound} = join '', qr/[$self->{ignore_last_char}]*/i,
+      qr/[\s\x20]|[^$self->{word_characters}]/is, '+',
+      qr/[$self->{ignore_first_char}]*/i;
+    $self->{html_phrase_bound} = join '', qr/[$self->{ignore_last_char}]*/i,
+      qr/$WhiteSpace|[^$self->{word_characters}]/is, '+',
+      qr/[$self->{ignore_first_char}]*/i;
 
 }
 
@@ -165,7 +164,7 @@ sub build
     my $q2regexp = {};
 
     for my $q (@$q_array)
-    {        
+    {
         my ($plain, $html) = $self->_build($q);
         $q2regexp->{$q} =
           Search::Tools::RegExp::Keyword->new(

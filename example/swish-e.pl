@@ -182,10 +182,12 @@ sub search
         my $igl = $swish->HeaderValue($i, 'IgnoreLastChar') || '';
 
         my $kwre = Search::Tools->regexp(
-            debug             => $debug,
-            query             => join(' ', $results->ParsedWords($i)),
-            stemmer           => \&stem,
-            word_characters   => $trans->to_utf8($wc, $charset),
+            debug   => $debug,
+            query   => join(' ', $results->ParsedWords($i)),
+            stemmer => $swish->HeaderValue($i, 'Fuzzy Mode') ne 'None'
+            ? \&stem
+            : undef,
+            word_characters   => $trans->to_utf8($wc,  $charset),
             ignore_first_char => $trans->to_utf8($igf, $charset),
             ignore_last_char  => $trans->to_utf8($igl, $charset),
             charset           => $charset,
@@ -193,12 +195,12 @@ sub search
                                         );
         my $snipper = Search::Tools->snipper(debug => $debug, query => $kwre);
 
-        my $hiliter =
-          Search::Tools->hiliter(
-                                 debug => $debug,
-                                 query => $kwre,
-                                 tty   => 1
-                                );
+        my $hiliter = Search::Tools->hiliter(
+            debug => $debug,
+            query => $kwre,
+            tty   => 1,
+            no_html => 1,   # can screw up objects with ref values
+                                            );
 
         my $fw = $swish->fuzzify($i, $q);
 
@@ -226,7 +228,7 @@ sub search
                 next PROP if exists $skip{$prop};
 
                 my $v = $result->$prop || '';
-                unless(ref $v)
+                unless (ref $v)
                 {
                     $v = $trans->to_utf8($v);
                 }

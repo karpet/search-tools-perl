@@ -56,5 +56,5 @@ Revision history for Perl extension Search::HiLiter.
     * added $sane threshold to prevent segfaults when checking for valid_utf8 in
       long strings (like file slurps)
     * changed example/swish-e.pl to use SWISH::API::Object
-    
+    * fixed subtle regex bug with constructing word boundaries wrt ignore_*_chars
     
