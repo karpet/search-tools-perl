@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use Search::Tools::RegExp;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =pod
 
@@ -422,7 +422,8 @@ unless you know what you're doing. See the SYNOPSIS for an example.
 sub utf8_safe
 {
     my $class = shift;
-    my $t     = shift || '';
+    my $t     = shift;
+    $t = '' unless defined $t;
     
     #$t =~ s,[\x00-\x1f],\n,g;    # converts all low chars to LF
 

@@ -1,6 +1,6 @@
 package Search::Tools;
 
-use 5.008;
+use 5.8.3;
 use strict;
 use warnings;
 use Carp;
@@ -13,7 +13,7 @@ use Search::Tools::HiLiter;
 use Search::Tools::Transliterate;
 use Search::Tools::XML;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 # accessors that every object should inherit from its parent
 our @Accessors = qw(

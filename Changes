@@ -57,4 +57,10 @@ Revision history for Perl extension Search::HiLiter.
       long strings (like file slurps)
     * changed example/swish-e.pl to use SWISH::API::Object
     * fixed subtle regex bug with constructing word boundaries wrt ignore_*_chars
-    
+   
+0.08
+    * fixed bug with S::T::XML utf8_escape() with escaping a literal 0
+    * changed required minimum perl to 5.8.3 for correct UTF-8 support.
+
+
+ 

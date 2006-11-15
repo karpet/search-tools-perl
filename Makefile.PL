@@ -1,4 +1,5 @@
 use ExtUtils::MakeMaker;
+use 5.8.3;
 
 WriteMakefile(
     NAME         => 'Search::Tools',
