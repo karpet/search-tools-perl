@@ -8,5 +8,6 @@ $var = {
 'Portuguese' => 'a raposa marrom rápida saltou sobre o cão preguiçoso',
 'Spanish' => 'el zorro marrón rápido saltó sobre el perro perezoso',
 'English' => 'the quick brown fox jumped over the lazy dog',
-
+# added per RT bug #23880
+'German'  => 'Die Ärzte'	# ("Die UPPER CASE A-Umlaut rzte")
 };

@@ -61,6 +61,8 @@ Revision history for Perl extension Search::HiLiter.
 0.08
     * fixed bug with S::T::XML utf8_escape() with escaping a literal 0
     * changed required minimum perl to 5.8.3 for correct UTF-8 support.
-
+    * kris@koehntopp.de suggested changes to the default character map in S::T::T
+      to better support multiple transliteration options. This resulted in per-instance
+      character map and no more package %Map. See doc in S::T::T for map() method.
 
  

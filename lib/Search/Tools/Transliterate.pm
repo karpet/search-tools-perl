@@ -9,9 +9,11 @@ use charnames ':full';
 
 use base qw( Class::Accessor::Fast );
 
-__PACKAGE__->mk_accessors(qw( debug ));
+__PACKAGE__->mk_accessors(qw( debug ebit ));
 
-our $VERSION = '0.03';
+__PACKAGE__->mk_ro_accessors(qw( map ));
+
+our $VERSION = '0.04';
 
 # if length is > 10K in _invalid_seq...(), can cause segfault (tested under Perl 5.8.7)
 my $sane = 24000;
@@ -25,9 +27,7 @@ Search::Tools::Transliterate - transliterations of UTF-8 chars
 =head1 SYNOPSIS
 
  my $tr = Search::Tools::Transliterate->new();
- 
  print $tr->convert( 'some string of utf8 chars' );
- 
  
 =head1 DESCRIPTION
 
@@ -40,7 +40,31 @@ by Markus Kuhn http://www.cl.cam.ac.uk/~mgk25/.
 
 =head2 new
 
-Create new instance.
+Create new instance. Takes the following optional parameters:
+
+=over
+
+=item map
+
+Customize the character mapping. Should be a hashref. See map() method.
+
+=item ebit
+
+Allow full native 8bit characters, rather than only 7bit ASCII. The default is
+true (1). Set to 0 to disable.
+
+=back
+
+=head2 map
+
+Access the transliteration character map. Example:
+
+ use Search::Tools::Transliterate;
+ my $tr = Search::Tools::Transliterate->new;
+ $tr->map->{mychar} = 'my transliteration';
+ print $tr->convert('mychar');  # prints 'my transliteration'
+
+NOTE: The map() method is an accessor only. You can not pass in a new map.
 
 =head2 is_valid_utf8( I<text> )
 
@@ -80,15 +104,6 @@ converting to UTF-8 if necessary. Returns I<text>  encoded and flagged as UTF-8.
 Returns undef if for some reason the encoding failed or the result did not pass
 is_sane_utf8().
 
-=head1 VARIABLES
-
-C<%Map> package variable holds all the character mappings. You can alter
-it to taste with:
-
- use Search::Tools::Transliterate;
- my $tr = Search::Tools::Transliterate->new;
- $Search::Tools::Transliterate::Map{mychar} = 'my transliteration';
-
 =head1 BUGS
 
 You might consider the whole attempt as a bug. It's really an attempt to 
@@ -121,21 +136,6 @@ Search::Tools, Unicode::Map, Encode, Test::utf8
 
 =cut
 
-# build map
-our %Map = ();
-while (<DATA>)
-{
-    chomp;
-    my ($from, $to) = (m/^(<U.+?>)\ (.+)$/);
-    $Map{_Utag_to_chr($from)} = _Utag_to_chr($to);
-}
-
-# add/override latin1
-for (128 .. 255)
-{
-    $Map{chr($_)} = chr($_);
-}
-
 # A Regexp string to match valid UTF-8 bytes
 # this info comes from page 78 of "The Unicode Standard 4.0"
 # published by the Unicode Consortium
@@ -150,6 +150,31 @@ our $valid_utf8_regexp = <<EOE;
       | [\x{f1}-\x{f3}][\x{80}-\x{bf}][\x{80}-\x{bf}][\x{80}-\x{bf}]
       |         \x{f4} [\x{80}-\x{8f}][\x{80}-\x{bf}][\x{80}-\x{bf}]
 EOE
+
+sub _init_map
+{
+    my $self = shift;
+    my %map;
+    while (<DATA>)
+    {
+        chomp;
+        my ($from, $to) = (m/^(<U.+?>)\ (.+)$/);
+        my @o = split(/;/, $to);
+        $map{_Utag_to_chr($from)} = _Utag_to_chr($o[0]);
+    }
+
+    # add/override 8bit chars
+    if ($self->ebit)
+    {
+        for (128 .. 255)
+        {
+            my $c = chr($_);
+            $map{$c} = $c;
+        }
+    }
+
+    return \%map;
+}
 
 sub _Utag_to_chr
 {
@@ -176,6 +201,14 @@ sub _init
     my $self  = shift;
     my %extra = @_;
     @$self{keys %extra} = values %extra;
+    $self->{ebit} = 1 unless defined $self->{ebit};
+
+    my $map = $self->_init_map;
+    if ($self->{map})
+    {
+        $map->{$_} = $self->{map}->{$_} for keys %{$self->{map}};
+    }
+    $self->{map} = $map;
 }
 
 sub to_utf8
@@ -381,13 +414,13 @@ sub convert
             $newbuf .= $utf;
             next;
         }
-        if (!exists $Map{$utf})
+        if (!exists $self->map->{$utf})
         {
             $newbuf .= ' ';
             next;
         }
 
-        $newbuf .= $Map{$utf};
+        $newbuf .= $self->map->{$utf};
 
     }
 

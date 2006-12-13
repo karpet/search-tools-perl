@@ -1,10 +1,10 @@
-use Test::More tests => 15;
+use Test::More tests => 16;
 
 BEGIN { use_ok('Search::Tools::Transliterate') }
 
 use Encode;
 
-ok(my $t = Search::Tools::Transliterate->new(), "new transliterator");
+ok(my $t = Search::Tools::Transliterate->new(ebit=>0), "new transliterator");
 
 my $babel = do 't/quick_brown_babel.dmp';
 
@@ -36,3 +36,4 @@ ok(my $utf8 = Encode::encode_utf8(Encode::decode('iso-8859-1', $latin1, 1)),
     "re-encode latin1 -> utf8");
 ok(my $trans_latin1 = $t->convert($utf8), "$utf8 transliterated");
 diag("$utf8 -> $trans_latin1") if $ENV{PERL_TEST};
+
