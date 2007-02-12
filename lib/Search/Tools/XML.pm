@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use Search::Tools::RegExp;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =pod
 
@@ -508,6 +508,7 @@ sub unescape_named
             $_[1] =~ s/&$_;/chr($n)/eg;
         }
     }
+    return $_[1];
 }
 
 =head2 unescape_decimal
@@ -521,6 +522,7 @@ sub unescape_decimal
 
     # resolve numeric entities as best we can
     $_[1] =~ s/&#(\d+);/chr($1)/ego;
+    return $_[1];
 }
 
 1;
