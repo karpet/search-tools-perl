@@ -339,8 +339,6 @@ our %HTML_ents = (
                   diams    => 9830,
                  );
 
-
-
 =head1 METHODS
 
 The following methods may be accessed either as object or class methods.
@@ -366,8 +364,6 @@ sub _init
     my %extra = @_;
     @$self{keys %extra} = values %extra;
 }
-
-
 
 =head2 start_tag( I<string> )
 
@@ -424,7 +420,7 @@ sub utf8_safe
     my $class = shift;
     my $t     = shift;
     $t = '' unless defined $t;
-    
+
     #$t =~ s,[\x00-\x1f],\n,g;    # converts all low chars to LF
 
     $t =~ s{([^\x20\x21\x23-\x25\x28-\x3b\x3d\x3F-\x5B\x5D-\x7E])}
@@ -467,7 +463,7 @@ I<text> is modified in place.
 
 =cut
 
-sub escape { $_[1] =~ s/([$ToEscape])/$Ents{$1}/og }
+sub escape { $_[1] =~ s/([$ToEscape])/$Ents{$1}/og if defined($_[1]) }
 
 =head2 unescape( I<text> )
 
@@ -485,8 +481,11 @@ I<text> is modified in place.
 
 sub unescape
 {
-    $_[0]->unescape_named($_[1]);
-    $_[0]->unescape_decimal($_[1]);
+    if (defined $_[0])
+    {
+        $_[0]->unescape_named($_[1]);
+        $_[0]->unescape_decimal($_[1]);
+    }
     return $_[1];
 }
 
@@ -498,14 +497,17 @@ Replace all named HTML entities with their chr() equivalents.
 
 sub unescape_named
 {
-
-    # named entities - check first to see if it is worth looping
-    if ($_[1] =~ m/&[a-zA-Z]+;/)
+    if (defined($_[1]))
     {
-        for (keys %HTML_ents)
+
+        # named entities - check first to see if it is worth looping
+        if ($_[1] =~ m/&[a-zA-Z]+;/)
         {
-            my $n = $HTML_ents{$_};
-            $_[1] =~ s/&$_;/chr($n)/eg;
+            for (keys %HTML_ents)
+            {
+                my $n = $HTML_ents{$_};
+                $_[1] =~ s/&$_;/chr($n)/eg;
+            }
         }
     }
     return $_[1];
@@ -521,7 +523,7 @@ sub unescape_decimal
 {
 
     # resolve numeric entities as best we can
-    $_[1] =~ s/&#(\d+);/chr($1)/ego;
+    $_[1] =~ s/&#(\d+);/chr($1)/ego if defined($_[1]);
     return $_[1];
 }
 

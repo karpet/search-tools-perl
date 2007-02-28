@@ -38,7 +38,8 @@ my $maxresults = undef;
 my $help       = 0;
 my $col        = 20;                # width of gutter between props and text
 my $script     = basename($0);
-my ($charset) = (setlocale(LC_CTYPE) =~ m/^.+?\.(.+)/ || 'iso-8859-1');
+my ($charset) = (setlocale(LC_CTYPE) =~ m/^.+?\.(.+)/);
+$charset ||= 'iso-8859-1';
 my $interactive = 0;
 
 my $usage = <<HELP;
