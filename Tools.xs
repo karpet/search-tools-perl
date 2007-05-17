@@ -52,7 +52,7 @@ find_bad_utf8(string)
     CODE:
         bytes  = (U8*)SvPV(string, len);
         is_utf8_string_loc(bytes, len, &pos);
-        RETVAL = newSVpvn((char*)pos, strlen(pos));
+        RETVAL = newSVpvn((char*)pos, strlen((char*)pos));
         
     OUTPUT:
         RETVAL
