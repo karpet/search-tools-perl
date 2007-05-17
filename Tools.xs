@@ -29,10 +29,10 @@ is_valid_utf8(string)
     
     PREINIT:
         STRLEN len;
-        char * bytes;
+        U8 * bytes;
         
     CODE:
-        bytes  = SvPV(string, len);
+        bytes  = (U8*)SvPV(string, len);
         RETVAL = is_utf8_string(bytes, len);
         
     OUTPUT:
@@ -46,13 +46,13 @@ find_bad_utf8(string)
     
     PREINIT:
         STRLEN len;
-        char * bytes;
+        U8 * bytes;
         U8 * pos;
         
     CODE:
-        bytes  = SvPV(string, len);
+        bytes  = (U8*)SvPV(string, len);
         is_utf8_string_loc(bytes, len, &pos);
-        RETVAL = newSVpvn(pos, strlen(pos));
+        RETVAL = newSVpvn((char*)pos, strlen(pos));
         
     OUTPUT:
         RETVAL
