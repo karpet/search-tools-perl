@@ -65,4 +65,7 @@ Revision history for Perl extension Search::HiLiter.
       to better support multiple transliteration options. This resulted in per-instance
       character map and no more package %Map. See doc in S::T::T for map() method.
 
+0.09
+    * separated the UTF8 checking into Search::Tools::UTF8 and use XS to check valid utf8
+    * re-write all regexp stuff as native XS to boost performance
  

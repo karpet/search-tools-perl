@@ -1,11 +1,10 @@
 package Search::Tools::Transliterate;
 
-require 5.008;
 use strict;
 use warnings;
+use Search::Tools::UTF8;
 use Carp;
 use Encode;
-use charnames ':full';
 
 use base qw( Class::Accessor::Fast );
 
@@ -13,10 +12,7 @@ __PACKAGE__->mk_accessors(qw( debug ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.04';
-
-# if length is > 10K in _invalid_seq...(), can cause segfault (tested under Perl 5.8.7)
-my $sane = 24000;
+our $VERSION = '0.05';
 
 =pod
 
@@ -66,43 +62,12 @@ Access the transliteration character map. Example:
 
 NOTE: The map() method is an accessor only. You can not pass in a new map.
 
-=head2 is_valid_utf8( I<text> )
-
-Returns true if I<text> is a valid sequence of UTF-8 bytes,
-regardless of how Perl has it flagged (is_utf8 or not).
-
-=head2 is_ascii( I<text> )
-
-If I<text> contains no bytes above 127, then returns true (1). Otherwise,
-returns false (0). Used by convert() internally to check I<text> prior
-to transliterating.
-
-=head2 is_latin1( I<text> )
-
-Returns true if I<text> lies within the Latin1 charset.
-
-=head2 is_flagged_utf8( I<text> )
-
-Returns true if Perl thinks I<text> is UTF-8. Same as Encode::is_utf8().
-
-=head2 is_sane_utf8( I<text> )
-
-Will test for double-y encoded I<text>. Returns true if I<text> looks ok.
-See Text::utf8 docs for explanation.
 
 =head2 convert( I<text> )
 
 Returns UTF-8 I<text> converted with all single bytes, transliterated according
 to %Map. Will croak if I<text> is not valid UTF-8, so if in doubt, check first with
 is_valid_utf8().
-
-=head2 to_utf8( I<text>, I<charset> )
-
-Shorthand for running I<text> through appropriate is_*() checks and then
-converting to UTF-8 if necessary. Returns I<text>  encoded and flagged as UTF-8.
-
-Returns undef if for some reason the encoding failed or the result did not pass
-is_sane_utf8().
 
 =head1 BUGS
 
@@ -132,7 +97,7 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::Tools, Unicode::Map, Encode, Test::utf8
+Search::Tools::UTF8, Unicode::Map, Encode, Test::utf8
 
 =cut
 
@@ -211,180 +176,6 @@ sub _init
     $self->{map} = $map;
 }
 
-sub to_utf8
-{
-    my $self    = shift;
-    my $str     = shift;
-    my $charset = shift || 'iso-8859-1';
-
-    # checks first
-    if ($self->is_flagged_utf8($str))
-    {
-        return $str;
-    }
-    if ($self->is_valid_utf8($str))
-    {
-        Encode::_utf8_on($str);
-        return $str;
-    }
-    if ($self->is_ascii($str))
-    {
-        Encode::_utf8_on($str);
-        return $str;
-    }
-
-    $self->debug
-      and carp "converting $str from $charset -> utf8";
-    my $c = Encode::decode($charset, $str);
-    $self->debug and carp "converted $c";
-
-    unless ($self->is_sane_utf8($c))
-    {
-        carp "not sane: $c";
-    }
-
-    return $c;
-}
-
-sub _invalid_sequence_at_byte
-{
-    my $s = shift;
-
-    # examine the bytes that make up the string (not the chars)
-    # by turning off the utf8 flag (no, use bytes doesn't
-    # work, we're dealing with a regexp)
-
-    Encode::_utf8_off($s);
-
-    if (length($s) > $sane)
-    {
-        carp
-          "string too long for sane utf8 check - only checking first $sane chars";
-        $s = substr($s, 0, $sane);
-    }
-
-    # work out the index of the first non matching byte
-    my $result = $s =~ m/^($valid_utf8_regexp)*/ogx;
-
-    # if we matched all the string return the empty list
-    my $pos = pos $s || 0;
-    if ($pos == length($s))
-    {
-        Encode::_utf8_on($s);    # do we really need this??
-        return;
-    }
-
-    # otherwise return the position we found
-    return $pos;
-}
-
-sub is_valid_utf8
-{
-    my $self = shift;
-    my $buf  = shift;
-    return defined(_invalid_sequence_at_byte($buf)) ? 0 : 1;
-}
-
-sub is_flagged_utf8
-{
-    my $self = shift;
-    return Encode::is_utf8(@_);
-}
-
-my $re_bit = join "|", map { Encode::encode("utf8", chr($_)) } (127 .. 255);
-
-#binmode STDERR, ":utf8";
-#print STDERR $re_bit;
-
-sub is_sane_utf8
-{
-    my $self   = shift;
-    my $string = shift;
-
-    # regexp in scalar context with 'g', meaning this loop will run for
-    # each match.  Should only have to run it once, but will redo if
-    # the failing case turns out to be allowed in %allowed.
-    while ($string =~ /($re_bit)/o)
-    {
-
-        # work out what the double encoded string was
-        my $bytes = $1;
-
-        my $index = $+[0] - length($bytes);
-        my $codes = join '', map { sprintf '<%00x>', ord($_) } split //, $bytes;
-
-        # what charecter does that represent?
-        my $char = Encode::decode("utf8", $bytes);
-        my $ord  = ord($char);
-        my $hex  = sprintf '%00x', $ord;
-        $char = charnames::viacode($ord);
-
-        # print out diagnostic messages
-        if ($self->debug)
-        {
-
-            warn(qq{Found dodgy chars "$codes" at char $index\n});
-            if (Encode::is_utf8($string))
-            {
-                warn("Chars in utf8 string look like utf8 byte sequence.");
-            }
-            else
-            {
-                warn("String not flagged as utf8...was it meant to be?\n");
-            }
-            warn(
-                "Probably originally a $char char - codepoint $ord (dec), $hex (hex)\n"
-            );
-
-        }
-
-        return 0;
-    }
-
-    return 1;
-}
-
-sub is_latin1
-{
-    my $self   = shift;
-    my $string = shift;
-
-    if ($string =~ /([^\x{00}-\x{ff}])/)
-    {
-
-        # explain why we failed
-        my $dec = ord($1);
-        my $hex = sprintf '%x', $dec;
-
-        carp("Char $+[0] not Latin-1 (it's $dec dec / $hex hex)")
-          if $self->debug;
-        return 0;
-    }
-
-    return 1;
-
-}
-
-sub is_ascii
-{
-    my $self = shift;
-    my $buf  = shift;
-    if ($buf =~ m/([^\x{00}-\x{7f}])/o)
-    {
-
-        # explain why we failed
-        my $dec = ord($1);
-        my $hex = sprintf '%02x', $dec;
-
-        carp("Char $+[0] not ASCII (it's $dec dec / $hex hex)")
-          if $self->debug;
-
-        return 0;
-    }
-    1;
-
-}
-
 sub convert
 {
     my $self   = shift;
@@ -392,13 +183,12 @@ sub convert
     my $newbuf = '';
 
     # don't bother unless we have non-ascii bytes
-    return $buf if $self->is_ascii($buf);
+    return $buf if is_ascii($buf);
 
     # make sure we've got valid UTF-8 to start with
-    my $pos = _invalid_sequence_at_byte($buf);
-    if (defined($pos))
+    unless (is_valid_utf8($buf))
     {
-        croak "bad UTF-8 byte at $pos";
+        croak "bad UTF-8 byte(s) at " . find_bad_utf8($buf);
     }
 
     Encode::_utf8_off($buf);
@@ -423,8 +213,6 @@ sub convert
         $newbuf .= $self->map->{$utf};
 
     }
-
-    Encode::_utf8_on($buf);
 
     return $newbuf;
 }

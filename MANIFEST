@@ -2,6 +2,8 @@ Changes
 Makefile.PL
 MANIFEST
 README
+Tools.xs
+ppport.h
 t/Search-Tools.t
 t/01keywords.t
 t/02regexp.t
@@ -14,6 +16,7 @@ t/08transliterate.t
 t/09locale.t
 t/10spellcheck.t
 t/11synopsis.t
+t/12utf8.t
 t/Search-Tools.t
 t/chiradtest.htm
 t/greek_and_ojibwe.txt
@@ -31,6 +34,7 @@ lib/Search/Tools/RegExp.pm
 lib/Search/Tools/RegExp/Keywords.pm
 lib/Search/Tools/RegExp/Keyword.pm
 lib/Search/Tools/SpellCheck.pm
+lib/Search/Tools/UTF8.pm
 lib/Search/Tools/XML.pm
 example/dirsearch.pl
 example/qp.pl

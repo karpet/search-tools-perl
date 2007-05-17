@@ -1,6 +1,5 @@
 package Search::Tools::Keywords;
 
-use 5.008;
 use strict;
 use warnings;
 
@@ -12,16 +11,13 @@ use Carp;
 use Data::Dump qw/ pp /;    # just for debugging
 use Encode;
 use Search::Tools;
+use Search::Tools::UTF8;
 use Search::Tools::RegExp;
-use Search::Tools::Transliterate;
-
 use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
 
 our $VERSION = '0.05';
-
-my $trans = Search::Tools::Transliterate->new(debug => $ENV{PERL_DEBUG} || 0);
 
 sub new
 {
@@ -86,7 +82,7 @@ sub extract
     my @query        = @{ref $query ? $query : [$query]};
     $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
     my %stophash =
-      map { $trans->to_utf8(lc($_), $self->charset) => 1 } @$stopwords;
+      map { to_utf8(lc($_), $self->charset) => 1 } @$stopwords;
     my (%words, %uniq, $c);
     my $parser =
       Search::QueryParser->new(
@@ -98,7 +94,7 @@ sub extract
   Q: for my $q (@query)
     {
         $q = lc($q) if $self->ignore_case;
-        $q = $trans->to_utf8($q, $self->charset);
+        $q = to_utf8($q, $self->charset);
         my $p = $parser->parse($q, 1);
         $self->debug && carp "parsetree: " . pp($p);
         $self->_get_v(\%uniq, $p, $c);
@@ -127,7 +123,7 @@ sub extract
 
         my @w = ();
 
-      TOK: for my $w (split(m/\s+/, $trans->to_utf8($u, $self->charset)))
+      TOK: for my $w (split(m/\s+/, to_utf8($u, $self->charset)))
         {
 
             next TOK unless $w =~ m/\S/;
@@ -163,7 +159,7 @@ sub extract
 
                 # if tainting was on, odd things can happen.
                 # so check one more time
-                $tok = $trans->to_utf8($tok, $self->charset);
+                $tok = to_utf8($tok, $self->charset);
 
                 # final sanity check
                 if (!Encode::is_utf8($tok))

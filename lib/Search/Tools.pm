@@ -5,15 +5,10 @@ use strict;
 use warnings;
 use Carp;
 
-use Search::Tools::Keywords;
-use Search::Tools::RegExp;
-use Search::Tools::Snipper;
-use Search::Tools::SpellCheck;
-use Search::Tools::HiLiter;
-use Search::Tools::Transliterate;
-use Search::Tools::XML;
+our $VERSION = '0.09';
 
-our $VERSION = '0.08';
+use XSLoader;
+XSLoader::load('Search::Tools', $VERSION);
 
 # accessors that every object should inherit from its parent
 our @Accessors = qw(
@@ -37,30 +32,35 @@ sub regexp
     my $class = shift;
     my %extra = @_;
     my $q     = delete($extra{query}) || croak "need query to build regexp";
+    require Search::Tools::RegExp;
     return Search::Tools::RegExp->new(%extra)->build($q);
 }
 
 sub hiliter
 {
     my $class = shift;
+    require Search::Tools::HiLiter;
     return Search::Tools::HiLiter->new(@_);
 }
 
 sub snipper
 {
     my $class = shift;
+    require Search::Tools::Snipper;
     return Search::Tools::Snipper->new(@_);
 }
 
 sub transliterate
 {
     my $class = shift;
+    require Search::Tools::Transliterate;
     return Search::Tools::Transliterate->new->convert(@_);
 }
 
 sub spellcheck
 {
     my $class = shift;
+    require Search::Tools::SpellCheck;
     return Search::Tools::SpellCheck->new(@_);
 }
 
