@@ -51,7 +51,7 @@ find_bad_utf8(string)
         
     CODE:
         bytes  = (U8*)SvPV(string, len);
-        if (is_utf8_string((char*)bytes, len))
+        if (is_utf8_string(bytes, len))
         {
             RETVAL = NULL;
         }
@@ -76,7 +76,7 @@ is_ascii(string)
         unsigned int    i;
         
     CODE:
-        bytes  = SvPV(string, len);
+        bytes  = (unsigned char*)SvPV(string, len);
         RETVAL = 1;
         for(i=0; i < len; i++)
         {
@@ -100,7 +100,7 @@ find_bad_ascii(string)
         int             i;
         
     CODE:
-        bytes  = SvPV(string, len);
+        bytes  = (unsigned char*)SvPV(string, len);
         RETVAL = -1;
         for(i=0; i < len; i++)
         {
