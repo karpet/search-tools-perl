@@ -53,14 +53,14 @@ find_bad_utf8(string)
         bytes  = (U8*)SvPV(string, len);
         if (is_utf8_string(bytes, len))
         {
-            RETVAL = NULL;
+            RETVAL = &PL_sv_undef;
         }
         else
         {
             is_utf8_string_loc(bytes, len, &pos);
             RETVAL = newSVpvn((char*)pos, strlen((char*)pos));
         }
-        
+
     OUTPUT:
         RETVAL
         

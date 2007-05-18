@@ -1,4 +1,4 @@
-use Test::More tests => 16;
+use Test::More tests => 17;
 
 BEGIN { use_ok('Search::Tools::UTF8') }
 
@@ -31,3 +31,5 @@ ok(is_valid_utf8($ambiguous),           "is_valid_utf8 ambiguous");
 ok(is_latin1($ambiguous),               "is_latin1 ambiguous");
 ok(!defined(find_bad_utf8($ambiguous)), "find_bad_utf8 ambiguous");
 is(find_bad_latin1($ambiguous), -1, "find_bad_latin1 ambiguous");
+
+ok(!defined(find_bad_utf8('PC')),	"find_bad_utf8 allows ascii");
