@@ -31,6 +31,10 @@ Search::Tools::Transliterate transliterates UTF-8 characters
 to single-byte equivalents. It is based on the transmap project
 by Markus Kuhn http://www.cl.cam.ac.uk/~mgk25/.
 
+B<NOTE:> All the I<is_*> encoding check methods that existed in this class prior
+to version 0.05 were moved to Search::Tools::UTF8 and refactored as functions,
+many using XS for speed improvements.
+
 
 =head1 METHODS
 
@@ -46,8 +50,8 @@ Customize the character mapping. Should be a hashref. See map() method.
 
 =item ebit
 
-Allow full native 8bit characters, rather than only 7bit ASCII. The default is
-true (1). Set to 0 to disable.
+Allow convert() to use full native 8bit characters for transliterating, 
+rather than only 7bit ASCII. The default is true (1). Set to 0 to disable.
 
 =back
 
@@ -67,7 +71,7 @@ NOTE: The map() method is an accessor only. You can not pass in a new map.
 
 Returns UTF-8 I<text> converted with all single bytes, transliterated according
 to %Map. Will croak if I<text> is not valid UTF-8, so if in doubt, check first with
-is_valid_utf8().
+is_valid_utf8() in Search::Tools::UTF8;
 
 =head1 BUGS
 
@@ -87,11 +91,10 @@ Peter Karman C<perl@peknet.com>
 Thanks to Atomic Learning C<www.atomiclearning.com> 
 for sponsoring the development of this module.
 
-Many of the UTF-8 tests come directly from Test::utf8.
-
 =head1 COPYRIGHT
 
-Copyright 2006 by Peter Karman. 
+Copyright 2006 by Peter Karman.
+
 This package is free software; you can redistribute it and/or modify it under the 
 same terms as Perl itself.
 

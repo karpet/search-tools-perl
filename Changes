@@ -66,6 +66,7 @@ Revision history for Perl extension Search::HiLiter.
       character map and no more package %Map. See doc in S::T::T for map() method.
 
 0.09
-    * separated the UTF8 checking into Search::Tools::UTF8 and use XS to check valid utf8
-    * re-write all regexp stuff as native XS to boost performance
- 
+    * separated the UTF8 checking into Search::Tools::UTF8 and use XS to check valid utf8.
+      Among other things, fixes the string length bug on is_valid_utf8() 
+      that previously segfaulted if the string was longer than 24K.
+

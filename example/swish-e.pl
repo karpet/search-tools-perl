@@ -21,6 +21,7 @@ use Data::Dump qw( dump );
 use SWISH::API::Object;
 
 use Search::Tools;
+use Search::Tools::UTF8;
 use Getopt::Long;
 use Text::Wrap;
 use File::Basename;
@@ -188,9 +189,9 @@ sub search
             stemmer => $swish->HeaderValue($i, 'Fuzzy Mode') ne 'None'
             ? \&stem
             : undef,
-            word_characters   => $trans->to_utf8($wc,  $charset),
-            ignore_first_char => $trans->to_utf8($igf, $charset),
-            ignore_last_char  => $trans->to_utf8($igl, $charset),
+            word_characters   => to_utf8($wc,  $charset),
+            ignore_first_char => to_utf8($igf, $charset),
+            ignore_last_char  => to_utf8($igl, $charset),
             charset           => $charset,
 
                                         );
@@ -214,8 +215,8 @@ sub search
         print "stemmed query: $stemmed\n";
 
         my $count  = 0;
-        my $larrow = $trans->to_utf8(chr(187));
-        my $rarrow = $trans->to_utf8(chr(171));
+        my $larrow = to_utf8(chr(187));
+        my $rarrow = to_utf8(chr(171));
 
         while (my $result = $results->NextResult)
         {
@@ -231,7 +232,7 @@ sub search
                 my $v = $result->$prop || '';
                 unless (ref $v)
                 {
-                    $v = $trans->to_utf8($v);
+                    $v = to_utf8($v);
                 }
                 else
                 {

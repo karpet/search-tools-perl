@@ -51,9 +51,67 @@ find_bad_utf8(string)
         
     CODE:
         bytes  = (U8*)SvPV(string, len);
-        is_utf8_string_loc(bytes, len, &pos);
-        RETVAL = newSVpvn((char*)pos, strlen((char*)pos));
+        if (is_utf8_string((char*)bytes, len))
+        {
+            RETVAL = NULL;
+        }
+        else
+        {
+            is_utf8_string_loc(bytes, len, &pos);
+            RETVAL = newSVpvn((char*)pos, strlen((char*)pos));
+        }
         
+    OUTPUT:
+        RETVAL
+        
+# benchmarks show these XS versions are 9x faster
+# than their native Perl regex counterparts
+int 
+is_ascii(string)
+    SV* string;
+    
+    PREINIT:
+        STRLEN          len;
+        unsigned char*  bytes;
+        unsigned int    i;
+        
+    CODE:
+        bytes  = SvPV(string, len);
+        RETVAL = 1;
+        for(i=0; i < len; i++)
+        {
+            if (bytes[i] >= 0x80)
+            {
+                RETVAL = 0;
+                break;
+            }  
+        }
+
+    OUTPUT:
+        RETVAL
+        
+int
+find_bad_ascii(string)
+    SV* string;
+    
+    PREINIT:
+        STRLEN          len;
+        unsigned char*  bytes;
+        int             i;
+        
+    CODE:
+        bytes  = SvPV(string, len);
+        RETVAL = -1;
+        for(i=0; i < len; i++)
+        {
+            if (bytes[i] >= 0x80)
+            {
+            # return $+[0], so base-1
+                RETVAL = i + 1;
+                break;
+            }  
+        }
+
     OUTPUT:
         RETVAL
         

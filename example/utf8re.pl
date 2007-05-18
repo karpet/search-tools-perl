@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Encode;
-use Search::Tools::Transliterate;
+use Search::Tools::UTF8;
 
 my %text = (
 
@@ -16,7 +16,6 @@ my %text = (
 
 my $w_re = qr/(\w+)/;
 my $u_re = qr/((\p{L}\p{M}*|[\-\_0-9])+)/;
-my $st   = Search::Tools::Transliterate->new;
 
 binmode STDOUT, ':utf8';
 
@@ -26,7 +25,7 @@ print '=' x 30, 'converting latin1 to utf8', '=' x 30, $/;
 
 for (keys %text)
 {
-    if (!Encode::is_utf8($text{$_}) && !$st->is_valid_utf8($text{$_}))
+    if (!Encode::is_utf8($text{$_}) && !is_valid_utf8($text{$_}))
     {
         Encode::from_to($text{$_}, 'iso-8859-1', 'utf8');
     }
@@ -42,17 +41,17 @@ sub test
         my $str = $text{$type};
         print "$type\n";
         print " Encode says $str is_utf8 = " . Encode::is_utf8($str) . "\n";
-        print " STT says $str valid_utf8 = " . $st->is_valid_utf8($str) . "\n";
+        print " STT says $str valid_utf8 = " . is_valid_utf8($str) . "\n";
 
         # force flag
-        if ($st->is_valid_utf8($str))
+        if (is_valid_utf8($str))
         {
             Encode::_utf8_on($str);
         }
 
         print " now Encode says $str is_utf8 = " . Encode::is_utf8($str) . "\n";
         print " now STT says $str valid_utf8 = "
-          . $st->is_valid_utf8($str) . "\n";
+          . is_valid_utf8($str) . "\n";
 
         while ($str =~ m/$w_re/g)
         {
