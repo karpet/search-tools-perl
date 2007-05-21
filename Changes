@@ -70,3 +70,6 @@ Revision history for Perl extension Search::HiLiter.
       Among other things, fixes the string length bug on is_valid_utf8() 
       that previously segfaulted if the string was longer than 24K.
 
+0.10
+    * fix bug in Tools.xs where NULL was being returned as SV* instead of &PL_sv_undef
+

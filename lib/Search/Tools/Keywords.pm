@@ -1,5 +1,5 @@
 package Search::Tools::Keywords;
-
+use 5.8.3;
 use strict;
 use warnings;
 
@@ -8,7 +8,7 @@ use POSIX qw(locale_h);
 use locale;
 
 use Carp;
-use Data::Dump qw/ pp /;    # just for debugging
+use Data::Dump qw( pp );    # just for debugging
 use Encode;
 use Search::Tools;
 use Search::Tools::UTF8;
@@ -17,7 +17,7 @@ use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 sub new
 {
@@ -29,20 +29,20 @@ sub new
     return $self;
 }
 
+__PACKAGE__->mk_accessors(
+    qw(
+      and_word
+      or_word
+      not_word
+      ),
+    @Search::Tools::Accessors
+                         );
+
 sub _init
 {
     my $self  = shift;
     my %extra = @_;
     @$self{keys %extra} = values %extra;
-
-    $self->mk_accessors(
-        qw(
-          and_word
-          or_word
-          not_word
-          ),
-        @Search::Tools::Accessors
-    );
 
     # set defaults
     $self->{locale} ||= setlocale(LC_CTYPE);
@@ -79,25 +79,25 @@ sub extract
 
     my $esc_wildcard = quotemeta($wildcard);
     my $word_re      = qr/([$wordchar]+($esc_wildcard)?)/;
-    my @query        = @{ref $query ? $query : [$query]};
+    my @query        = ref $query ? (@$query) : ($query);
     $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
     my %stophash =
       map { to_utf8(lc($_), $self->charset) => 1 } @$stopwords;
-    my (%words, %uniq, $c);
+    my (%words, %uniq);
     my $parser =
       Search::QueryParser->new(
                                rxAnd => qr{$and_word}i,
                                rxOr  => qr{$or_word}i,
                                rxNot => qr{$not_word}i,
                               );
-
+    my $c = 0;
   Q: for my $q (@query)
     {
         $q = lc($q) if $self->ignore_case;
         $q = to_utf8($q, $self->charset);
         my $p = $parser->parse($q, 1);
         $self->debug && carp "parsetree: " . pp($p);
-        $self->_get_v(\%uniq, $p, $c);
+        $self->_get_v(\%uniq, $p, \$c);
     }
 
     $self->debug && carp "parsed: " . pp(\%uniq);
@@ -226,7 +226,7 @@ sub extract
           W: for my $w (@w)
             {
                 my $func = $self->stemmer;
-                my $f    = &$func($self, $w);
+                my $f = &$func($self, $w);
 
                 #warn "w: $w\nf: $f\n";
 
@@ -313,7 +313,7 @@ sub _get_v
                 # collapse any whitespace
                 $v =~ s,\s+,\ ,g;
 
-                $uniq->{$v} = ++$c;
+                $uniq->{$v} = ++$$c;
             }
         }
     }

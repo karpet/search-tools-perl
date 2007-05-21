@@ -229,7 +229,7 @@ ${escaped}
     {
         $counter++;
 
-        my $ent = $char2entity{$c} || carp "no entity defined for >$c< !\n";
+        my $ent = $char2entity{$c} || '';
         my $num = ord($c);
 
         # if this is a special regexp char, protect it

@@ -6,7 +6,7 @@
 # plus Search::Tools stuff
 #
 
-require 5.8.1;
+use 5.8.3;
 use strict;
 use warnings;
 
@@ -36,12 +36,14 @@ my $low        = undef;
 my $property   = undef;
 my $i          = 'index.swish-e';
 my $maxresults = undef;
+my $snip_type  = '';
 my $help       = 0;
 my $col        = 20;                # width of gutter between props and text
 my $script     = basename($0);
 my ($charset) = (setlocale(LC_CTYPE) =~ m/^.+?\.(.+)/);
 $charset ||= 'iso-8859-1';
 my $interactive = 0;
+my $profile     = 0;
 
 my $usage = <<HELP;
 
@@ -88,12 +90,11 @@ GetOptions(
            'help'        => \$help,
            'charset'     => \$charset,
            'interactive' => \$interactive,
-          )
-  or die $usage;
+           'profile=i'   => \$profile,
+           'snipper=s'   => \$snip_type,
+          ) or die $usage;
 
 die $usage if $help;
-
-my $trans = Search::Tools::Transliterate->new;
 
 my $swish = open_index($i);
 
@@ -116,7 +117,18 @@ else
 {
     die $usage unless @ARGV;
 
-    search(join(' ', @ARGV));
+    my $query = join(' ', @ARGV);
+    if ($profile)
+    {
+        while ($profile--)
+        {
+            search($query);
+        }
+    }
+    else
+    {
+        search($query);
+    }
 
 }
 
@@ -124,7 +136,7 @@ else
 
 sub open_index
 {
-    my $i     = shift;
+    my $i = shift;
     my $swish = SWISH::API::Object->new(indexes => "$i", log => *{STDERR});
 
     #my $swish = SWISH::API->new("$i");
@@ -162,7 +174,7 @@ sub search
 
     # Display a list of results
 
-    my $hits  = $results->Hits;
+    my $hits = $results->Hits;
     my $limit = $maxresults || $hits;
 
     if (!$hits)
@@ -195,13 +207,18 @@ sub search
             charset           => $charset,
 
                                         );
-        my $snipper = Search::Tools->snipper(debug => $debug, query => $kwre);
+        my $snipper =
+          Search::Tools->snipper(
+                                 debug        => $debug,
+                                 query        => $kwre,
+                                 snipper_type => $snip_type
+                                );
 
         my $hiliter = Search::Tools->hiliter(
-            debug => $debug,
-            query => $kwre,
-            tty   => 1,
-            no_html => 1,   # can screw up objects with ref values
+                     debug   => $debug,
+                     query   => $kwre,
+                     tty     => 1,
+                     no_html => 1,        # can screw up objects with ref values
                                             );
 
         my $fw = $swish->fuzzify($i, $q);

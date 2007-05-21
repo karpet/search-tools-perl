@@ -1,14 +1,17 @@
 package Search::Tools::HiLiter;
 
-use 5.008;
+use 5.8.3;
 use strict;
 use warnings;
 use Carp;
 use Search::Tools::RegExp;
+use Search::Tools::UTF8;
+
+# TODO XS-ify the bottlenecks here
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub new
 {
@@ -20,25 +23,25 @@ sub new
     return $self;
 }
 
+__PACKAGE__->mk_accessors(
+    qw(
+      query
+      rekw
+      tag
+      class
+      colors
+      tty
+      ttycolors
+      no_html
+      ),
+    @Search::Tools::Accessors
+                         );
+
 sub _init
 {
     my $self  = shift;
     my %extra = @_;
     @$self{keys %extra} = values %extra;
-
-    $self->mk_accessors(
-        qw(
-          query
-          rekw
-          tag
-          class
-          colors
-          tty
-          ttycolors
-          no_html
-          ),
-        @Search::Tools::Accessors
-    );
 
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 
@@ -185,7 +188,8 @@ sub close_tag
 sub light
 {
     my $self = shift;
-    my $text = shift or return '';
+    my $text = to_utf8(shift);
+    return '' unless length $text;
 
     if (Search::Tools::RegExp->isHTML($text) && !$self->no_html)
     {
@@ -248,7 +252,7 @@ sub html
 
   Q: for my $query ($self->_kworder)
     {
-        my $re   = $self->rekw->re($query)->html;
+        my $re = $self->rekw->re($query)->html;
         my $real = $self->_get_real_html(\$text, $re);
 
       R: for my $r (keys %$real)
@@ -367,8 +371,7 @@ sub _clean_up_hilites
     my $ent_split = (
         $$text =~
           s/(&[\w#]*)\Q$o\E(?:\Q$c\E)?(${safe})\Q$c\E([\w#]*;)/$1$2$3/igs # is i and s necessary?
-      )
-      || 0;
+    ) || 0;
 
     #$self->debug and carp "found $ent_split split entities";
 
@@ -379,11 +382,12 @@ sub _clean_up_hilites
           )
     {
 
-        my $first = $1;
+        my $first  = $1;
         my $second = $2;
-        my $third = $3;
-        carp "appears to split tag: $first - $second - $third" if $self->debug > 1;
-        
+        my $third  = $3;
+        carp "appears to split tag: $first - $second - $third"
+          if $self->debug > 1;
+
         # TODO this would be one place to highlight text where attributes match
 
         $tag_split +=

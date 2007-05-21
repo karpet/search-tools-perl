@@ -1,23 +1,17 @@
 package Search::Tools::Snipper;
-
-#
-# TODO GNU grep does this much better and faster.
-# could we XS some of that beauty?
-#
-
-use 5.008;
+use 5.8.3;
 use strict;
 use warnings;
 
 use Carp;
-
-#use Data::Dumper;      # just for debugging
+use Data::Dump qw( dump );
 use Search::Tools::XML;
 use Search::Tools::RegExp;
+use Search::Tools::UTF8;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $ellip   = ' ... ';
 
 sub new
@@ -29,32 +23,32 @@ sub new
     return $self;
 }
 
+__PACKAGE__->mk_accessors(
+    qw(
+      query
+      rekw
+      occur
+      context
+      max_chars
+      word_len
+      show
+      escape
+      snipper
+      snipper_name
+      snipper_force
+      snipper_type
+      count
+      collapse_whitespace
+      ),
+    @Search::Tools::Accessors
+                         );
+
 sub _init
 {
     my $self  = shift;
     my %extra = @_;
     @$self{keys %extra} = values %extra;
 
-    $self->mk_accessors(
-        qw(
-          query
-          rekw
-          occur
-          context
-          max_chars
-          word_len
-          show
-          escape
-          snipper
-          snipper_name
-          snipper_force
-          snipper_type
-          count
-          collapse_whitespace
-          ),
-          @Search::Tools::Accessors
-    );
-    
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 
     $self->{snipper_type} ||= 'loop';
@@ -74,7 +68,9 @@ sub _init
     }
     elsif (ref $self->query eq 'ARRAY' or !ref $self->query)
     {
-        my $re = Search::Tools::RegExp->new;
+        my $re =
+          Search::Tools::RegExp->new(map { $_ => $self->$_ }
+                                     @Search::Tools::Accessors);
         $self->rekw($re->build($self->query));
     }
     elsif ($self->query->isa('Search::Tools::RegExp::Keywords'))
@@ -100,6 +96,10 @@ sub _init
     if ($self->snipper_type eq 're')
     {
         $self->snipper(\&_re_snip);
+    }
+    elsif ($self->snipper_type eq 'xs')
+    {
+        $self->snipper(\&_snip_xs_wrapper);
     }
     else
     {
@@ -172,25 +172,24 @@ sub _build_query
 
 }
 
-# I tried Text::Context but that was too slow
-# here are several different models.
-# I have found that loop_snip() is faster for single-word queries,
-# while re_snip() seems to be the best compromise between speed and accuracy
+# I tried Text::Context but that was too slow.
+
+# as of 21 May 2007, dprof shows these timings for our alternatives:
+#  sec/call Csec/c
+#    0.0081 0.0081  Search::Tools::Snipper::_loop_snip
+#    0.0090 0.0090  Search::Tools::Snipper::_re_match  -} these 2 go together
+#    0.0019 0.0110  Search::Tools::Snipper::_re_snip    }
+#    0.0132 0.0180  Search::Tools::Snipper::_snip_xs
+# I think the XS is so slow because of the regex but it just seems counter-intuitive
+# that pure perl would be faster, esp when there is MORE of it!!
 
 sub snip
 {
     my $self = shift;
-    my $text = shift or return '';
+    my $text = to_utf8(shift);
     my $func = $self->snipper;
 
     #carp "snipping: $text";
-
-    # phrases must use re_snip()
-    # so check if any of our queries contain a space
-    if (grep { /\ / } $self->rekw->keywords)
-    {
-        $func = \&_re_snip unless $self->snipper_force;
-    }
 
     # don't snip if we're less than the threshold
     return $text if length($text) < $self->max_chars;
@@ -211,6 +210,33 @@ sub snip
 
 }
 
+sub _snip_xs_wrapper
+{
+
+    # @_ == $self, $text
+    my $self    = shift;
+    my @q       = $self->rekw->keywords;
+    my $occur   = $self->occur;
+    my $Nchar   = $self->context * $self->word_len;
+    my $re_type = 'plain';
+    if (!$self->escape and Search::Tools::RegExp->isHTML($_[0]))
+    {
+        $re_type = 'html';
+    }
+
+    # BIG regexp so we only loop text once
+    my $regex = join('|', map { $self->{_re}->{$_}->{$re_type} } @q);
+
+    #carp $regex;
+
+    my $snips = _snip_xs($_[0], qr/$regex/, $Nchar, $occur);
+    $self->count(scalar(@$snips) + $self->count);
+    my $snippet = join($ellip, @$snips);
+    $self->_escape($snippet);
+    return $snippet;
+}
+
+# deprecated
 sub _loop_snip
 {
 
@@ -252,7 +278,7 @@ sub _loop_snip
 
         # the next WORD lets us skip past the last frag we excerpted
 
-        my $last = $count - 1;
+        my $prev = $count - 1;
         my $next = $count + 1;
 
         #warn '-' x 30 . "\n";
@@ -261,14 +287,14 @@ sub _loop_snip
 
             #print "w: '$w' match: '$1'\n";
 
-            my $before = $last - $context;
+            my $before = $prev - $context;
             $before = 0 if $before < 0;
             my $after = $next + $context;
             $after = $#words if $after > $#words;
 
             #warn "$before .. $last, $count, $next .. $after\n";
 
-            my @before = @words[$before .. $last];
+            my @before = @words[$before .. $prev];
             my @after  = @words[$next .. $after];
 
             $total += grep { m/^$regexp$/i } (@before, @after);
@@ -312,6 +338,7 @@ sub _loop_snip
 
 }
 
+# deprecated
 sub _re_snip
 {
 
@@ -385,6 +412,7 @@ sub _re_snip
 
 }
 
+# deprecated -- used by _re_snip()
 sub _re_match
 {
 
@@ -480,21 +508,25 @@ sub _re_match
 
         # do same for suffix
 
-        # We get error here under -w
-        # about substr outside of string -- is $end undefined sometimes??
-
-        unless ($suffix =~ m/\s$/ or substr($$text, $end, 1) =~ m/(\s)/)
+        if (length($$text) < $end)
         {
-            while ($end <= $t_len and substr($$text, $end++, 1) =~ m/(\S)/)
+            #carp "bad end $end for substr " . length($$text) . " text: $$text";
+        }
+        else
+        {
+            unless ($suffix =~ m/\s$/ or substr($$text, $end, 1) =~ m/(\s)/)
             {
+                while ($end <= $t_len and substr($$text, $end++, 1) =~ m/(\S)/)
+                {
 
-                my $onemore = $1;
+                    my $onemore = $1;
 
-                #warn "adding $onemore to suffix\n";
-                #warn "before '$suffix'\n";
-                $suffix .= $onemore;
+                    #warn "adding $onemore to suffix\n";
+                    #warn "before '$suffix'\n";
+                    $suffix .= $onemore;
 
-                #warn "after  '$suffix'\n";
+                    #warn "after  '$suffix'\n";
+                }
             }
         }
 
