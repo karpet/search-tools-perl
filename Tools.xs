@@ -24,7 +24,7 @@ MODULE = Search::Tools       PACKAGE = Search::Tools::UTF8
 PROTOTYPES: enable
 
 int
-is_valid_utf8(string)
+is_perl_utf8_string(string)
     SV* string;
     
     PREINIT:
@@ -89,7 +89,32 @@ is_ascii(string)
 
     OUTPUT:
         RETVAL
-        
+    
+int
+is_latin1(string)
+    SV* string;
+
+    PREINIT:
+        STRLEN         len;
+        unsigned char* bytes;
+        unsigned int   i;
+
+    CODE:
+        bytes  = (unsigned char*)SvPV(string, len);
+        RETVAL = 1;
+        for(i=0; i < len; i++)
+        {
+            if (bytes[i] > 0x7f && bytes[i] < 0xa0)
+            {
+                RETVAL = 0;
+                break;
+            }
+        }
+
+    OUTPUT:
+        RETVAL
+
+
 int
 find_bad_ascii(string)
     SV* string;
@@ -114,4 +139,30 @@ find_bad_ascii(string)
 
     OUTPUT:
         RETVAL
-        
+
+int
+find_bad_latin1(string)
+    SV* string;
+
+    PREINIT:
+        STRLEN          len;
+        unsigned char*  bytes;
+        int             i;
+
+    CODE:
+        bytes  = (unsigned char*)SvPV(string, len);
+        RETVAL = -1;
+        for(i=0; i < len; i++)
+        {
+            if (bytes[i] > 0x7f && bytes[i] < 0xa0)
+            {
+            # return $+[0], so base-1
+                RETVAL = i + 1;
+                break;
+            }
+        }
+
+    OUTPUT:
+        RETVAL
+
+ 

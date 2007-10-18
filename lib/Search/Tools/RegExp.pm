@@ -12,7 +12,7 @@ use Search::Tools::XML;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.11';
 
 my %char2entity = ();
 while (my ($e, $n) = each(%Search::Tools::XML::HTML_ents))

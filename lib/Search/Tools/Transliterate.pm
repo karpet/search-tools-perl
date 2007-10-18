@@ -5,6 +5,7 @@ use warnings;
 use Search::Tools::UTF8;
 use Carp;
 use Encode;
+use Data::Dump qw( dump );
 
 use base qw( Class::Accessor::Fast );
 
@@ -12,7 +13,7 @@ __PACKAGE__->mk_accessors(qw( debug ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.05';
+our $VERSION = '0.11';
 
 =pod
 
@@ -191,7 +192,8 @@ sub convert
     # make sure we've got valid UTF-8 to start with
     unless (is_valid_utf8($buf))
     {
-        croak "bad UTF-8 byte(s) at " . find_bad_utf8($buf);
+        my $badbyte = find_bad_utf8($buf);
+        croak "bad UTF-8 byte(s) at $badbyte [ " . dump($buf) . " ]";
     }
 
     Encode::_utf8_off($buf);

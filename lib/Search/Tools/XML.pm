@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use Search::Tools::RegExp;
 
-our $VERSION = '0.03';
+our $VERSION = '0.11';
 
 =pod
 

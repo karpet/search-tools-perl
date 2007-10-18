@@ -16,12 +16,13 @@ our @EXPORT = qw(
   find_bad_utf8
   find_bad_ascii
   find_bad_latin1
+  find_bad_latin1_report
 
   );
 
 our $Debug = 0;
 
-our $VERSION = '0.01';
+our $VERSION = '0.11';
 
 sub to_utf8
 {
@@ -70,7 +71,7 @@ my $re_bit = join "|", map { Encode::encode("utf8", chr($_)) } (127 .. 255);
 sub is_sane_utf8
 {
     my $string = shift;
-    my $warnings = shift || 0;
+    my $warnings = shift || $Debug || 0;
 
     while ($string =~ /($re_bit)/o)
     {
@@ -81,7 +82,7 @@ sub is_sane_utf8
         my $index = $+[0] - length($bytes);
         my $codes = join '', map { sprintf '<%00x>', ord($_) } split //, $bytes;
 
-        # what charecter does that represent?
+        # what character does that represent?
         my $char = Encode::decode("utf8", $bytes);
         my $ord  = ord($char);
         my $hex  = sprintf '%00x', $ord;
@@ -110,34 +111,29 @@ sub is_sane_utf8
     1;
 }
 
-sub is_latin1
+sub is_valid_utf8
 {
-    if ($_[0] =~ /([^\x{00}-\x{7f}\x{a0}-\x{ff}])/o)
+    if (is_latin1($_[0]) && !is_ascii($_[0]) && !is_perl_utf8_string($_[0]))
     {
-
-        if ($Debug)
-        {
-
-            # explain why we failed
-            my $dec = ord($1);
-            my $hex = sprintf '%x', $dec;
-
-            carp("byte $+[0] is not Latin1 (it's $dec dec / $hex hex)");
-        }
-
         return 0;
     }
-    1;
+    return is_perl_utf8_string($_[0]);
 }
 
-sub find_bad_latin1
+sub find_bad_latin1_report
 {
-    if ($_[0] =~ /([^\x{00}-\x{7f}\x{a0}-\x{ff}])/o)
+    my $bad = find_bad_latin1(@_);
+    if ($bad)
     {
-        return $+[0];
+        # explain why we failed
+        my $char = substr($_[0], $bad - 1, 1);
+        my $dec = ord($char);
+        my $hex = sprintf '%x', $dec;
+        carp("byte $bad ($char) is not Latin1 (it's $dec dec / $hex hex)");
     }
-    return -1;
+    return $bad; 
 }
+
 
 1;
 
@@ -155,7 +151,7 @@ Search::Tools::UTF8 - UTF8 string wrangling
  
  my $str = 'foo bar baz';
  
- print "bad UTF-8 sequence: " . find_bad_utf8($str);
+ print "bad UTF-8 sequence: " . find_bad_utf8($str)
     unless is_valid_utf8($str);
  
  print "bad ascii byte at position " . find_bad_ascii($str)
@@ -205,6 +201,11 @@ in combination with is_flagged_utf8() to get a better test.
 
 Returns true if Perl thinks I<text> is UTF-8. Same as Encode::is_utf8().
 
+=head2 is_perl_utf8_string( I<text> )
+
+Wrapper around the native Perl is_utf8_string() function. Called
+by is_valid_utf8().
+
 =head2 is_sane_utf8( I<text> [,I<warnings>] )
 
 Will test for double-y encoded I<text>. Returns true if I<text> looks ok.
@@ -231,6 +232,11 @@ Returns position of first non-ASCII byte or -1 if I<text> is all ASCII.
 =head2 find_bad_latin1( I<text> )
 
 Returns position of first non-Latin1 byte or -1 if I<text> is valid Latin1.
+
+=head2 find_bad_latin1_report( I<text> )
+
+Returns position of first non-Latin1 byte (like find_bad_latin1())
+and also carps about what the decimal and hex values of the bad byte are.
 
 =head2 to_utf8( I<text>, I<charset> )
 

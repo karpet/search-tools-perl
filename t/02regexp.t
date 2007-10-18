@@ -1,4 +1,11 @@
 use Test::More tests => 59;
+BEGIN
+{
+    use POSIX qw(locale_h);
+    use locale;
+    setlocale(LC_ALL, 'C');  # treat the 8bit chars below as latin1, otherwise Perl converts to utf8
+    #use encoding 'iso-8859-1';  # this does NOT work as expected.
+}
 
 use Carp;
 

@@ -7,7 +7,7 @@ use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.11';
 
 sub new
 {

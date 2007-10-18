@@ -11,3 +11,5 @@ $var = {
 # added per RT bug #23880
 'German'  => 'Die Ärzte'	# ("Die UPPER CASE A-Umlaut rzte")
 };
+
+

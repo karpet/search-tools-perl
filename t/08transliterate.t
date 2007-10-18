@@ -7,6 +7,10 @@ BEGIN
 }
 
 use Encode;
+#use Data::Dump qw( dump );
+#use Devel::Peek;
+
+#$Search::Tools::UTF8::Debug = 1;
 
 ok(my $t = Search::Tools::Transliterate->new(ebit => 0), "new transliterator");
 
@@ -14,9 +18,12 @@ my $babel = do 't/quick_brown_babel.dmp';
 
 for my $lang (sort keys %$babel)
 {
-
-    diag("$lang: $babel->{$lang}\n") if $ENV{PERL_TEST};
-    ok(my $trans = $t->convert($babel->{$lang}), "transliterated");
+    my $str = $babel->{$lang};
+    #Dump($str);
+    #dump($str);
+    diag("$lang: $str\n") if $ENV{PERL_TEST};
+    #diag("is_sane_utf8: " . is_sane_utf8($str));
+    ok(my $trans = $t->convert($str), "transliterated");
     diag("transliteration: $trans") if $ENV{PERL_TEST};
 
 }

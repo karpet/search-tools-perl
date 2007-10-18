@@ -17,7 +17,7 @@ use Search::QueryParser;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.05';
+our $VERSION = '0.11';
 
 sub new
 {

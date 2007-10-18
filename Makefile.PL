@@ -9,6 +9,7 @@ WriteMakefile(
         'Encode'                => '0.1',
         'Class::Accessor::Fast' => '0.1',
         'Text::Aspell'          => '0.06',
+        'Data::Dump'            => 0,
 
                  },
     (

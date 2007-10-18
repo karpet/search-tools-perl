@@ -8,7 +8,7 @@ use Carp;
 use base qw( Class::Accessor::Fast );
 use Text::Aspell;
 
-our $VERSION = '0.02';
+our $VERSION = '0.11';
 
 sub new
 {
