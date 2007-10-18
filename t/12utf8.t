@@ -1,4 +1,4 @@
-use Test::More tests => 17;
+use Test::More tests => 20;
 
 BEGIN { use_ok('Search::Tools::UTF8') }
 
@@ -27,9 +27,14 @@ my $ambiguous = "this string is ambiguous \x{d9}\x{a6}";
 
 #diag("ambiguous = $ambiguous");
 
-ok(is_valid_utf8($ambiguous),           "is_valid_utf8 ambiguous");
+ok(!is_valid_utf8($ambiguous),          "is_valid_utf8 ambiguous");
 ok(is_latin1($ambiguous),               "is_latin1 ambiguous");
 ok(!defined(find_bad_utf8($ambiguous)), "find_bad_utf8 ambiguous");
 is(find_bad_latin1($ambiguous), -1, "find_bad_latin1 ambiguous");
+ok(!defined(find_bad_utf8('PC')), "find_bad_utf8 allows ascii");
 
-ok(!defined(find_bad_utf8('PC')),	"find_bad_utf8 allows ascii");
+my $morelatin1 = "Introducci\xF3n";
+Encode::_utf8_on($morelatin1);
+ok(is_flagged_utf8($morelatin1), "morelatin1 is flagged utf8");
+ok(!is_valid_utf8($morelatin1),  "but morelatin1 is not utf8");
+ok(is_latin1($morelatin1),       "morelatin1 is, in fact, latin1");

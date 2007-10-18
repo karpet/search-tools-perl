@@ -49,8 +49,7 @@ sub _init
     my %extra = @_;
     @$self{keys %extra} = values %extra;
 
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
-
+    $self->{debug}        ||= 0;
     $self->{snipper_type} ||= 'loop';
     $self->{occur}        ||= 5;
     $self->{max_chars}    ||= 300;
@@ -99,7 +98,7 @@ sub _init
     }
     elsif ($self->snipper_type eq 'xs')
     {
-        $self->snipper(\&_snip_xs_wrapper);
+        $self->snipper(\&_re_snip_xs);
     }
     else
     {
@@ -177,8 +176,8 @@ sub _build_query
 # as of 21 May 2007, dprof shows these timings for our alternatives:
 #  sec/call Csec/c
 #    0.0081 0.0081  Search::Tools::Snipper::_loop_snip
-#    0.0090 0.0090  Search::Tools::Snipper::_re_match  -} these 2 go together
-#    0.0019 0.0110  Search::Tools::Snipper::_re_snip    }
+#    0.0090 0.0090  Search::Tools::Snipper::_re_match   }- these 2 go together
+#    0.0019 0.0110  Search::Tools::Snipper::_re_snip    }/
 #    0.0132 0.0180  Search::Tools::Snipper::_snip_xs
 # I think the XS is so slow because of the regex but it just seems counter-intuitive
 # that pure perl would be faster, esp when there is MORE of it!!
@@ -191,8 +190,18 @@ sub snip
 
     #carp "snipping: $text";
 
+    # phrases must use re_snip()
+    # so check if any of our queries contain a space
+    #carp dump $self->rekw;
+    if (grep { $self->rekw->re($_)->phrase } $self->rekw->keywords)
+    {
+        $func = \&_re_snip unless $self->snipper_force;
+        $self->snipper_name('re_snip_xs');
+    }
+
     # don't snip if we're less than the threshold
     return $text if length($text) < $self->max_chars;
+    
 
     my $s = &$func($self, $text);
 
@@ -210,33 +219,6 @@ sub snip
 
 }
 
-sub _snip_xs_wrapper
-{
-
-    # @_ == $self, $text
-    my $self    = shift;
-    my @q       = $self->rekw->keywords;
-    my $occur   = $self->occur;
-    my $Nchar   = $self->context * $self->word_len;
-    my $re_type = 'plain';
-    if (!$self->escape and Search::Tools::RegExp->isHTML($_[0]))
-    {
-        $re_type = 'html';
-    }
-
-    # BIG regexp so we only loop text once
-    my $regex = join('|', map { $self->{_re}->{$_}->{$re_type} } @q);
-
-    #carp $regex;
-
-    my $snips = _snip_xs($_[0], qr/$regex/, $Nchar, $occur);
-    $self->count(scalar(@$snips) + $self->count);
-    my $snippet = join($ellip, @$snips);
-    $self->_escape($snippet);
-    return $snippet;
-}
-
-# deprecated
 sub _loop_snip
 {
 
@@ -328,22 +310,15 @@ sub _loop_snip
     #warn '-' x 50 . "\n";
 
     $self->count(scalar(@snips) + $self->count);
-
     my $snippet = join('', @snips);
     $snippet = $ellip . $snippet unless $snippet =~ m/^$words[0]/;
-
     $self->_escape($snippet);
-
     return $snippet;
 
 }
 
-# deprecated
 sub _re_snip
 {
-
-    # get first N matches for each q, then take one of each till we have $occur
-
     my $self = shift;
     my $text = shift;
     my @q    = $self->rekw->keywords;
@@ -352,11 +327,9 @@ sub _re_snip
     my $occur = $self->occur;
     my $Nchar = $self->context * $self->word_len;
     my $total = 0;
-    my $notwc = $self->{_wc_regexp};
 
     # get minimum number of snips necessary to meet $occur
     my $snip_per_q = int($occur / scalar(@q)) + 1;
-
     my (%snips, @snips, %ranges);
 
   Q: for my $q (@q)
@@ -382,6 +355,10 @@ sub _re_snip
     # should be a max of $snip_per_q in any one $q snip array
     # so we should have at least $occur in total, which we'll splice() if need be
 
+    # TODO this is off too -- see test
+
+    carp dump \%snips;
+
     my %offsets;
     for my $q (keys %snips)
     {
@@ -403,6 +380,81 @@ sub _re_snip
     $snips[-1] .= $ellip unless $text =~ m/\Q$snips[-1]$/i;
 
     my $snip = join($ellip, @snips);
+    $self->count(scalar(@snips) + $self->count);
+    $self->_escape($snip);
+    return $snip;
+}
+
+sub _re_snip_xs
+{
+
+    # get first N matches for each q, then take one of each till we have $occur
+
+    my $self = shift;
+    my $text = shift;
+    my @q    = $self->rekw->keywords;
+    $self->snipper_name('re_snip');
+
+    my $occur = $self->occur;
+    my $Nchar = $self->context * $self->word_len;
+    my $total = 0;
+
+    # get minimum number of snips necessary to meet $occur
+    my $snip_per_q = int($occur / scalar(@q)) + 1;
+
+    my (%snips, @snips, @ranges);
+
+  Q: for my $q (@q)
+    {
+        $snips{$q} = [[], []];
+
+        # try simple regexp first, then more complex if we don't match
+        if (
+            my $cnt = _re_match_xs(
+                                   $text,      $self->{_re}->{$q}->{plain},
+                                   $snips{$q}, \@ranges,
+                                   $Nchar,     $snip_per_q,
+                                   $self->escape
+                                  )
+
+           )
+        {
+            $total += $cnt;
+            next Q;
+        }
+
+        $total += _re_match_xs($text, $self->{_re}->{$q}->{html},
+                               $snips{$q}, \@ranges, $Nchar, $snip_per_q,
+                               $self->escape);
+
+    }
+
+    return $self->_dumb_snip($text) unless $total;
+
+    # get all snips into one array in order they appeared in $text
+    # should be a max of $snip_per_q in any one $q snip array
+    # so we should have at least $occur in total, which we'll splice() if need be
+
+    carp dump \%snips;
+
+    my %offsets;
+    for my $q (keys %snips)
+    {
+        my $i = 0;
+        for (@{$snips{$q}->[0]})
+        {
+            $offsets{$_} = $snips{$q}->[1]->[$i++];
+        }
+    }
+    @snips = sort { $offsets{$a} <=> $offsets{$b} } keys %offsets;
+
+    # max = $occur
+    @snips = splice @snips, 0, $occur;
+
+    $snips[0] = $ellip . $snips[0] unless $text =~ m/^\Q$snips[0]/i;
+    $snips[-1] .= $ellip unless $text =~ m/\Q$snips[-1]$/i;
+
+    my $snip = join($ellip, @snips);
 
     $self->count(scalar(@snips) + $self->count);
 
@@ -412,7 +464,9 @@ sub _re_snip
 
 }
 
-# deprecated -- used by _re_snip()
+# this is the bottleneck for regexp-based matching.
+# the _xs version is only 0.001 seconds faster!!
+# so the algorithm is the slow part.
 sub _re_match
 {
 
@@ -510,6 +564,7 @@ sub _re_match
 
         if (length($$text) < $end)
         {
+
             #carp "bad end $end for substr " . length($$text) . " text: $$text";
         }
         else

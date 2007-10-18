@@ -173,10 +173,16 @@ static int next_frag_index(char *s, int cur_index, int max_chars)
     return byte_pos;
 }
 
-
-
-
-
+static void
+safe_av_push_av(AV* av, I32 index, SV* value)
+{
+    SV** ref = av_fetch(av, index, 1);
+    if (ref == NULL)
+    {
+        croak("bad av_fetch of arrayref in array index %d", index);
+    }
+    av_push((AV*)SvRV(*ref), value);
+}
 
 
 /* Perl space */
@@ -186,7 +192,7 @@ MODULE = Search::Tools       PACKAGE = Search::Tools::UTF8
 PROTOTYPES: enable
 
 int
-is_valid_utf8(string)
+is_perl_utf8_string(string)
     SV* string;
     
     PREINIT:
@@ -282,26 +288,28 @@ find_bad_ascii(string)
 MODULE = Search::Tools       PACKAGE = Search::Tools::Snipper
 
 PROTOTYPES: enable
-
-# return array of snippets
-# TODO this is actually slower than pure perl!! is it the regex length?
-AV*
-_snip_xs(string, regex, max_chars, occur)
-    SV* string;
-    SV* regex;
-    SV* max_chars;
-    SV* occur;
+    
+# this is only 0.001sec faster than its pure Perl version!!
+# and that without the isHTML check!!!
+int
+_re_match_xs(text, regex, snips, ranges, Nchar, max_snips, isHTML)
+    SV  *text;
+    SV  *regex;
+    AV  *snips;
+    AV  *ranges;
+    SV  *Nchar;
+    SV  *max_snips;
+    SV  *isHTML;
     
   CODE:
     MAGIC      *mg              = NULL;
     REGEXP     *rx              = NULL;
     STRLEN      str_len;
-    char       *str             = SvPV(string, str_len);
+    char       *str             = SvPV(text, str_len);
     char       *str_start       = str;
     char       *str_end         = str_start + str_len;
-    int         maxc            = SvIV(max_chars);
-    int         occ             = SvIV(occur);
-    AV         *snips           = newAV();
+    int         maxc            = SvIV(Nchar);
+    int         occur           = SvIV(max_snips);
     int         count           = 0;
     
     /* extract regexp struct from qr// entity */
@@ -315,32 +323,67 @@ _snip_xs(string, regex, max_chars, occur)
         croak("not a qr// entity");
     rx = (REGEXP*)mg->mg_obj;
     
-    if (!SvUTF8(string))
+    if (!SvUTF8(text))
     {
         croak("%s is not flagged as a UTF-8 string", str);
     }
+    
+    while ( pregexec(rx, str, str_end, str, 1, text, 1) )
+    {   
+#if (PERL_VERSION >= 9) && (PERL_SUBVERSION >= 5)
+        I32 start   = rx->offs[2].start;
+        I32 end     = rx->offs[2].end;
+#else 
+        I32 start   = rx->startp[2];
+        I32 end     = rx->endp[2];
+#endif
 
-    while ( pregexec(rx, str, str_end, str, 1, string, 1) )
-    {        
-        int prev_i = prev_frag_index(str, rx->startp[0], maxc);
-        int next_i = next_frag_index(str, rx->endp[0],   maxc);
+        int match_len   = end - start;
+        int prev_i      = prev_frag_index(str, start, maxc);
+        int next_i      = next_frag_index(str, end,   maxc);
+
+        /* TODO this logic needs work -- still overlapping */
+        if(av_exists(ranges, prev_i))
+        {
+            warn("seen start pos %d before in ranges", prev_i);
+            str = str + end;
+            continue;
+        }
+            
         char *tmp  = str + prev_i;
+        /* count++;      perl increments here before range fill */
         SV* snip = newSVpvn(tmp, next_i - prev_i);
-  /*    char *match = savepvn(str + rx->startp[0], rx->endp[0] - rx->startp[0]);
-        warn("match = %s\ncount = %d  prev_i = %d  next_i = %d  tmp = %s\n", 
+        SvUTF8_on(snip);
+
+        char *match = savepvn(str + start, match_len);
+        warn("match = '%s'\ncount = %d  prev_i = %d  next_i = %d  tmp = %s\n", 
               match, count, prev_i, next_i, SvPV(snip, PL_na));
-  */      
-        av_push(snips, snip);
+
         
         /* move pointer for next loop */
         str = str + next_i;
+
+        /* fill out ranges for each byte in tmp */
+        int i;
+        for (i=prev_i; i <= next_i; i++)
+        {
+            if(av_store(ranges, i, newSViv(1)) == NULL)
+            {
+                croak("fatal error creating range byte %d", i);
+            }
+        }
         
-        if (++count > occ)
+        /* TODO isHTML fix to try and catch broken tagsets 
+           -- do it in *_frag_index() */
+        
+        safe_av_push_av(snips, 0, snip);
+        safe_av_push_av(snips, 1, newSViv(prev_i));
+        
+        if (++count >= occur)
             break;
     }
     
-    RETVAL = snips;
-    
+    RETVAL = count;
+
   OUTPUT:
     RETVAL
-    

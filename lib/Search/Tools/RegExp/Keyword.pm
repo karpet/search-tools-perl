@@ -7,7 +7,7 @@ use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 __PACKAGE__->mk_ro_accessors(qw/plain html word phrase/);
 
@@ -26,8 +26,7 @@ sub _init
     my $self  = shift;
     my %extra = @_;
     @$self{keys %extra} = values %extra;
-    
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+    $self->{debug} ||= 0;
 }
 
 1;

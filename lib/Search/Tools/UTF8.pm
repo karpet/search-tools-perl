@@ -21,7 +21,7 @@ our @EXPORT = qw(
 
 our $Debug = 0;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub to_utf8
 {
@@ -81,7 +81,7 @@ sub is_sane_utf8
         my $index = $+[0] - length($bytes);
         my $codes = join '', map { sprintf '<%00x>', ord($_) } split //, $bytes;
 
-        # what charecter does that represent?
+        # what character does that represent?
         my $char = Encode::decode("utf8", $bytes);
         my $ord  = ord($char);
         my $hex  = sprintf '%00x', $ord;
@@ -108,6 +108,15 @@ sub is_sane_utf8
         return 0;
     }
     1;
+}
+
+sub is_valid_utf8
+{
+    if (is_latin1($_[0]) and !is_ascii($_[0]))
+    {
+        return 0;
+    }
+    return is_perl_utf8_string($_[0]);
 }
 
 sub is_latin1
@@ -155,7 +164,7 @@ Search::Tools::UTF8 - UTF8 string wrangling
  
  my $str = 'foo bar baz';
  
- print "bad UTF-8 sequence: " . find_bad_utf8($str);
+ print "bad UTF-8 sequence: " . find_bad_utf8($str)
     unless is_valid_utf8($str);
  
  print "bad ascii byte at position " . find_bad_ascii($str)
@@ -204,6 +213,11 @@ in combination with is_flagged_utf8() to get a better test.
 =head2 is_flagged_utf8( I<text> )
 
 Returns true if Perl thinks I<text> is UTF-8. Same as Encode::is_utf8().
+
+=head2 is_perl_utf8_string( I<text> )
+
+Wrapper around the native Perl is_utf8_string() function. Called
+by is_valid_utf8().
 
 =head2 is_sane_utf8( I<text> [,I<warnings>] )
 

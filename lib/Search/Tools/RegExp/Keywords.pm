@@ -1,13 +1,13 @@
 package Search::Tools::RegExp::Keywords;
 
-use 5.008;
+use 5.8.3;
 use strict;
 use warnings;
 use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new
 {
@@ -19,22 +19,21 @@ sub new
     return $self;
 }
 
+__PACKAGE__->mk_ro_accessors(
+    qw(
+      kw
+      start_bound
+      end_bound
+      ),
+    @Search::Tools::Accessors
+                            );
+
 sub _init
 {
     my $self  = shift;
     my %extra = @_;
     @$self{keys %extra} = values %extra;
-
-    $self->mk_ro_accessors(
-        qw(
-          kw
-          start_bound
-          end_bound
-          ),
-          @Search::Tools::Accessors
-    );
-    
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+    $self->{debug} ||= 0;
 }
 
 sub keywords

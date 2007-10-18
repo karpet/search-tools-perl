@@ -43,7 +43,7 @@ sub _init
     my %extra = @_;
     @$self{keys %extra} = values %extra;
 
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+    $self->{debug} ||= 0;
 
     if ($self->debug)
     {

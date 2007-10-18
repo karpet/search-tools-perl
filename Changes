@@ -72,4 +72,5 @@ Revision history for Perl extension Search::HiLiter.
 
 0.10
     * fix bug in Tools.xs where NULL was being returned as SV* instead of &PL_sv_undef
-
+    * fix bug in UTF8.pm where latin1 was flagged internally as UTF-8 and so fooled the native
+      Perl checks.

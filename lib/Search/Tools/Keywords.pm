@@ -48,7 +48,14 @@ sub _init
     $self->{locale} ||= setlocale(LC_CTYPE);
     ($self->{lang}, $self->{charset}) = split(m/\./, $self->{locale});
     $self->{lang} = 'en_US' if $self->{lang} =~ m/^(posix|c)$/i;
-    $self->{charset}           ||= 'iso-8859-1';
+    $self->{charset} ||= 'iso-8859-1';
+
+    # TODO this fails 02regex.t tests when locale is NOT 'C'
+    # and setting here via 'locale' arg does not seem to work.
+    # actually set the locale to the designated values
+    # so that 'locale' arg can override environment
+    setlocale(LC_CTYPE, join('.', $self->{lang}, $self->{charset}));
+
     $self->{phrase_delim}      ||= '"';
     $self->{and_word}          ||= 'and|near\d*';
     $self->{or_word}           ||= 'or';
@@ -58,7 +65,7 @@ sub _init
     $self->{ignore_first_char} ||= $Search::Tools::RegExp::IgnFirst;
     $self->{ignore_last_char}  ||= $Search::Tools::RegExp::IgnLast;
     $self->{word_characters}   ||= $Search::Tools::RegExp::WordChar;
-    $self->{debug}             ||= $ENV{PERL_DEBUG} || 0;
+    $self->{debug}             ||= 0;
     $self->{ignore_case} = 1 unless defined $self->{ignore_case};
 
 }

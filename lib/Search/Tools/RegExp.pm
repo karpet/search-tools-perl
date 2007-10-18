@@ -1,6 +1,6 @@
 package Search::Tools::RegExp;
 
-use 5.008;
+use 5.8.3;
 use strict;
 use warnings;
 use Carp;
@@ -12,7 +12,7 @@ use Search::Tools::XML;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 my %char2entity = ();
 while (my ($e, $n) = each(%Search::Tools::XML::HTML_ents))
@@ -81,9 +81,9 @@ sub _init
           end_bound
           ),
         @Search::Tools::Accessors
-    );
+                       );
 
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+    $self->{debug}             ||= 0;
     $self->{wildcard}          ||= $Wildcard;
     $self->{word_characters}   ||= $WordChar;
     $self->{ignore_first_char} ||= $IgnFirst;
@@ -94,8 +94,7 @@ sub _init
               Search::Tools::Keywords->new(
                                map { $_ => $self->$_ } @Search::Tools::Accessors
               )
-             )
-      unless $self->kw;
+             ) unless $self->kw;
 
     # a search for a '<' or '>' should still highlight,
     # since &lt; or &gt; can be indexed as literal < and >
@@ -157,7 +156,7 @@ sub isHTML { $_[1] =~ m/[<>]|&[#\w]+;/ }
 
 sub build
 {
-    my $self  = shift;
+    my $self = shift;
     my $query = shift or croak "need query to build() RegExp object";
 
     my $q_array  = [$self->kw->extract($query)];

@@ -21,4 +21,7 @@ WriteMakefile(
        )
      : ()
     ),
+
+    CCFLAGS      => '-Wall ',     # TODO can we use gprof or similar?
+
 );

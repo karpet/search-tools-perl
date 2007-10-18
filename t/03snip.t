@@ -21,29 +21,29 @@ EOF
 my @q = ('squiggle', 'type', 'course', '"human events"');
 
 ok(
-    my $s =
-      Search::Tools::Snipper->new(
-                                  query     => [@q],
-                                  max_chars => length($text) - 1,
-                                 # debug => 1
-                                 ),
+    my $s = Search::Tools::Snipper->new(
+        query     => [@q],
+        max_chars => length($text) - 1,
+
+        # debug => 1
+                                       ),
     "snipper"
   );
 
 ok(my $snip = $s->snip($text), "simple snip");
 $debug and diag(join(" ", @q) . ": $snip");
-is($s->count, 2,    "2 simple snips");
+is($s->count, 2, "2 simple snips");
 
 # longer snip, still ascii
 $text = read_file('t/test.txt');
 @q    = qw(intramuralism maimedly sculpt);
 
 ok(
-    $s =
-      Search::Tools::Snipper->new(
-                                  query     => [@q],
-                                  max_chars => length($text) - 1
-                                 ),
+    $s = Search::Tools::Snipper->new(
+        query     => [@q],
+        max_chars => length($text) - 1,
+
+                                    ),
     "new snipper"
   );
 
@@ -53,18 +53,28 @@ is($s->count, 3, "three snips");
 
 # test long multibyte UTF8
 $text = read_file('t/john1_gr.txt');
-@q = ("αμην");    # greek
-ok($s = Search::Tools::Snipper->new(query => [@q], escape => 0));
+@q    = ("αμην");                  # greek
+ok(
+    $s = Search::Tools::Snipper->new(
+        query  => [@q],
+        escape => 0,
+
+                                    )
+  );
 ok($snip = $s->snip($text), "greek snip");
 $debug and diag(join(" ", @q) . ": $snip");
 is($s->count, 1, "1 greek snip");
 
-
-
 # test snip of raw markup
 $text = read_file('t/test.html');
-@q = qw( jumped fox );
-ok($s = Search::Tools::Snipper->new(query => [@q], escape => 0));
+@q    = qw( jumped fox );
+ok(
+    $s = Search::Tools::Snipper->new(
+        query  => [@q],
+        escape => 0,
+
+                                    )
+  );
 ok($snip = $s->snip($text), "html snip");
 $debug and diag(join(" ", @q) . ": $snip");
-is($s->count, 5,  "html snip count = 5");
+is($s->count, 2, "html snip count = 2");
