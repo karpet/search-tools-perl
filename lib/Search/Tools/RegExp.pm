@@ -1,6 +1,6 @@
 package Search::Tools::RegExp;
 
-use 5.008;
+use 5.008_003;
 use strict;
 use warnings;
 use Carp;
@@ -12,7 +12,7 @@ use Search::Tools::XML;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 my %char2entity = ();
 while (my ($e, $n) = each(%Search::Tools::XML::HTML_ents))

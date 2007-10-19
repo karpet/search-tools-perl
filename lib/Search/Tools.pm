@@ -1,11 +1,11 @@
 package Search::Tools;
 
-use 5.8.3;
+use 5.008_003;
 use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use XSLoader;
 XSLoader::load('Search::Tools', $VERSION);

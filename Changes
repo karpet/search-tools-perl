@@ -84,4 +84,9 @@ Revision history for Perl extension Search::HiLiter.
 0.12
     * change tests to force locale for spelling dictionaries, or skip if not found
 
+0.13
+    * added File::Slurp to requirements, since tests use it.
+    * changed 'use <version>' syntax to be portable.
+
+
 

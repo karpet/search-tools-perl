@@ -1,13 +1,13 @@
 package Search::Tools::RegExp::Keywords;
 
-use 5.008;
+use 5.008_003;
 use strict;
 use warnings;
 use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 sub new
 {

@@ -5,7 +5,7 @@ package Search::Tools::Snipper;
 # could we XS some of that beauty?
 #
 
-use 5.008;
+use 5.008_003;
 use strict;
 use warnings;
 
@@ -17,7 +17,7 @@ use Search::Tools::RegExp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 our $ellip   = ' ... ';
 
 sub new

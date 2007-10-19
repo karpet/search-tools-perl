@@ -1,12 +1,12 @@
 package Search::Tools::XML;
 
-use 5.006;
+use 5.008_003;
 use strict;
 use warnings;
 use Carp;
 use Search::Tools::RegExp;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 =pod
 

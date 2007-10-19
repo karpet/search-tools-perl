@@ -1,13 +1,13 @@
 package Search::Tools::RegExp::Keyword;
 
-use 5.008;
+use 5.008_003;
 use strict;
 use warnings;
 use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 __PACKAGE__->mk_ro_accessors(qw/plain html word phrase/);
 
