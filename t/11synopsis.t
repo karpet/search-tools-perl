@@ -1,5 +1,13 @@
 use Test::More tests => 2;
 
+BEGIN
+{
+    use POSIX qw(locale_h);
+    use locale;
+    setlocale(LC_CTYPE, 'en_US.UTF-8');
+}
+
+
 use Search::Tools;
 
 {
@@ -19,6 +27,16 @@ my $spellcheck = Search::Tools->spellcheck(query => $re);
 
 my $suggestions = $spellcheck->suggest($query);
 
+my $ok;
+for my $v (@$suggestions)
+{
+   $ok += scalar @{$v->{suggestions}};
+}
+
+SKIP: {
+
+    skip "No valid suggestions found. Missing dictionary?", 2 unless $ok;
+
 for my $s (@$suggestions)
 {
     if (!$s->{suggestions})
@@ -35,4 +53,7 @@ for my $s (@$suggestions)
 for my $result (@search_results)
 {
     ok($hiliter->light($snipper->snip($result->summary)));
+}
+
+
 }

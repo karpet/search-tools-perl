@@ -81,3 +81,7 @@ Revision history for Perl extension Search::HiLiter.
       checks to help reduce ambiguity.
     * hardcode locale into some tests so that latin1 is not magically upgraded to utf8 by perl.
 
+0.12
+    * change tests to force locale for spelling dictionaries, or skip if not found
+
+

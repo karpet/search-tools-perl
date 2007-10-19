@@ -1,6 +1,14 @@
 use Test::More tests => 8;
 
-#use Data::Dump qw(pp);
+BEGIN
+{
+    use POSIX qw(locale_h);
+    use locale;
+    setlocale(LC_CTYPE, 'en_US.UTF-8');
+}
+
+
+use Data::Dump qw(pp);
 use Search::Tools::Keywords;
 use Search::Tools::SpellCheck;
 
@@ -21,6 +29,19 @@ ok(
 my $suggestions = $spellcheck->suggest($query);
 
 #diag(pp($suggestions));
+
+# if we had no suggestions, then the test is bad due to dictionaries
+# not being installed, locale or other.
+my $ok = 0;
+for my $v (@$suggestions)
+{
+    $ok += scalar @{ $v->{suggestions} };
+}
+
+SKIP: {
+
+     skip "No dictionaries found for locale", 7 unless $ok; 
+
 
 my %expect = (
               'the'      => 0,
@@ -48,4 +69,6 @@ for my $s (@$suggestions)
     {
         ok(scalar(@{$s->{suggestions}}) == $count, $s->{word});
     }
+}
+
 }
