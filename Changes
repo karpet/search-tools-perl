@@ -88,5 +88,9 @@ Revision history for Perl extension Search::HiLiter.
     * added File::Slurp to requirements, since tests use it.
     * changed 'use <version>' syntax to be portable.
 
+0.14
+    * fixed <version> in Makefile.PL
+
+
 
 

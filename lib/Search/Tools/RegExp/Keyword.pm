@@ -7,7 +7,7 @@ use Carp;
 
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 __PACKAGE__->mk_ro_accessors(qw/plain html word phrase/);
 
