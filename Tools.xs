@@ -387,3 +387,5 @@ _re_match_xs(text, regex, snips, ranges, Nchar, max_snips, isHTML)
 
   OUTPUT:
     RETVAL
+
+
