@@ -91,6 +91,8 @@ Revision history for Perl extension Search::HiLiter.
 0.14
     * fixed <version> in Makefile.PL
 
+0.15
+    * fix t/09locale.t to skip if UTF-8 charset not available via setlocale()
 
 
 
