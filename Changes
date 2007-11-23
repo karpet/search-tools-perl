@@ -94,5 +94,8 @@ Revision history for Perl extension Search::HiLiter.
 0.15
     * fix t/09locale.t to skip if UTF-8 charset not available via setlocale()
 
+0.16  22 Nov 2007
+    * refactor common object stuff into new Search::Tools::Object class
+    * change behaviour of XML escape()/unescape() to return filtered values instead of in-place
 
 

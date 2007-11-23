@@ -3,6 +3,7 @@ package Search::Tools::RegExp;
 use 5.008_003;
 use strict;
 use warnings;
+use base qw( Search::Tools::Object );
 use Carp;
 use Encode;
 use Search::Tools::Keywords;
@@ -10,23 +11,28 @@ use Search::Tools::RegExp::Keywords;
 use Search::Tools::RegExp::Keyword;
 use Search::Tools::XML;
 
-use base qw( Class::Accessor::Fast );
+our $VERSION = '0.16';
 
-our $VERSION = '0.15';
+__PACKAGE__->mk_accessors(
+    qw(
+        kw
+        start_bound
+        end_bound
+        ),
+    @Search::Tools::Accessors
+);
 
 my %char2entity = ();
-while (my ($e, $n) = each(%Search::Tools::XML::HTML_ents))
-{
+while ( my ( $e, $n ) = each(%Search::Tools::XML::HTML_ents) ) {
     my $char = chr($n);
     $char2entity{$char} = "&$e;";
 }
 delete $char2entity{"'"};    # only one-way decoding
 
 # Fill in missing entities
-for (0 .. 255)
-{
-    next if exists $char2entity{chr($_)};
-    $char2entity{chr($_)} = "&#$_;";
+for ( 0 .. 255 ) {
+    next if exists $char2entity{ chr($_) };
+    $char2entity{ chr($_) } = "&#$_;";
 }
 
 # this might miss comments inside tags
@@ -39,7 +45,7 @@ our $TagRE = qr/<[^>]+>/s;
 # see example/utf8re.pl
 #our $UTF8Char = qr/\p{L}\p{M}*/;
 our $UTF8Char = '\w';
-our $WordChar = $UTF8Char . quotemeta("'-.");   # contractions and compounds ok.
+our $WordChar = $UTF8Char . quotemeta("'-."); # contractions and compounds ok.
 our $IgnFirst = quotemeta("'-");
 our $IgnLast  = quotemeta("'-.");
 our $PhraseDelim = '"';
@@ -51,39 +57,16 @@ our $Wildcard    = '*';
 # NOTE that the pound sign # needs escaping because we use the 'x' flag in our regexp.
 
 my @whitesp = (
-               '&\#0020;', '&\#0009;', '&\#000C;', '&\#200B;',
-               '&\#2028;', '&\#2029;', '&nbsp;',   '&\#32;',
-               '&\#160;',  '\s',       '\xa0',     '\x20',
-              );
+    '&\#0020;', '&\#0009;', '&\#000C;', '&\#200B;', '&\#2028;', '&\#2029;',
+    '&nbsp;',   '&\#32;',   '&\#160;',  '\s',       '\xa0',     '\x20',
+);
 
-our $WhiteSpace = join('|', @whitesp);
+our $WhiteSpace = join( '|', @whitesp );
 
-sub new
-{
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self  = {};
-    bless($self, $class);
-    $self->_init(@_);
-    return $self;
-}
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init(@_);
 
-sub _init
-{
-    my $self  = shift;
-    my %extra = @_;
-    @$self{keys %extra} = values %extra;
-
-    $self->mk_accessors(
-        qw(
-          kw
-          start_bound
-          end_bound
-          ),
-        @Search::Tools::Accessors
-    );
-
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
     $self->{wildcard}          ||= $Wildcard;
     $self->{word_characters}   ||= $WordChar;
     $self->{ignore_first_char} ||= $IgnFirst;
@@ -91,11 +74,10 @@ sub _init
     $self->{phrase_delim}      ||= $PhraseDelim;
 
     $self->kw(
-              Search::Tools::Keywords->new(
-                               map { $_ => $self->$_ } @Search::Tools::Accessors
-              )
-             )
-      unless $self->kw;
+        Search::Tools::Keywords->new(
+            map { $_ => $self->$_ } @Search::Tools::Accessors
+        )
+    ) unless $self->kw;
 
     # a search for a '<' or '>' should still highlight,
     # since &lt; or &gt; can be indexed as literal < and >
@@ -126,17 +108,17 @@ sub _init
         $WhiteSpace,
         '[^' . $self->{word_characters} . ']',
         qr/[$self->{ignore_first_char}]+/i
-                      );
+    );
 
     my @end_bound = (
-                     '\Z', '[<&]', $WhiteSpace,
-                     '[^' . $self->{word_characters} . ']',
-                     qr/[$self->{ignore_last_char}]+/i
-                    );
+        '\Z', '[<&]', $WhiteSpace,
+        '[^' . $self->{word_characters} . ']',
+        qr/[$self->{ignore_last_char}]+/i
+    );
 
-    $self->{start_bound} ||= join('|', @start_bound);
+    $self->{start_bound} ||= join( '|', @start_bound );
 
-    $self->{end_bound} ||= join('|', @end_bound);
+    $self->{end_bound} ||= join( '|', @end_bound );
 
     # the whitespace in a query phrase might be:
     #	any ignore_last_char, followed by
@@ -145,52 +127,47 @@ sub _init
     # define for both text and html
 
     $self->{text_phrase_bound} = join '', qr/[$self->{ignore_last_char}]*/i,
-      qr/[\s\x20]|[^$self->{word_characters}]/is, '+',
-      qr/[$self->{ignore_first_char}]*/i;
+        qr/[\s\x20]|[^$self->{word_characters}]/is, '+',
+        qr/[$self->{ignore_first_char}]*/i;
     $self->{html_phrase_bound} = join '', qr/[$self->{ignore_last_char}]*/i,
-      qr/$WhiteSpace|[^$self->{word_characters}]/is, '+',
-      qr/[$self->{ignore_first_char}]*/i;
+        qr/$WhiteSpace|[^$self->{word_characters}]/is, '+',
+        qr/[$self->{ignore_first_char}]*/i;
 
 }
 
 sub isHTML { $_[1] =~ m/[<>]|&[#\w]+;/ }
 
-sub build
-{
-    my $self  = shift;
+sub build {
+    my $self = shift;
     my $query = shift or croak "need query to build() RegExp object";
 
-    my $q_array  = [$self->kw->extract($query)];
+    my $q_array  = [ $self->kw->extract($query) ];
     my $q2regexp = {};
 
-    for my $q (@$q_array)
-    {
-        my ($plain, $html) = $self->_build($q);
-        $q2regexp->{$q} =
-          Search::Tools::RegExp::Keyword->new(
-                                              plain  => $plain,
-                                              html   => $html,
-                                              word   => $q,
-                                              phrase => $q =~ m/\ / ? 1 : 0
-                                             );
+    for my $q (@$q_array) {
+        my ( $plain, $html ) = $self->_build($q);
+        $q2regexp->{$q} = Search::Tools::RegExp::Keyword->new(
+            plain  => $plain,
+            html   => $html,
+            word   => $q,
+            phrase => $q =~ m/\ / ? 1 : 0
+        );
 
     }
 
-    my $kw =
-      Search::Tools::RegExp::Keywords->new(
-                               hash        => $q2regexp,
-                               array       => $q_array,
-                               kw          => $self->kw,
-                               start_bound => $self->start_bound,
-                               end_bound   => $self->end_bound,
-                               map { $_ => $self->$_ } @Search::Tools::Accessors
-      );
+    my $kw = Search::Tools::RegExp::Keywords->new(
+        hash        => $q2regexp,
+        array       => $q_array,
+        kw          => $self->kw,
+        start_bound => $self->start_bound,
+        end_bound   => $self->end_bound,
+        map { $_ => $self->$_ } @Search::Tools::Accessors
+    );
 
     return $kw;
 }
 
-sub _build
-{
+sub _build {
     my $self      = shift;
     my $q         = shift or croak "need query to build()";
     my $wild      = $self->word_characters;
@@ -204,7 +181,7 @@ sub _build
 
     # define simple pattern for plain text
     # and complex pattern for HTML markup
-    my ($plain, $html);
+    my ( $plain, $html );
     my $escaped = quotemeta($q);
     $escaped =~ s/\\[$wild_esc]/[$wc]*/g;    # wildcard
     $escaped =~ s/\\[\s]/$tpb/g;             # whitespace
@@ -221,12 +198,11 @@ ${escaped}
 )
 /xis;
 
-    my (@char) = split(m//, $q);
+    my (@char) = split( m//, $q );
 
     my $counter = -1;
 
-  CHAR: foreach my $c (@char)
-    {
+CHAR: foreach my $c (@char) {
         $counter++;
 
         my $ent = $char2entity{$c} || carp "no entity defined for >$c< !\n";
@@ -238,8 +214,7 @@ ${escaped}
         # if it's a *, replace it with the Wild class
         $c = "[$wild]*" if $c eq $wild_esc;
 
-        if ($c eq '\ ')
-        {
+        if ( $c eq '\ ' ) {
             $c = $hpb . $TagRE . '*';
             next CHAR;
         }
@@ -249,15 +224,15 @@ ${escaped}
         # make $c into a regexp
         $c = qr/$c|$aka/i unless $c eq "[$wild]*";
 
-        # any char might be followed by zero or more tags, unless it's the last char
+  # any char might be followed by zero or more tags, unless it's the last char
         $c .= $TagRE . '*' unless $counter == $#char;
 
     }
 
     # re-join the chars into a single string
-    my $safe = join("\n", @char);    # use \n to make it legible in debugging
+    my $safe = join( "\n", @char );   # use \n to make it legible in debugging
 
-    # for debugging legibility we include newlines, so make sure we s//x in matches
+# for debugging legibility we include newlines, so make sure we s//x in matches
     $html = qr/
 (
 ${st_bound}
@@ -270,7 +245,7 @@ ${end_bound}
 )
 /xis;
 
-    return ($plain, $html);
+    return ( $plain, $html );
 }
 
 1;

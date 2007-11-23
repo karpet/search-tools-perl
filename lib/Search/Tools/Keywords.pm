@@ -2,51 +2,36 @@ package Search::Tools::Keywords;
 
 use strict;
 use warnings;
+use base qw( Search::Tools::Object );
 
 # make sure we get correct ->utf8 encoding
 use POSIX qw(locale_h);
 use locale;
 
 use Carp;
-use Data::Dump qw/ pp /;    # just for debugging
 use Encode;
-use Search::Tools;
 use Search::Tools::UTF8;
 use Search::Tools::RegExp;
 use Search::QueryParser;
 
-use base qw( Class::Accessor::Fast );
+our $VERSION = '0.16';
 
-our $VERSION = '0.15';
+__PACKAGE__->mk_accessors(
+    qw(
+        and_word
+        or_word
+        not_word
+        ),
+    @Search::Tools::Accessors
+);
 
-sub new
-{
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self  = {};
-    bless($self, $class);
-    $self->_init(@_);
-    return $self;
-}
-
-sub _init
-{
-    my $self  = shift;
-    my %extra = @_;
-    @$self{keys %extra} = values %extra;
-
-    $self->mk_accessors(
-        qw(
-          and_word
-          or_word
-          not_word
-          ),
-        @Search::Tools::Accessors
-    );
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init(@_);
 
     # set defaults
     $self->{locale} ||= setlocale(LC_CTYPE);
-    ($self->{lang}, $self->{charset}) = split(m/\./, $self->{locale});
+    ( $self->{lang}, $self->{charset} ) = split( m/\./, $self->{locale} );
     $self->{lang} = 'en_US' if $self->{lang} =~ m/^(posix|c)$/i;
     $self->{charset}           ||= 'iso-8859-1';
     $self->{phrase_delim}      ||= '"';
@@ -63,8 +48,7 @@ sub _init
 
 }
 
-sub extract
-{
+sub extract {
     my $self      = shift;
     my $query     = shift or croak "need query to extract keywords";
     my $stopwords = $self->stopwords;
@@ -79,38 +63,35 @@ sub extract
 
     my $esc_wildcard = quotemeta($wildcard);
     my $word_re      = qr/([$wordchar]+($esc_wildcard)?)/;
-    my @query        = @{ref $query ? $query : [$query]};
-    $stopwords = [split(/\s+/, $stopwords)] unless ref $stopwords;
-    my %stophash =
-      map { to_utf8(lc($_), $self->charset) => 1 } @$stopwords;
-    my (%words, %uniq, $c);
-    my $parser =
-      Search::QueryParser->new(
-                               rxAnd => qr{$and_word}i,
-                               rxOr  => qr{$or_word}i,
-                               rxNot => qr{$not_word}i,
-                              );
+    my @query        = @{ ref $query ? $query : [$query] };
+    $stopwords = [ split( /\s+/, $stopwords ) ] unless ref $stopwords;
+    my %stophash
+        = map { to_utf8( lc($_), $self->charset ) => 1 } @$stopwords;
+    my ( %words, %uniq, $c );
+    my $parser = Search::QueryParser->new(
+        rxAnd => qr{$and_word}i,
+        rxOr  => qr{$or_word}i,
+        rxNot => qr{$not_word}i,
+    );
 
-  Q: for my $q (@query)
-    {
+Q: for my $q (@query) {
         $q = lc($q) if $self->ignore_case;
-        $q = to_utf8($q, $self->charset);
-        my $p = $parser->parse($q, 1);
+        $q = to_utf8( $q, $self->charset );
+        my $p = $parser->parse( $q, 1 );
         $self->debug && carp "parsetree: " . pp($p);
-        $self->_get_v(\%uniq, $p, $c);
+        $self->_get_v( \%uniq, $p, $c );
     }
 
-    $self->debug && carp "parsed: " . pp(\%uniq);
+    $self->debug && carp "parsed: " . pp( \%uniq );
 
-    my $count = scalar(keys %uniq);
+    my $count = scalar( keys %uniq );
 
     # parse uniq into word tokens
     # including removing stop words
 
     $self->debug && carp "word_re: $word_re";
 
-  U: for my $u (sort { $uniq{$a} <=> $uniq{$b} } keys %uniq)
-    {
+U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
         my $n = $uniq{$u};
 
@@ -123,53 +104,47 @@ sub extract
 
         my @w = ();
 
-      TOK: for my $w (split(m/\s+/, to_utf8($u, $self->charset)))
-        {
+    TOK: for my $w ( split( m/\s+/, to_utf8( $u, $self->charset ) ) ) {
 
             next TOK unless $w =~ m/\S/;
 
             $w =~ s/\Q$phrase\E//g;
 
-            while ($w =~ m/$word_re/g)
-            {
+            while ( $w =~ m/$word_re/g ) {
                 my $tok = _untaint($1);
 
                 # strip ignorable chars
                 $tok =~ s/^[$igf]+//;
                 $tok =~ s/[$igl]+$//;
 
-                unless ($tok)
-                {
+                unless ($tok) {
                     $self->debug && carp "no token for '$w' $word_re";
                     next TOK;
                 }
 
                 $self->debug && carp "found token: $tok";
 
-                if (exists $stophash{lc($tok)})
-                {
+                if ( exists $stophash{ lc($tok) } ) {
                     $self->debug && carp "$tok = stopword";
                     next TOK unless $isphrase;
                 }
 
-                unless ($isphrase)
-                {
+                unless ($isphrase) {
                     next TOK if $tok =~ m/^($and_word|$or_word|$not_word)$/i;
                 }
 
                 # if tainting was on, odd things can happen.
                 # so check one more time
-                $tok = to_utf8($tok, $self->charset);
+                $tok = to_utf8( $tok, $self->charset );
 
                 # final sanity check
-                if (!Encode::is_utf8($tok))
-                {
+                if ( !Encode::is_utf8($tok) ) {
                     carp "$tok is NOT utf8";
                     next TOK;
                 }
 
                 #$self->debug && carp "pushing $tok into wordlist";
-                push(@w, $tok);
+                push( @w, $tok );
 
             }
 
@@ -178,40 +153,34 @@ sub extract
         next U unless @w;
 
         #$self->debug && carp "joining \@w: " . pp(\@w);
-        if ($isphrase)
-        {
-            $words{join(' ', @w)} = $n + $count++;
+        if ($isphrase) {
+            $words{ join( ' ', @w ) } = $n + $count++;
         }
-        else
-        {
-            for (@w)
-            {
+        else {
+            for (@w) {
                 $words{$_} = $n + $count++;
             }
         }
 
     }
 
-    $self->debug && carp "tokenized: " . pp(\%words);
+    $self->debug && carp "tokenized: " . pp( \%words );
 
     # make sure we don't have 'foo' and 'foo*'
-    for (keys %words)
-    {
-        if ($_ =~ m/$esc_wildcard/)
-        {
-            (my $copy = $_) =~ s,$esc_wildcard,,g;
+    for ( keys %words ) {
+        if ( $_ =~ m/$esc_wildcard/ ) {
+            ( my $copy = $_ ) =~ s,$esc_wildcard,,g;
 
             # delete the more exact of the two
             # since the * will match both
-            delete($words{$copy});
+            delete( $words{$copy} );
         }
     }
 
-    $self->debug && carp "wildcards removed: " . pp(\%words);
+    $self->debug && carp "wildcards removed: " . pp( \%words );
 
     # if any words need to be stemmed
-    if ($self->stemmer)
-    {
+    if ( $self->stemmer ) {
 
         # split each $word into words
         # stem each word
@@ -220,24 +189,20 @@ sub extract
 
         #carp "stemming ON\n";
 
-      K: for (keys %words)
-        {
+    K: for ( keys %words ) {
             my (@w) = split /\s+/;
-          W: for my $w (@w)
-            {
+        W: for my $w (@w) {
                 my $func = $self->stemmer;
-                my $f    = &$func($self, $w);
+                my $f = &$func( $self, $w );
 
                 #warn "w: $w\nf: $f\n";
 
-                if ($f ne $w)
-                {
+                if ( $f ne $w ) {
 
                     my @stemmed = split //, $f;
                     my @char    = split //, $w;
                     $f = '';    #reset
-                    while (@char && @stemmed && $stemmed[0] eq $char[0])
-                    {
+                    while ( @char && @stemmed && $stemmed[0] eq $char[0] ) {
                         $f .= shift @stemmed;
                         shift @char;
                     }
@@ -248,8 +213,7 @@ sub extract
                 $w = $f . $wildcard;
             }
             my $new = join ' ', @w;
-            if ($new ne $_)
-            {
+            if ( $new ne $_ ) {
                 $words{$new} = $words{$_};
                 delete $words{$_};
             }
@@ -257,10 +221,10 @@ sub extract
 
     }
 
-    $self->debug && carp "stemming done: " . pp(\%words);
+    $self->debug && carp "stemming done: " . pp( \%words );
 
     # sort keeps query in same order as we entered
-    return (sort { $words{$a} <=> $words{$b} } keys %words);
+    return ( sort { $words{$a} <=> $words{$b} } keys %words );
 
 }
 
@@ -269,46 +233,38 @@ sub extract
 # if we untaint $query in initial extract() set up,
 # subsequent matches against word_re still end up tainted.
 # might be a Unicode weirdness?
-sub _untaint
-{
+sub _untaint {
     my $str = shift;
     my $ref = ref($str) ? $str : \$str;
-    if (!defined $$ref)
-    {
+    if ( !defined $$ref ) {
         $$ref = undef;
     }
-    else
-    {
-        $$ref =
-          ($$ref =~ /(.*)/)
-          ? $1
-          : do { confess("Couldn't find data to untaint") };
+    else {
+        $$ref
+            = ( $$ref =~ /(.*)/ )
+            ? $1
+            : do { confess("Couldn't find data to untaint") };
     }
     return ref($str) ? 1 : $str;
 }
 
-sub _get_v
-{
+sub _get_v {
     my $self      = shift;
     my $uniq      = shift;
     my $parseTree = shift;
     my $c         = shift;
 
     # we only want the values from non minus queries
-    for my $node (grep { $_ eq '+' || $_ eq '' } keys %$parseTree)
-    {
-        my @branches = @{$parseTree->{$node}};
+    for my $node ( grep { $_ eq '+' || $_ eq '' } keys %$parseTree ) {
+        my @branches = @{ $parseTree->{$node} };
 
-        for my $leaf (@branches)
-        {
+        for my $leaf (@branches) {
             my $v = $leaf->{value};
 
-            if (ref $v)
-            {
-                $self->_get_v($uniq, $v, $c);
+            if ( ref $v ) {
+                $self->_get_v( $uniq, $v, $c );
             }
-            else
-            {
+            else {
 
                 # collapse any whitespace
                 $v =~ s,\s+,\ ,g;

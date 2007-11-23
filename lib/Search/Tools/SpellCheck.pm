@@ -3,107 +3,85 @@ package Search::Tools::SpellCheck;
 use 5.008_003;
 use strict;
 use warnings;
-
 use Carp;
-use base qw( Class::Accessor::Fast );
+use base qw( Search::Tools::Object );
 use Text::Aspell;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
-sub new
-{
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self  = {};
-    bless($self, $class);
-    $self->_init(@_);
-    return $self;
-}
+__PACKAGE__->mk_accessors(
+    qw(
+        max_suggest
+        dict
+        aspell
+        kw
+        query
+        )
+);
 
-sub _init
-{
-    my $self  = shift;
-    my %extra = @_;
-    @$self{keys %extra} = values %extra;
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init(@_);
 
     $self->{max_suggest} ||= 4;
 
-    $self->mk_accessors(
-        qw(
-          max_suggest
-          dict
-          aspell
-          kw
-          query
-          )
-    );
-    
-    if ($self->query)
-    {
-        unless ($self->query->isa('Search::Tools::RegExp::Keywords'))
-        {
+    if ( $self->query ) {
+        unless ( $self->query->isa('Search::Tools::RegExp::Keywords') ) {
             croak "query must be a S::T::RegExp::Keywords object";
         }
         $self->kw( $self->query->kw );
     }
 
-    unless ($self->kw && $self->kw->isa('Search::Tools::Keywords'))
-    {
+    unless ( $self->kw && $self->kw->isa('Search::Tools::Keywords') ) {
         croak "S::T::Keywords object required";
     }
 
-    $self->aspell(Text::Aspell->new or croak "can't get new() Text::Aspell");
+    $self->aspell(
+               Text::Aspell->new
+            or croak "can't get new() Text::Aspell"
+    );
 
-    $self->aspell->set_option('lang', $self->kw->lang);
+    $self->aspell->set_option( 'lang', $self->kw->lang );
     $self->_check_err;
-    $self->aspell->set_option('sug-mode', 'fast');
+    $self->aspell->set_option( 'sug-mode', 'fast' );
     $self->_check_err;
-    $self->aspell->set_option('master', $self->dict) if $self->dict;
+    $self->aspell->set_option( 'master', $self->dict ) if $self->dict;
     $self->_check_err;
 
 }
 
-sub _check_err
-{
+sub _check_err {
     my $self = shift;
     carp $self->aspell->errstr if $self->aspell->errstr;
 }
 
-sub suggest
-{
+sub suggest {
     my $self    = shift;
     my $query   = shift or croak "query required";
     my $suggest = [];
     my $phr_del = $self->kw->phrase_delim;
 
-    for my $k ($self->kw->extract($query))
-    {
+    for my $k ( $self->kw->extract($query) ) {
 
         $k =~ s/$phr_del//g;
-        my @w = split(m/\ +/, $k);
+        my @w = split( m/\ +/, $k );
 
-      WORD: for my $word (@w)
-        {
+    WORD: for my $word (@w) {
 
-            my $s = {word => $word};
-            if ($self->aspell->check($word))
-            {
+            my $s = { word => $word };
+            if ( $self->aspell->check($word) ) {
                 $self->_check_err;
                 $s->{suggestions} = 0;
             }
-            else
-            {
+            else {
                 my @sg = $self->aspell->suggest($word);
                 $self->_check_err;
-                if (!@sg or !defined $sg[0])
-                {
+                if ( !@sg or !defined $sg[0] ) {
                     $s->{suggestions} = [];
                 }
-                else
-                {
+                else {
 
-                    if ($self->kw->ignore_case)
-                    {
+                    if ( $self->kw->ignore_case ) {
 
                         # make them unique but preserve order
                         my $c = 0;
@@ -111,10 +89,11 @@ sub suggest
                         @sg = sort { $u{$a} <=> $u{$b} } keys %u;
                     }
 
-                    $s->{suggestions} = [splice(@sg, 0, $self->max_suggest)];
+                    $s->{suggestions}
+                        = [ splice( @sg, 0, $self->max_suggest ) ];
                 }
             }
-            push(@$suggest, $s);
+            push( @$suggest, $s );
 
         }
     }

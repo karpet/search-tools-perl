@@ -2,18 +2,17 @@ package Search::Tools::Transliterate;
 
 use strict;
 use warnings;
+use base qw( Search::Tools::Object );
 use Search::Tools::UTF8;
 use Carp;
 use Encode;
 use Data::Dump qw( dump );
 
-use base qw( Class::Accessor::Fast );
-
 __PACKAGE__->mk_accessors(qw( debug ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =pod
 
@@ -120,23 +119,19 @@ our $valid_utf8_regexp = <<EOE;
       |         \x{f4} [\x{80}-\x{8f}][\x{80}-\x{bf}][\x{80}-\x{bf}]
 EOE
 
-sub _init_map
-{
+sub _init_map {
     my $self = shift;
     my %map;
-    while (<DATA>)
-    {
+    while (<DATA>) {
         chomp;
-        my ($from, $to) = (m/^(<U.+?>)\ (.+)$/);
-        my @o = split(/;/, $to);
-        $map{_Utag_to_chr($from)} = _Utag_to_chr($o[0]);
+        my ( $from, $to ) = (m/^(<U.+?>)\ (.+)$/);
+        my @o = split( /;/, $to );
+        $map{ _Utag_to_chr($from) } = _Utag_to_chr( $o[0] );
     }
 
     # add/override 8bit chars
-    if ($self->ebit)
-    {
-        for (128 .. 255)
-        {
+    if ( $self->ebit ) {
+        for ( 128 .. 255 ) {
             my $c = chr($_);
             $map{$c} = $c;
         }
@@ -145,8 +140,7 @@ sub _init_map
     return \%map;
 }
 
-sub _Utag_to_chr
-{
+sub _Utag_to_chr {
     my $t = shift;
 
     # cruft
@@ -156,32 +150,28 @@ sub _Utag_to_chr
     return $t;
 }
 
-sub new
-{
+sub new {
     my $class = shift;
     my $self  = {};
-    bless($self, $class);
+    bless( $self, $class );
     $self->_init(@_);
     return $self;
 }
 
-sub _init
-{
+sub _init {
     my $self  = shift;
     my %extra = @_;
-    @$self{keys %extra} = values %extra;
+    @$self{ keys %extra } = values %extra;
     $self->{ebit} = 1 unless defined $self->{ebit};
 
     my $map = $self->_init_map;
-    if ($self->{map})
-    {
-        $map->{$_} = $self->{map}->{$_} for keys %{$self->{map}};
+    if ( $self->{map} ) {
+        $map->{$_} = $self->{map}->{$_} for keys %{ $self->{map} };
     }
     $self->{map} = $map;
 }
 
-sub convert
-{
+sub convert {
     my $self   = shift;
     my $buf    = shift;
     my $newbuf = '';
@@ -190,27 +180,23 @@ sub convert
     return $buf if is_ascii($buf);
 
     # make sure we've got valid UTF-8 to start with
-    unless (is_valid_utf8($buf))
-    {
+    unless ( is_valid_utf8($buf) ) {
         my $badbyte = find_bad_utf8($buf);
         croak "bad UTF-8 byte(s) at $badbyte [ " . dump($buf) . " ]";
     }
 
     Encode::_utf8_off($buf);
 
-    while ($buf =~ m/($valid_utf8_regexp)/gox)
-    {
+    while ( $buf =~ m/($valid_utf8_regexp)/gox ) {
         my $c            = $1;
         my $old_char_len = length($c);
         my $utf          = Encode::decode_utf8($c);
 
-        if ($old_char_len == 1)
-        {
+        if ( $old_char_len == 1 ) {
             $newbuf .= $utf;
             next;
         }
-        if (!exists $self->map->{$utf})
-        {
+        if ( !exists $self->map->{$utf} ) {
             $newbuf .= ' ';
             next;
         }

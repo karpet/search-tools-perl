@@ -7,98 +7,89 @@ use Encode;
 use charnames ':full';
 use base qw( Exporter );
 our @EXPORT = qw(
-  to_utf8
-  is_valid_utf8
-  is_flagged_utf8
-  is_ascii
-  is_latin1
-  is_sane_utf8
-  find_bad_utf8
-  find_bad_ascii
-  find_bad_latin1
-  find_bad_latin1_report
+    to_utf8
+    is_valid_utf8
+    is_flagged_utf8
+    is_ascii
+    is_latin1
+    is_sane_utf8
+    find_bad_utf8
+    find_bad_ascii
+    find_bad_latin1
+    find_bad_latin1_report
 
-  );
+);
 
 our $Debug = 0;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
-sub to_utf8
-{
+sub to_utf8 {
     my $str = shift;
     my $charset = shift || 'iso-8859-1';
 
     # checks first
-    if (is_flagged_utf8($str))
-    {
+    if ( is_flagged_utf8($str) ) {
         return $str;
     }
-    if (is_valid_utf8($str))
-    {
+    if ( is_valid_utf8($str) ) {
         Encode::_utf8_on($str);
         return $str;
     }
-    if (is_ascii($str))
-    {
+    if ( is_ascii($str) ) {
         Encode::_utf8_on($str);
         return $str;
     }
 
     $Debug
-      and carp "converting $str from $charset -> utf8";
-    my $c = Encode::decode($charset, $str);
+        and carp "converting $str from $charset -> utf8";
+    my $c = Encode::decode( $charset, $str );
     $Debug and carp "converted $c";
 
-    unless (is_sane_utf8($c))
-    {
+    unless ( is_sane_utf8($c) ) {
         carp "not sane: $c";
     }
 
     return $c;
 }
 
-sub is_flagged_utf8
-{
-    return Encode::is_utf8($_[0]);
+sub is_flagged_utf8 {
+    return Encode::is_utf8( $_[0] );
 }
 
-my $re_bit = join "|", map { Encode::encode("utf8", chr($_)) } (127 .. 255);
+my $re_bit = join "|",
+    map { Encode::encode( "utf8", chr($_) ) } ( 127 .. 255 );
 
 #binmode STDERR, ":utf8";
 #print STDERR $re_bit;
 
-sub is_sane_utf8
-{
+sub is_sane_utf8 {
     my $string = shift;
     my $warnings = shift || $Debug || 0;
 
-    while ($string =~ /($re_bit)/o)
-    {
+    while ( $string =~ /($re_bit)/o ) {
 
         # work out what the double encoded string was
         my $bytes = $1;
 
         my $index = $+[0] - length($bytes);
-        my $codes = join '', map { sprintf '<%00x>', ord($_) } split //, $bytes;
+        my $codes = join '', map { sprintf '<%00x>', ord($_) } split //,
+            $bytes;
 
         # what character does that represent?
-        my $char = Encode::decode("utf8", $bytes);
+        my $char = Encode::decode( "utf8", $bytes );
         my $ord  = ord($char);
         my $hex  = sprintf '%00x', $ord;
         $char = charnames::viacode($ord);
 
         # print out diagnostic messages
-        if ($warnings)
-        {
+        if ($warnings) {
 
             warn(qq{Found dodgy chars "$codes" at char $index\n});
-            if (Encode::is_utf8($string))
-            {
+            if ( Encode::is_utf8($string) ) {
                 warn("Chars in utf8 string look like utf8 byte sequence.");
             }
-            else
-            {
+            else {
                 warn("String not flagged as utf8...was it meant to be?\n");
             }
             warn(
@@ -111,29 +102,28 @@ sub is_sane_utf8
     1;
 }
 
-sub is_valid_utf8
-{
-    if (is_latin1($_[0]) && !is_ascii($_[0]) && !is_perl_utf8_string($_[0]))
+sub is_valid_utf8 {
+    if (   is_latin1( $_[0] )
+        && !is_ascii( $_[0] )
+        && !is_perl_utf8_string( $_[0] ) )
     {
         return 0;
     }
-    return is_perl_utf8_string($_[0]);
+    return is_perl_utf8_string( $_[0] );
 }
 
-sub find_bad_latin1_report
-{
+sub find_bad_latin1_report {
     my $bad = find_bad_latin1(@_);
-    if ($bad)
-    {
+    if ($bad) {
+
         # explain why we failed
-        my $char = substr($_[0], $bad - 1, 1);
-        my $dec = ord($char);
-        my $hex = sprintf '%x', $dec;
+        my $char = substr( $_[0], $bad - 1, 1 );
+        my $dec  = ord($char);
+        my $hex  = sprintf '%x', $dec;
         carp("byte $bad ($char) is not Latin1 (it's $dec dec / $hex hex)");
     }
-    return $bad; 
+    return $bad;
 }
-
 
 1;
 
