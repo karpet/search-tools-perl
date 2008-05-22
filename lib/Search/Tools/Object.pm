@@ -19,19 +19,18 @@ I<args> should be a hash.
 
 =cut
 
-__PACKAGE__->mk_accessors( qw( debug ) );
+__PACKAGE__->mk_accessors(qw( debug ));
 
 sub new {
     my $class = shift;
-    my $self  = bless( {}, $class );
+    my $args  = ref( $_[0] ) eq 'HASH' ? shift(@_) : {@_};
+    my $self  = $class->SUPER::new($args);
     $self->_init(@_);
     return $self;
 }
 
 sub _init {
-    my $self  = shift;
-    my %extra = @_;
-    @$self{ keys %extra } = values %extra;
+    my $self = shift;
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
 }
 

@@ -5,7 +5,6 @@ package Search::Tools::Snipper;
 # could we XS some of that beauty?
 #
 
-use 5.008_003;
 use strict;
 use warnings;
 
@@ -15,7 +14,7 @@ use Search::Tools::RegExp;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 our $ellip   = ' ... ';
 
 __PACKAGE__->mk_accessors(

@@ -1,13 +1,12 @@
 package Search::Tools::SpellCheck;
-
-use 5.008_003;
 use strict;
 use warnings;
 use Carp;
 use base qw( Search::Tools::Object );
 use Text::Aspell;
+use Search::Tools::Keywords;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 __PACKAGE__->mk_accessors(
     qw(
@@ -25,9 +24,11 @@ sub _init {
 
     $self->{max_suggest} ||= 4;
 
+    $self->{kw} ||= Search::Tools::Keywords->new;
+
     if ( $self->query ) {
         unless ( $self->query->isa('Search::Tools::RegExp::Keywords') ) {
-            croak "query must be a S::T::RegExp::Keywords object";
+            croak "query arg must be a S::T::RegExp::Keywords object";
         }
         $self->kw( $self->query->kw );
     }
@@ -112,20 +113,14 @@ Search::Tools::SpellCheck - offer spelling suggestions
 
 =head1 SYNOPSIS
 
- use Search::Tools::Keywords;
  use Search::Tools::SpellCheck;
  
  my $query = 'the quick fox color:brown and "lazy dog" not jumped';
- 
- my $kw = 
-    Search::Tools::Keywords->new;
- 
+  
  my $spellcheck = 
     Search::Tools::SpellCheck->new(
                         dict        => 'path/to/my/dictionary',
                         max_suggest => 4,
-                        kw          => $kw
-                        
                         );
                         
  my $suggestions = $spellcheck->suggest($query);
@@ -172,7 +167,7 @@ The keyword used.
 =item suggestions
 
 If value is C<0> (zero) then the word was found in the dictionary
-and is spelling correctly.
+and is spelled correctly.
 
 If value is an arrayref, the array contains a list of suggested spellings.
 

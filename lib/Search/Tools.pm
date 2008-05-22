@@ -1,14 +1,13 @@
 package Search::Tools;
-
 use 5.008_003;
 use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use XSLoader;
-XSLoader::load('Search::Tools', $VERSION);
+XSLoader::load( 'Search::Tools', $VERSION );
 
 # accessors that every object should inherit from its parent
 our @Accessors = qw(
@@ -24,41 +23,36 @@ our @Accessors = qw(
     locale
     charset
     lang
-    
-    );
 
-sub regexp
-{
+);
+
+sub regexp {
     my $class = shift;
     my %extra = @_;
-    my $q     = delete($extra{query}) || croak "need query to build regexp";
+    my $q     = delete( $extra{query} ) || croak "need query to build regexp";
     require Search::Tools::RegExp;
     return Search::Tools::RegExp->new(%extra)->build($q);
 }
 
-sub hiliter
-{
+sub hiliter {
     my $class = shift;
     require Search::Tools::HiLiter;
     return Search::Tools::HiLiter->new(@_);
 }
 
-sub snipper
-{
+sub snipper {
     my $class = shift;
     require Search::Tools::Snipper;
     return Search::Tools::Snipper->new(@_);
 }
 
-sub transliterate
-{
+sub transliterate {
     my $class = shift;
     require Search::Tools::Transliterate;
     return Search::Tools::Transliterate->new->convert(@_);
 }
 
-sub spellcheck
-{
+sub spellcheck {
     my $class = shift;
     require Search::Tools::SpellCheck;
     return Search::Tools::SpellCheck->new(@_);

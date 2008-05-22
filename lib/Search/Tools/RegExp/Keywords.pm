@@ -1,54 +1,33 @@
 package Search::Tools::RegExp::Keywords;
-
-use 5.008_003;
 use strict;
 use warnings;
 use Carp;
+use base qw( Search::Tools::Object );
+__PACKAGE__->mk_ro_accessors(
+    qw(
+        kw
+        start_bound
+        end_bound
+        ),
+    @Search::Tools::Accessors
+);
 
-use base qw( Class::Accessor::Fast );
+our $VERSION = '0.17';
 
-our $VERSION = '0.16';
-
-sub new
-{
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self  = {};
-    bless($self, $class);
-    $self->_init(@_);
-    return $self;
-}
-
-sub _init
-{
-    my $self  = shift;
-    my %extra = @_;
-    @$self{keys %extra} = values %extra;
-
-    $self->mk_ro_accessors(
-        qw(
-          kw
-          start_bound
-          end_bound
-          ),
-          @Search::Tools::Accessors
-    );
-    
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
-}
-
-sub keywords
-{
+sub _init {
     my $self = shift;
-    return @{$self->{array}};
+    $self->SUPER::_init(@_);
 }
 
-sub re
-{
+sub keywords {
+    my $self = shift;
+    return @{ $self->{array} };
+}
+
+sub re {
     my $self = shift;
     my $q = shift or croak "need query to get regular expression";
-    unless (exists $self->{hash}->{$q})
-    {
+    unless ( exists $self->{hash}->{$q} ) {
         croak "no regexp for query '$q'";
     }
     return $self->{hash}->{$q};

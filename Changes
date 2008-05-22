@@ -98,4 +98,7 @@ Revision history for Perl extension Search::HiLiter.
     * refactor common object stuff into new Search::Tools::Object class
     * change behaviour of XML escape()/unescape() to return filtered values instead of in-place
 
+0.17  xxx
+    * fix typos in S::T::SpellCheck
+    * refactor some remaining classes to use Search::Tools::Object class
 

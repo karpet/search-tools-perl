@@ -1,6 +1,4 @@
 package Search::Tools::RegExp;
-
-use 5.008_003;
 use strict;
 use warnings;
 use base qw( Search::Tools::Object );
@@ -11,7 +9,7 @@ use Search::Tools::RegExp::Keywords;
 use Search::Tools::RegExp::Keyword;
 use Search::Tools::XML;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 __PACKAGE__->mk_accessors(
     qw(
