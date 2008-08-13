@@ -102,3 +102,6 @@ Revision history for Perl extension Search::HiLiter.
     * fix typos in S::T::SpellCheck
     * refactor some remaining classes to use Search::Tools::Object class
 
+0.18  xxx
+    * add more debugging to to_utf8() function.
+
