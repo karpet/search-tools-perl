@@ -1,5 +1,5 @@
 use ExtUtils::MakeMaker;
-use 5.8.3;
+use 5.008_003;
 
 WriteMakefile(
     NAME         => 'Search::Tools',
@@ -9,8 +9,8 @@ WriteMakefile(
         'Encode'                => '0.1',
         'Class::Accessor::Fast' => '0.1',
         'Text::Aspell'          => '0.06',
-        'Data::Dump'            => '0.01',
-        'File::Slurp'           => '0.01',
+        'Data::Dump'            => 0,
+        'File::Slurp'           => 0,
 
                  },
     (
@@ -21,7 +21,4 @@ WriteMakefile(
        )
      : ()
     ),
-
-    CCFLAGS      => '-Wall ',     # TODO can we use gprof or similar?
-
 );

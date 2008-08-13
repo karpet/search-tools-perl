@@ -1,32 +1,16 @@
 package Search::Tools::RegExp::Keyword;
-
-use 5.008;
 use strict;
 use warnings;
 use Carp;
+use base qw( Search::Tools::Object );
 
-use base qw( Class::Accessor::Fast );
+our $VERSION = '0.18_01';
 
-our $VERSION = '0.03';
+__PACKAGE__->mk_ro_accessors(qw( plain html word phrase ));
 
-__PACKAGE__->mk_ro_accessors(qw/plain html word phrase/);
-
-sub new
-{
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self  = {};
-    bless($self, $class);
-    $self->_init(@_);
-    return $self;
-}
-
-sub _init
-{
-    my $self  = shift;
-    my %extra = @_;
-    @$self{keys %extra} = values %extra;
-    $self->{debug} ||= 0;
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init(@_);
 }
 
 1;

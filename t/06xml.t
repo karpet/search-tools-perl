@@ -17,11 +17,11 @@ $xml .= $class->end_tag('foo');
 
 is($xml, '<foo>the &#34;quick brown&#34; fox</foo>',    "xml");
 
-$class->escape($xml);
+$xml = $class->escape($xml);
 
 is($xml, '&lt;foo&gt;the &amp;#34;quick brown&amp;#34; fox&lt;/foo&gt;',    "esc");
 
-$class->unescape($xml);
+$xml = $class->unescape($xml);
 
 is($xml, '<foo>the "quick brown" fox</foo>',    "unesc");
 

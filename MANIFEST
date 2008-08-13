@@ -27,6 +27,7 @@ t/test.html
 t/test.txt
 lib/Search/Tools.pm
 lib/Search/Tools/HiLiter.pm
+lib/Search/Tools/Object.pm
 lib/Search/Tools/Snipper.pm
 lib/Search/Tools/Keywords.pm
 lib/Search/Tools/Transliterate.pm
@@ -41,4 +42,3 @@ example/qp.pl
 example/swish-e.pl
 example/keywords.pl
 example/utf8re.pl
-META.yml                                 Module meta-data (added by MakeMaker)
