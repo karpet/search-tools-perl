@@ -8,7 +8,7 @@ WriteMakefile(
         'Search::QueryParser'   => '0.1',
         'Encode'                => '0.1',
         'Class::Accessor::Fast' => '0.1',
-        'Text::Aspell'          => '0.06',
+        #'Text::Aspell'          => '0.06',  # optional
         'Data::Dump'            => 0,
         'File::Slurp'           => 0,
 
