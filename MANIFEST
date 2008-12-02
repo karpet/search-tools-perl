@@ -5,6 +5,7 @@ README
 Tools.xs
 ppport.h
 t/Search-Tools.t
+t/00-load.t
 t/01keywords.t
 t/02regexp.t
 t/03snip.t
