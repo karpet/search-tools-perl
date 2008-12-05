@@ -1,10 +1,9 @@
-use Test::More tests => 13;
-
+use Test::More tests => 16;
+use strict;
 use File::Slurp;
-use Data::Dumper;
+use Data::Dump qw( dump );
 
-BEGIN
-{
+BEGIN {
 
     use_ok('Search::Tools::HiLiter');
     use_ok('Search::Tools::Snipper');
@@ -21,21 +20,22 @@ enough words to justify your paltry existence.
 amen.
 EOF
 
-my @q = ('squiggle', 'type', 'course', '"human events"');
+my @q = ( 'squiggle', 'type', 'course', '"human events"' );
 
-ok(my $re = Search::Tools::RegExp->new(), "RE");
-ok(my $h = Search::Tools::HiLiter->new(query => $re->build(\@q)), "hiliter");
-ok(my $s = Search::Tools::Snipper->new(query => $h->rekw), "snipper");
+ok( my $re = Search::Tools::RegExp->new(), "RE" );
+ok( my $h = Search::Tools::HiLiter->new( query => $re->build( \@q ) ),
+    "hiliter" );
+ok( my $s = Search::Tools::Snipper->new( query => $h->rekw ), "snipper" );
 
-#diag( Dumper( $re ) );
+#diag( dump( $re ) );
 
-ok(my $snip = $s->snip($text), "snip");
+ok( my $snip = $s->snip($text), "snip" );
 
 #diag($snip);
 #diag($s->snipper_name);
 #diag($s->count);
 
-ok(my $l = $h->light($snip), "light");
+ok( my $l = $h->light($snip), "light" );
 
 #diag($l);
 
@@ -45,33 +45,49 @@ $text = read_file('t/test.txt');
 
 @q = qw(intramuralism maimedly sculpt);
 
-ok($h = Search::Tools::HiLiter->new(query => \@q), "new hiliter");
-ok($s = Search::Tools::Snipper->new(query => $h->rekw), "new snipper");
+ok( $h = Search::Tools::HiLiter->new( query => \@q ),      "new hiliter" );
+ok( $s = Search::Tools::Snipper->new( query => $h->rekw ), "new snipper" );
 
-ok($snip = $s->snip($text), "new snip");
+ok( $snip = $s->snip($text), "new snip" );
 
 #diag($snip);
 #diag($s->snipper_name);
 #diag($s->count);
 
-ok($l = $h->light($snip), "new light");
+ok( $l = $h->light($snip), "new light" );
 
 #diag($l);
 
 # now just a raw html file without snipping
 
-ok(
-    $h =
-      Search::Tools::HiLiter->new(
-          query =>
+ok( $h = Search::Tools::HiLiter->new(
+        query =>
             q/o'reilly the quick brown fox* jumped! "jumped over the too lazy"/,
-          #tty       => 1,
-          #no_html   => 1,
-          stopwords => 'the'
-      ),
+
+        #tty       => 1,
+        #no_html   => 1,
+        stopwords => 'the'
+    ),
     "nosnip hiliter"
-  );
+);
 $text = read_file('t/test.html');
-ok($l = $h->light($text), "nosnip light");
+ok( $l = $h->light($text), "nosnip light" );
+
 #diag($l);
 
+# test word_characters
+# we test here that {`} is a "word" so the phrase
+# does not match
+$text = 'AirMail {`} Username]: {`} Password: {`} Remember Name';
+my $q = '"airmail username"';
+ok( my $regex = Search::Tools->regexp(
+        query           => $q,
+        word_characters => '\w' . quotemeta("'-.`{}")
+    ),
+    "word_characters"
+);
+
+ok( $h = Search::Tools->hiliter( query => $regex ),
+    "hiliter for word_characters regex" );
+
+is( $h->light($text), $text, "light word_characters has no match" );
