@@ -14,39 +14,38 @@ enough words to justify your paltry existence.
 amen.
 EOF
 
-my @q = ('squiggle', 'type', 'course', '"human events"');
+my @q = ( 'squiggle', 'type', 'course', '"human events"' );
 
-ok(
-    my $s =
-      Search::Tools::Snipper->new(
-                                  query     => [@q],
-                                  max_chars => length($text) - 1
-                                 ),
+ok( my $s = Search::Tools::Snipper->new(
+        query     => [@q],
+        max_chars => length($text) - 1,
+    ),
     "snipper"
-  );
+);
 
-ok(my $snip = $s->snip($text), "snip");
+ok( my $snip = $s->snip($text), "snip" );
+
 #diag($snip);
 
-ok(length($snip) < $s->max_chars, "snip");
+ok( length($snip) < $s->max_chars, "snip" );
+
 #diag($s->snipper_name);
 
 $text = read_file('t/test.txt');
 
 @q = qw(intramuralism maimedly sculpt);
 
-ok(
-    $s =
-      Search::Tools::Snipper->new(
-                                  query     => [@q],
-                                  max_chars => length($text) - 1
-                                 ),
+ok( $s = Search::Tools::Snipper->new(
+        query     => [@q],
+        max_chars => length($text) - 1
+    ),
     "new snipper"
-  );
+);
 
-ok($snip = $s->snip($text), "new snip");
+ok( $snip = $s->snip($text), "new snip" );
+
 #diag($snip);
 #diag($s->snipper_name);
 
-ok(length($snip) < $s->max_chars, "more snip");
+ok( length($snip) < $s->max_chars, "more snip" );
 
