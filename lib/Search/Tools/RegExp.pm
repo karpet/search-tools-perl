@@ -9,7 +9,7 @@ use Search::Tools::RegExp::Keywords;
 use Search::Tools::RegExp::Keyword;
 use Search::Tools::XML;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 __PACKAGE__->mk_accessors(
     qw(

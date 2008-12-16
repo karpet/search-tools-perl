@@ -8,11 +8,11 @@ use Carp;
 use Encode;
 use Data::Dump qw( dump );
 
-__PACKAGE__->mk_accessors(qw( debug ebit ));
+__PACKAGE__->mk_accessors(qw( ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =pod
 
@@ -52,6 +52,8 @@ Customize the character mapping. Should be a hashref. See map() method.
 
 Allow convert() to use full native 8bit characters for transliterating, 
 rather than only 7bit ASCII. The default is true (1). Set to 0 to disable.
+B<NOTE:> This must be set in new(). Changing via the accessor
+after new() will have no effect on map().
 
 =back
 
@@ -131,8 +133,10 @@ sub _init_map {
 
     # add/override 8bit chars
     if ( $self->ebit ) {
+        $self->debug and warn "ebit on\n";
         for ( 128 .. 255 ) {
             my $c = chr($_);
+            $self->debug and warn "chr $_ -> $c\n";
             $map{$c} = $c;
         }
     }
@@ -150,18 +154,10 @@ sub _Utag_to_chr {
     return $t;
 }
 
-sub new {
-    my $class = shift;
-    my $self  = {};
-    bless( $self, $class );
-    $self->_init(@_);
-    return $self;
-}
-
 sub _init {
-    my $self  = shift;
-    my %extra = @_;
-    @$self{ keys %extra } = values %extra;
+    my $self = shift;
+    $self->SUPER::_init(@_);
+
     $self->{ebit} = 1 unless defined $self->{ebit};
 
     my $map = $self->_init_map;
@@ -184,6 +180,30 @@ sub convert {
         my $badbyte = find_bad_utf8($buf);
         croak "bad UTF-8 byte(s) at $badbyte [ " . dump($buf) . " ]";
     }
+
+    # an alternate algorithm. no idea if it is faster.
+    # it depends on Perl's utf8 char matching (.)
+    # which should work if locale is correct, afaik.
+    #    my $map = $self->map;
+    #
+    #    $self->debug and warn "converting $buf\n";
+    #    while ( $buf =~ m/(.)/gox ) {
+    #        my $char = $1;
+    #        $self->debug and warn "$char\n";
+    #        if ( is_ascii($char) ) {
+    #            $self->debug and warn "$char is_ascii\n";
+    #            $newbuf .= $char;
+    #        }
+    #        elsif ( !exists $map->{$char} ) {
+    #            $self->debug and warn "$char not in map\n";
+    #            $newbuf .= ' ';
+    #        }
+    #        else {
+    #            $self->debug and warn "transliterate $char\n";
+    #            $newbuf .= $map->{$char};
+    #        }
+    #
+    #    }
 
     Encode::_utf8_off($buf);
 

@@ -102,8 +102,12 @@ Revision history for Perl extension Search::HiLiter.
     * fix typos in S::T::SpellCheck
     * refactor some remaining classes to use Search::Tools::Object class
 
-0.18  xxx
+0.18  02 Dec 2008
     * add more debugging to to_utf8() function.
     * make Text::Aspell optional, since it has non-CPAN dependency
+
+0.19  16 Dec 2008
+    * more tests
+    * clarify use of ebit in Transliterate docs
 
 
