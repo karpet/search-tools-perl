@@ -1,4 +1,4 @@
-use Test::More tests => 7;
+use Test::More tests => 9;
 
 use File::Slurp;
 
@@ -49,3 +49,41 @@ ok( $snip = $s->snip($text), "new snip" );
 
 ok( length($snip) < $s->max_chars, "more snip" );
 
+# test context
+my $text2 = <<EOF;
+when in the course of human events
+you need to create a test to prove that
+your code isn't just a silly mishmash
+of squiggle this and squiggle that,
+type man! type! until you've reached
+enough words to justify your paltry existence.
+amen.
+when in the course of human events
+you need to create a test to prove that
+your code isn't just a silly mishmash
+of squiggle this and squiggle that,
+type man! type! until you've reached
+enough words to justify your paltry existence.
+amen.
+EOF
+
+my $regex = Search::Tools->regexp( query => 'amen' );
+my $snip_excerpt = Search::Tools::Snipper->new(
+    query   => $regex,
+    occur   => 1,
+    context => 26
+);
+my $snip_title = Search::Tools::Snipper->new(
+    query   => $regex,
+    occur   => 1,
+    context => 8
+);
+
+is( $snip_excerpt->snip($text2),
+    qq{ ... , type man! type! until you've reached enough words to justify your paltry existence. amen. when in the course of human events you need to create a test ... },
+    "26 context"
+);
+is( $snip_title->snip($text2),
+    qq{ ... justify your paltry existence. amen. when in the course ... },
+    "8 context"
+);
