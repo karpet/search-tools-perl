@@ -12,7 +12,7 @@ __PACKAGE__->mk_accessors(qw( ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 =pod
 
@@ -106,21 +106,6 @@ Search::Tools::UTF8, Unicode::Map, Encode, Test::utf8
 
 =cut
 
-# A Regexp string to match valid UTF-8 bytes
-# this info comes from page 78 of "The Unicode Standard 4.0"
-# published by the Unicode Consortium
-our $valid_utf8_regexp = <<EOE;
-        [\x{00}-\x{7f}]
-      | [\x{c2}-\x{df}][\x{80}-\x{bf}]
-      |         \x{e0} [\x{a0}-\x{bf}][\x{80}-\x{bf}]
-      | [\x{e1}-\x{ec}][\x{80}-\x{bf}][\x{80}-\x{bf}]
-      |         \x{ed} [\x{80}-\x{9f}][\x{80}-\x{bf}]
-      | [\x{ee}-\x{ef}][\x{80}-\x{bf}][\x{80}-\x{bf}]
-      |         \x{f0} [\x{90}-\x{bf}][\x{80}-\x{bf}]
-      | [\x{f1}-\x{f3}][\x{80}-\x{bf}][\x{80}-\x{bf}][\x{80}-\x{bf}]
-      |         \x{f4} [\x{80}-\x{8f}][\x{80}-\x{bf}][\x{80}-\x{bf}]
-EOE
-
 sub _init_map {
     my $self = shift;
     my %map;
@@ -167,9 +152,9 @@ sub _init {
     $self->{map} = $map;
 }
 
+# benchmark shows this is 244% faster than previous version.
 sub convert {
-    my $self   = shift;
-    my $buf    = shift;
+    my ( $self, $buf ) = @_;
     my $newbuf = '';
 
     # don't bother unless we have non-ascii bytes
@@ -184,44 +169,24 @@ sub convert {
     # an alternate algorithm. no idea if it is faster.
     # it depends on Perl's utf8 char matching (.)
     # which should work if locale is correct, afaik.
-    #    my $map = $self->map;
-    #
-    #    $self->debug and warn "converting $buf\n";
-    #    while ( $buf =~ m/(.)/gox ) {
-    #        my $char = $1;
-    #        $self->debug and warn "$char\n";
-    #        if ( is_ascii($char) ) {
-    #            $self->debug and warn "$char is_ascii\n";
-    #            $newbuf .= $char;
-    #        }
-    #        elsif ( !exists $map->{$char} ) {
-    #            $self->debug and warn "$char not in map\n";
-    #            $newbuf .= ' ';
-    #        }
-    #        else {
-    #            $self->debug and warn "transliterate $char\n";
-    #            $newbuf .= $map->{$char};
-    #        }
-    #
-    #    }
+    my $map = $self->map;
 
-    Encode::_utf8_off($buf);
-
-    while ( $buf =~ m/($valid_utf8_regexp)/gox ) {
-        my $c            = $1;
-        my $old_char_len = length($c);
-        my $utf          = Encode::decode_utf8($c);
-
-        if ( $old_char_len == 1 ) {
-            $newbuf .= $utf;
-            next;
+    $self->debug and warn "converting $buf\n";
+    while ( $buf =~ m/(.)/gox ) {
+        my $char = $1;
+        $self->debug and warn "$char\n";
+        if ( is_ascii($char) ) {
+            $self->debug and warn "$char is_ascii\n";
+            $newbuf .= $char;
         }
-        if ( !exists $self->map->{$utf} ) {
+        elsif ( !exists $map->{$char} ) {
+            $self->debug and warn "$char not in map\n";
             $newbuf .= ' ';
-            next;
         }
-
-        $newbuf .= $self->map->{$utf};
+        else {
+            $self->debug and warn "transliterate $char\n";
+            $newbuf .= $map->{$char};
+        }
 
     }
 

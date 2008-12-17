@@ -14,7 +14,7 @@ use Search::Tools::UTF8;
 use Search::Tools::RegExp;
 use Search::QueryParser;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 __PACKAGE__->mk_accessors(
     qw(

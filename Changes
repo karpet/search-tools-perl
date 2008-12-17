@@ -110,4 +110,6 @@ Revision history for Perl extension Search::HiLiter.
     * more tests
     * clarify use of ebit in Transliterate docs
 
+0.20  16 Dec 2008
+    * refactor Transliterate->convert(). now 244% faster.
 

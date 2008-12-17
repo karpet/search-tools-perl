@@ -14,7 +14,7 @@ use Search::Tools::RegExp;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 our $ellip   = ' ... ';
 
 __PACKAGE__->mk_accessors(
