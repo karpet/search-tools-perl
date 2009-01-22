@@ -12,7 +12,7 @@ __PACKAGE__->mk_accessors(qw( ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 =pod
 
@@ -106,14 +106,21 @@ Search::Tools::UTF8, Unicode::Map, Encode, Test::utf8
 
 =cut
 
+# must memoize <DATA> the first time since if we call new()
+# more than once, <DATA> has already been iterated over
+# and _init_map() will end up returning empty hash.
+my %MAP;
+
 sub _init_map {
     my $self = shift;
-    my %map;
+
+    return \%MAP if %MAP;
+
     while (<DATA>) {
         chomp;
         my ( $from, $to ) = (m/^(<U.+?>)\ (.+)$/);
         my @o = split( /;/, $to );
-        $map{ _Utag_to_chr($from) } = _Utag_to_chr( $o[0] );
+        $MAP{ _Utag_to_chr($from) } = _Utag_to_chr( $o[0] );
     }
 
     # add/override 8bit chars
@@ -122,11 +129,11 @@ sub _init_map {
         for ( 128 .. 255 ) {
             my $c = chr($_);
             $self->debug and warn "chr $_ -> $c\n";
-            $map{$c} = $c;
+            $MAP{$c} = $c;
         }
     }
 
-    return \%map;
+    return \%MAP;
 }
 
 sub _Utag_to_chr {

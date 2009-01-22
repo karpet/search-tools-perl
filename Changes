@@ -113,3 +113,7 @@ Revision history for Perl extension Search::HiLiter.
 0.20  16 Dec 2008
     * refactor Transliterate->convert(). now 244% faster.
 
+0.21  22 Jan 2009
+    * fix bug in init of Transliterate map that was triggered when multiple instances
+      are created in a single app
+

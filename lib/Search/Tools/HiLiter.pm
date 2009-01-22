@@ -6,7 +6,7 @@ use Search::Tools::RegExp;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 __PACKAGE__->mk_accessors(
     qw(
