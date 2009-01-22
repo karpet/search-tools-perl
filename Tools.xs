@@ -47,7 +47,7 @@ find_bad_utf8(string)
     PREINIT:
         STRLEN len;
         U8 * bytes;
-        U8 * pos;
+        const U8 * pos;  // gives warnings in perl < 5.8.9
         
     CODE:
         bytes  = (U8*)SvPV(string, len);
