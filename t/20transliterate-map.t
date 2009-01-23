@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use strict;
-use Test::More tests => 1;
+use Test::More tests => 3;
 use Search::Tools::Transliterate;
 use utf8;
 
@@ -25,6 +25,15 @@ $tr->map->{"\x{021B}"} = 'T';
 #print STDERR $tr->convert($string) . "\n";
 
 is($ascii, $tr->convert($string), "transliterate with map");
+
+# test 0.21 and 0.22 bugs
+my $tr2 = Search::Tools::Transliterate->new(ebit=>0);
+
+ok( keys %{ $tr2->map }, "map init has keys");
+
+my $tr3 = Search::Tools::Transliterate->new(ebit=>1);
+
+is( $tr3->map->{"\x{0218}"}, 'Ş', "ebit 1 3rd instance");
 
 1;
 

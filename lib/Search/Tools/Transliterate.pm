@@ -12,7 +12,7 @@ __PACKAGE__->mk_accessors(qw( ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 =pod
 
@@ -114,7 +114,7 @@ my %MAP;
 sub _init_map {
     my $self = shift;
 
-    return \%MAP if %MAP;
+    return {%MAP} if %MAP;
 
     while (<DATA>) {
         chomp;
@@ -123,17 +123,7 @@ sub _init_map {
         $MAP{ _Utag_to_chr($from) } = _Utag_to_chr( $o[0] );
     }
 
-    # add/override 8bit chars
-    if ( $self->ebit ) {
-        $self->debug and warn "ebit on\n";
-        for ( 128 .. 255 ) {
-            my $c = chr($_);
-            $self->debug and warn "chr $_ -> $c\n";
-            $MAP{$c} = $c;
-        }
-    }
-
-    return \%MAP;
+    return {%MAP};
 }
 
 sub _Utag_to_chr {
@@ -153,6 +143,17 @@ sub _init {
     $self->{ebit} = 1 unless defined $self->{ebit};
 
     my $map = $self->_init_map;
+
+    # add/override 8bit chars
+    if ( $self->ebit ) {
+        $self->debug and warn "ebit on\n";
+        for ( 128 .. 255 ) {
+            my $c = chr($_);
+            $self->debug and warn "chr $_ -> $c\n";
+            $map->{$c} = $c;
+        }
+    }
+
     if ( $self->{map} ) {
         $map->{$_} = $self->{map}->{$_} for keys %{ $self->{map} };
     }

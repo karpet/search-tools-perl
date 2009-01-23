@@ -117,3 +117,6 @@ Revision history for Perl extension Search::HiLiter.
     * fix bug in init of Transliterate map that was triggered when multiple instances
       are created in a single app
 
+0.22  22 Jan 2009
+    * continue fixing Transliterate bug exposed in version 0.20
+
