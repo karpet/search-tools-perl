@@ -19,6 +19,7 @@ t/10spellcheck.t
 t/11synopsis.t
 t/12utf8.t
 t/20transliterate-map.t
+t/21-hiliter-with-hyphen.t
 t/Search-Tools.t
 t/chiradtest.htm
 t/greek_and_ojibwe.txt
