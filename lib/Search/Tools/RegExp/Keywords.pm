@@ -12,7 +12,7 @@ __PACKAGE__->mk_ro_accessors(
     @Search::Tools::Accessors
 );
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 sub _init {
     my $self = shift;

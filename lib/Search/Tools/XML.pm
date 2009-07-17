@@ -5,7 +5,7 @@ use Carp;
 use Search::Tools::RegExp;
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 =pod
 
@@ -405,9 +405,11 @@ sub utf8_safe {
     my $t     = shift;
     $t = '' unless defined $t;
 
-    #$t =~ s,[\x00-\x1f],\n,g;    # converts all low chars to LF
+    # converts all low chars except \t \n and \r
+    # to space because XML spec disallows <32
+    $t =~ s,[\x00-\x08\x0b-\x0c\x0e-\x1f], ,g;
 
-    $t =~ s{([^\x20\x21\x23-\x25\x28-\x3b\x3d\x3F-\x5B\x5D-\x7E])}
+    $t =~ s{([^\x09\x0a\x0d\x20\x21\x23-\x25\x28-\x3b\x3d\x3F-\x5B\x5D-\x7E])}
             {'&#'.(ord($1)).';'}eg;
 
     return $t;

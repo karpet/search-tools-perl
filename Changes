@@ -120,3 +120,6 @@ Revision history for Perl extension Search::HiLiter.
 0.22  22 Jan 2009
     * continue fixing Transliterate bug exposed in version 0.20
 
+0.23  xxx
+    * change utf8_safe() XML method to change low non-whitespace ascii chars to single space.
+      This makes them XML-spec compliant.
