@@ -22,7 +22,7 @@ our @EXPORT = qw(
 
 our $Debug = 0;
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 sub to_utf8 {
     my $str = shift;

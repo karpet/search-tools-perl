@@ -10,11 +10,12 @@ use locale;
 
 use Carp;
 use Encode;
+use Data::Dump;
 use Search::Tools::UTF8;
 use Search::Tools::RegExp;
 use Search::QueryParser;
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 __PACKAGE__->mk_accessors(
     qw(
@@ -78,11 +79,11 @@ Q: for my $q (@query) {
         $q = lc($q) if $self->ignore_case;
         $q = to_utf8( $q, $self->charset );
         my $p = $parser->parse( $q, 1 );
-        $self->debug && carp "parsetree: " . pp($p);
+        $self->debug && carp "parsetree: " . Data::Dump::dump($p);
         $self->_get_v( \%uniq, $p, $c );
     }
 
-    $self->debug && carp "parsed: " . pp( \%uniq );
+    $self->debug && carp "parsed: " . Data::Dump::dump( \%uniq );
 
     my $count = scalar( keys %uniq );
 
@@ -152,7 +153,7 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
         next U unless @w;
 
-        #$self->debug && carp "joining \@w: " . pp(\@w);
+        #$self->debug && carp "joining \@w: " . Data::Dump::dump(\@w);
         if ($isphrase) {
             $words{ join( ' ', @w ) } = $n + $count++;
         }
@@ -164,7 +165,7 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
     }
 
-    $self->debug && carp "tokenized: " . pp( \%words );
+    $self->debug && carp "tokenized: " . Data::Dump::dump( \%words );
 
     # make sure we don't have 'foo' and 'foo*'
     for ( keys %words ) {
@@ -177,7 +178,7 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
         }
     }
 
-    $self->debug && carp "wildcards removed: " . pp( \%words );
+    $self->debug && carp "wildcards removed: " . Data::Dump::dump( \%words );
 
     # if any words need to be stemmed
     if ( $self->stemmer ) {
@@ -221,7 +222,7 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
     }
 
-    $self->debug && carp "stemming done: " . pp( \%words );
+    $self->debug && carp "stemming done: " . Data::Dump::dump( \%words );
 
     # sort keeps query in same order as we entered
     return ( sort { $words{$a} <=> $words{$b} } keys %words );

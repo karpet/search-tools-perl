@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 use File::Slurp;
 
@@ -67,6 +67,9 @@ enough words to justify your paltry existence.
 amen.
 EOF
 
+my $excerpt
+    = qq{type man! type! until you've reached enough words to justify your paltry existence. amen. when in the course of human events you need to create a test};
+
 my $regex = Search::Tools->regexp( query => 'amen' );
 my $snip_excerpt = Search::Tools::Snipper->new(
     query   => $regex,
@@ -79,11 +82,14 @@ my $snip_title = Search::Tools::Snipper->new(
     context => 8
 );
 
-is( $snip_excerpt->snip($text2),
-    qq{ ... , type man! type! until you've reached enough words to justify your paltry existence. amen. when in the course of human events you need to create a test ... },
-    "26 context"
-);
+like( $snip_excerpt->snip($text2), qr/$excerpt/, "excerpt context" );
+ok( $snip_excerpt->snipper_type('re'), "set re snipper_type" );
+like( $snip_excerpt->snip($text2), qr/$excerpt/,
+    "re matches loop algorithm" );
+diag( $snip_excerpt->snipper_name );
+
 is( $snip_title->snip($text2),
     qq{ ... justify your paltry existence. amen. when in the course ... },
     "8 context"
 );
+diag( $snip_title->snipper_name );

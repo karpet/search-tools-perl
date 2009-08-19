@@ -9,12 +9,14 @@ use strict;
 use warnings;
 
 use Carp;
+use Data::Dump;
 use Search::Tools::XML;
 use Search::Tools::RegExp;
+use Search::Tools::UTF8;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 our $ellip   = ' ... ';
 
 __PACKAGE__->mk_accessors(
@@ -45,7 +47,7 @@ sub _init {
     $self->{occur}        ||= 5;
     $self->{max_chars}    ||= 300;
     $self->{context}      ||= 8;
-    $self->{word_len}     ||= 5;
+    $self->{word_len}     ||= 4;
     $self->{show}         ||= 1;
     for (qw/collapse_whitespace/) {
         $self->{$_} = 1 unless defined $self->{$_};
@@ -72,15 +74,6 @@ sub _init {
 
     $self->_word_regexp;
     $self->_build_query;
-
-    # default snipper is loop_snip since it is fastest for single words
-    # but we can specify re_snip if we want
-    if ( $self->snipper_type eq 're' ) {
-        $self->snipper( \&_re_snip );
-    }
-    else {
-        $self->snipper( \&_loop_snip ) unless $self->snipper;
-    }
 
     $self->count(0);
 
@@ -151,6 +144,19 @@ sub _build_query {
 sub snip {
     my $self = shift;
     my $text = shift or return '';
+
+    # normalize encoding, esp for regular expressions.
+    $text = to_utf8($text);
+
+    # default snipper is loop_snip since it is fastest for single words
+    # but we can specify re_snip if we want
+    if ( $self->snipper_type eq 're' ) {
+        $self->snipper( \&_re_snip );
+    }
+    else {
+        $self->snipper( \&_loop_snip ) unless $self->snipper;
+    }
+
     my $func = $self->snipper;
 
     #carp "snipping: $text";
@@ -158,6 +164,11 @@ sub snip {
     # phrases must use re_snip()
     # so check if any of our queries contain a space
     if ( grep {/\ /} $self->rekw->keywords ) {
+        $func = \&_re_snip unless $self->snipper_force;
+    }
+
+    # or if text looks like HTML/XML
+    elsif ( $text =~ m/[<>]/ ) {
         $func = \&_re_snip unless $self->snipper_force;
     }
 
@@ -182,7 +193,7 @@ sub snip {
 sub _loop_snip {
 
     my $self = shift;
-    $self->snipper_name('loop_snip');
+    $self->snipper_name('loop');
 
     my $txt = shift or return '';
 
@@ -190,7 +201,7 @@ sub _loop_snip {
 
     #carp "loop snip: $txt";
 
-    #carp "regexp: $regexp";
+    $self->debug and carp "loop snip regexp: $regexp";
 
     # no matches
     return $self->_dumb_snip($txt) unless $txt =~ m/$regexp/;
@@ -210,8 +221,10 @@ sub _loop_snip {
 
 WORD: for my $w (@words) {
 
-        #print ">>\n" if $count % 2;
-        #print "word: '$w'\n";
+        #if ( $self->debug ) {
+        #    warn ">>\n" if $count % 2;
+        #    warn "word: '$w'\n";
+        #}
 
         $count++;
         next WORD if $count < $start_again;
@@ -224,14 +237,15 @@ WORD: for my $w (@words) {
         #warn '-' x 30 . "\n";
         if ( $w =~ m/^$regexp$/ ) {
 
-            #print "w: '$w' match: '$1'\n";
+            $self->debug and warn "w: '$w' match: '$1'\n";
 
             my $before = $last - $context;
             $before = 0 if $before < 0;
             my $after = $next + $context;
             $after = $#words if $after > $#words;
 
-            #warn "$before .. $last, $count, $next .. $after\n";
+            $self->debug
+                and warn "$before .. $last, $count, $next .. $after\n";
 
             my @before = @words[ $before .. $last ];
             my @after  = @words[ $next .. $after ];
@@ -259,19 +273,25 @@ WORD: for my $w (@words) {
 
     }
 
-    #warn "snips: " . scalar @snips;
-    #warn "words: $count\n";
-    #warn "grandtotal: $total\n";
-    #warn "occur: $occur\n";
+    if ( $self->debug ) {
+        carp "snips: " . scalar @snips;
+        carp "words: $count\n";
+        carp "grandtotal: $total\n";
+        carp "occur: $occur\n";
+        carp '-' x 50 . "\n";
 
-    #warn '-' x 50 . "\n";
+    }
 
     $self->count( scalar(@snips) + $self->count );
 
     my $snippet = join( '', @snips );
+    $self->_no_start_partial($snippet);
+
     $snippet = $ellip . $snippet unless $snippet =~ m/^$words[0]/;
 
     $self->_escape($snippet);
+
+    $self->debug and warn "before no_start_partial: $snippet\n";
 
     return $snippet;
 
@@ -284,7 +304,7 @@ sub _re_snip {
     my $self = shift;
     my $text = shift;
     my @q    = $self->rekw->keywords;
-    $self->snipper_name('re_snip');
+    $self->snipper_name('re');
 
     my $occur = $self->occur;
     my $Nchar = $self->context * $self->word_len;
@@ -292,7 +312,8 @@ sub _re_snip {
     my $notwc = $self->{_wc_regexp};
 
     # get minimum number of snips necessary to meet $occur
-    my $snip_per_q = int( $occur / scalar(@q) ) + 1;
+    my $snip_per_q = int( $occur / scalar(@q) );
+    $snip_per_q ||= 1;
 
     my ( %snips, @snips, %ranges );
 
@@ -304,6 +325,8 @@ Q: for my $q (@q) {
             if $self->_re_match( \$text, $self->{_re}->{$q}->{plain},
             \$total, $snips{$q}, \%ranges, $Nchar, $snip_per_q );
 
+        $self->debug and warn "failed match on plain regexp";
+
         pos $text = 0;    # do we really need to reset this?
 
         $self->_re_match( \$text, $self->{_re}->{$q}->{html},
@@ -313,9 +336,10 @@ Q: for my $q (@q) {
 
     return $self->_dumb_snip($text) unless $total;
 
- # get all snips into one array in order they appeared in $text
- # should be a max of $snip_per_q in any one $q snip array
- # so we should have at least $occur in total, which we'll splice() if need be
+    # get all snips into one array in order they appeared in $text
+    # should be a max of $snip_per_q in any one $q snip array
+    # so we should have at least $occur in total,
+    # which we'll splice() if need be.
 
     my %offsets;
     for my $q ( keys %snips ) {
@@ -332,10 +356,12 @@ Q: for my $q (@q) {
     # max = $occur
     @snips = splice @snips, 0, $occur;
 
-    $snips[0] = $ellip . $snips[0] unless $text =~ m/^\Q$snips[0]/i;
-    $snips[-1] .= $ellip unless $text =~ m/\Q$snips[-1]$/i;
+    $self->debug and warn Data::Dump::dump( \@snips );
 
     my $snip = join( $ellip, @snips );
+    $self->_no_start_partial($snip);
+    $snip = $ellip . $snip unless $text =~ m/^\Q$snips[0]/i;
+    $snip .= $ellip unless $text =~ m/\Q$snips[-1]$/i;
 
     $self->count( scalar(@snips) + $self->count );
 
@@ -347,10 +373,11 @@ Q: for my $q (@q) {
 
 sub _re_match {
 
-# the .{0,$Nchar} regexp slows things WAY down. so just match, then use pos() to get
-# chars before and after.
+    # the .{0,$Nchar} regexp slows things WAY down. so just match,
+    # then use pos() to get chars before and after.
 
-# if escape = 0 and if prefix or suffix contains a < or >, try to include entire tagset.
+    # if escape = 0 and if prefix or suffix contains a < or >,
+    # try to include entire tagset.
 
     my ( $self, $text, $re, $total, $snips, $ranges, $Nchar, $max_snips )
         = @_;
@@ -359,27 +386,41 @@ sub _re_match {
 
     my $cnt = 0;
 
-RE: while ( $$text =~ m/$re/gi ) {
+    if ( $self->debug ) {
+        warn "re_match regexp: >$re<\n";
+        warn "max_snips: $max_snips\n";
+    }
 
-        #		warn "re: '$re'\n";
-        #		warn "\$1 = '$1' = ", ord( $1 ), "\n";
-        #		warn "\$2 = '$2'\n";
-        #		warn "\$3 = '$3' = ", ord( $3 ), "\n";
+RE: while ( $$text =~ m/$re/gix ) {
 
-        my $match = $2;
+        if ( $self->debug ) {
+            warn "re: '$re'\n";
+            warn "\$1 = '$1' = ", ord($1), "\n";
+            warn "\$2 = '$2'\n";
+            warn "\$3 = '$3' = ", ord($3), "\n";
+        }
+
+        my $before_match = $1;
+        my $match        = $2;
+        my $after_match  = $3;
         $cnt++;
         my $pos = pos $$text;
 
-        #warn "already found $pos\n" if exists $ranges->{$pos};
+        if ( $self->debug && exists $ranges->{$pos} ) {
+            warn "already found $pos\n";
+        }
+
         next RE if exists $ranges->{$pos};
 
         my $len = length $match;
 
-        my $start_match = $pos - $len - 1;    # -1 to offset $1
+        my $start_match = $pos - $len - length($before_match);
         $start_match = 0 if $start_match < 0;
 
-      # sanity
-      #warn "match should be: '", substr( $$text, $start_match, $len ), "'\n";
+        # sanity
+        $self->debug
+            and warn "match should be: '",
+            substr( $$text, $start_match, $len ), "'\n";
 
         my $prefix_start
             = $start_match < $Nchar
@@ -390,37 +431,38 @@ RE: while ( $$text =~ m/$re/gi ) {
 
         #$prefix_len++; $prefix_len++;
 
-        my $suffix_start = $pos - 1;                      # -1 to offset $3
+        my $suffix_start = $pos - length($after_match);
         my $suffix_len   = $Nchar;
         my $end          = $suffix_start + $suffix_len;
 
         # if $end extends beyond, that's ok, substr compensates
 
         $ranges->{$_}++ for ( $prefix_start .. $end );
-
-        #		warn "prefix_start = $prefix_start\n";
-        #		warn "prefix_len = $prefix_len\n";
-        #		warn "start_match = $start_match\n";
-        #		warn "len = $len\n";
-        #		warn "pos = $pos\n";
-        #		warn "char = $Nchar\n";
-        #		warn "suffix_start = $suffix_start\n";
-        #		warn "suffix_len = $suffix_len\n";
-        #		warn "end = $end\n";
-
         my $prefix = substr( $$text, $prefix_start, $prefix_len );
         my $suffix = substr( $$text, $suffix_start, $suffix_len );
 
-        #		warn "prefix: '$prefix'\n";
-        #		warn "match:  '$match'\n";
-        #		warn "suffix: '$suffix'\n";
+        if ( $self->debug ) {
+            warn "prefix_start = $prefix_start\n";
+            warn "prefix_len = $prefix_len\n";
+            warn "start_match = $start_match\n";
+            warn "len = $len\n";
+            warn "pos = $pos\n";
+            warn "char = $Nchar\n";
+            warn "suffix_start = $suffix_start\n";
+            warn "suffix_len = $suffix_len\n";
+            warn "end = $end\n";
+            warn "prefix: '$prefix'\n";
+            warn "match:  '$match'\n";
+            warn "suffix: '$suffix'\n";
+        }
 
         # try and get whole words if we split one up
         # _no_*_partial does this more rudely
 
-# might be faster to do m/(\S)*$prefix/i
-# but we couldn't guarantee position accuracy
-# e.g. if $prefix matched more than once in $$text, we might pull the wrong \S*
+        # might be faster to do m/(\S)*$prefix/i
+        # but we couldn't guarantee position accuracy
+        # e.g. if $prefix matched more than once in $$text,
+        # we might pull the wrong \S*
 
         unless ( $prefix =~ m/^\s/
             or substr( $$text, $prefix_start - 1, 1 ) =~ m/(\s)/ )
@@ -522,7 +564,7 @@ sub _dumb_snip {
 
     my $txt = shift;
     my $max = $self->max_chars;
-    $self->snipper_name('dumb_snip');
+    $self->snipper_name('dumb');
 
     my $show = substr( $txt, 0, $max );
     $self->_no_end_partial($show);
@@ -536,11 +578,11 @@ sub _dumb_snip {
 }
 
 sub _no_start_partial {
-    $_[0] =~ s/^\S+\s+//gs;
+    $_[1] =~ s/^\S+\s+//gs;
 }
 
 sub _no_end_partial {
-    $_[0] =~ s/\s+\S+$//gs;
+    $_[1] =~ s/\s+\S+$//gs;
 }
 
 sub _escape {
@@ -641,6 +683,33 @@ at the source code for snip() to see how snipper() is used.
 
 Available via new().
 
+=head2 snipper_type
+
+There are three different algorithms used internally for snipping text.
+They are:
+
+=over
+
+=item loop
+
+Fastest for single-word queries.
+
+=item re (default)
+
+The regular expression algorithm. Slower than I<loop> for the common
+case (single word) but the best compromise between
+speed and accuracy.
+
+=item dumb
+
+Just grabs the first B<max_chars> characters and returns it,
+doing a little clean up to prevent partial words from ending the snippet
+and (optionally) escaping the text.
+
+=back
+
+=cut
+
 =head2 snipper_name
 
 The name of the internal snipper function used. In case you're curious.
@@ -669,6 +738,9 @@ Available via new().
 
 Return a snippet of text from I<text> that matches
 I<query> plus context() words of context. Matches are case insensitive.
+
+The snippet returned will be in UTF-8 encoding, regardless of the encoding
+of I<text>.
 
 =head2 rekw
 
