@@ -131,7 +131,7 @@ sub _build_query {
         $self->{_re}->{$_} = $r;
 
     }
-    my $j = join( '|', @re );
+    my $j = sprintf( '(%s)', join( '|', @re ) );
     $self->{_qre} = qr/($self->{_ignoreFirst}$j$self->{_ignoreLast})/i;
 
 }
@@ -203,6 +203,8 @@ sub _loop_snip {
 
     $self->debug and carp "loop snip regexp: $regexp";
 
+    my $debug = $self->debug || 0;
+
     # no matches
     return $self->_dumb_snip($txt) unless $txt =~ m/$regexp/;
 
@@ -221,10 +223,10 @@ sub _loop_snip {
 
 WORD: for my $w (@words) {
 
-        #if ( $self->debug ) {
-        #    warn ">>\n" if $count % 2;
-        #    warn "word: '$w'\n";
-        #}
+        if ( $debug > 1 ) {
+            warn ">>\n" if $count % 2;
+            warn "word: '$w'\n";
+        }
 
         $count++;
         next WORD if $count < $start_again;
@@ -237,15 +239,18 @@ WORD: for my $w (@words) {
         #warn '-' x 30 . "\n";
         if ( $w =~ m/^$regexp$/ ) {
 
-            $self->debug and warn "w: '$w' match: '$1'\n";
+            if ( $debug > 1 ) {
+                warn "w: '$w' match: '$1'\n";
+            }
 
             my $before = $last - $context;
             $before = 0 if $before < 0;
             my $after = $next + $context;
             $after = $#words if $after > $#words;
 
-            $self->debug
-                and warn "$before .. $last, $count, $next .. $after\n";
+            if ( $debug > 1 ) {
+                warn "$before .. $last, $count, $next .. $after\n";
+            }
 
             my @before = @words[ $before .. $last ];
             my @after  = @words[ $next .. $after ];
@@ -259,9 +264,10 @@ WORD: for my $w (@words) {
 
             #$t = $ellip . $t unless $count == 0;
 
-            #warn "t: $t\n";
-
-            #warn "total: $total\n";
+            if ( $debug > 1 ) {
+                warn "t: $t\n";
+                warn "total: $total\n";
+            }
 
             push( @snips, $t );
             last WORD if scalar @snips >= $occur;
@@ -273,7 +279,7 @@ WORD: for my $w (@words) {
 
     }
 
-    if ( $self->debug ) {
+    if ( $debug > 1 ) {
         carp "snips: " . scalar @snips;
         carp "words: $count\n";
         carp "grandtotal: $total\n";
