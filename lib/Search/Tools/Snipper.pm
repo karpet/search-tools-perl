@@ -30,9 +30,9 @@ __PACKAGE__->mk_accessors(
         show
         escape
         snipper
-        snipper_name
-        snipper_force
-        snipper_type
+        type_used
+        force
+        type
         count
         collapse_whitespace
         ),
@@ -43,12 +43,12 @@ sub _init {
     my $self = shift;
     $self->SUPER::_init(@_);
 
-    $self->{snipper_type} ||= 'loop';
-    $self->{occur}        ||= 5;
-    $self->{max_chars}    ||= 300;
-    $self->{context}      ||= 8;
-    $self->{word_len}     ||= 4;
-    $self->{show}         ||= 1;
+    $self->{type}      ||= 'loop';
+    $self->{occur}     ||= 5;
+    $self->{max_chars} ||= 300;
+    $self->{context}   ||= 8;
+    $self->{word_len}  ||= 4;
+    $self->{show}      ||= 1;
     for (qw/collapse_whitespace/) {
         $self->{$_} = 1 unless defined $self->{$_};
     }
@@ -150,7 +150,7 @@ sub snip {
 
     # default snipper is loop_snip since it is fastest for single words
     # but we can specify re_snip if we want
-    if ( $self->snipper_type eq 're' ) {
+    if ( $self->type eq 're' ) {
         $self->snipper( \&_re_snip );
     }
     else {
@@ -164,12 +164,12 @@ sub snip {
     # phrases must use re_snip()
     # so check if any of our queries contain a space
     if ( grep {/\ /} $self->rekw->keywords ) {
-        $func = \&_re_snip unless $self->snipper_force;
+        $func = \&_re_snip unless $self->force;
     }
 
     # or if text looks like HTML/XML
     elsif ( $text =~ m/[<>]/ ) {
-        $func = \&_re_snip unless $self->snipper_force;
+        $func = \&_re_snip unless $self->force;
     }
 
     # don't snip if we're less than the threshold
@@ -177,10 +177,17 @@ sub snip {
 
     my $s = &$func( $self, $text );
 
-    #carp "snipped: $s";
+    $self->debug and warn "snipped: '$s'\n";
 
     # sanity check
-    $s = $self->_dumb_snip($s) if ( length($s) > ( $self->max_chars * 2 ) );
+    if ( length($s) > ( $self->max_chars * 2 ) ) {
+        $s = $self->_dumb_snip($s);
+        $self->debug and warn "too long. dumb snip: '$s'\n";
+    }
+    elsif ( !length($s) ) {
+        $s = $self->_dumb_snip($text);
+        $self->debug and warn "too short. dumb snip: '$s'\n";
+    }
 
     if ( $self->collapse_whitespace ) {
         $s =~ s,[\s\xa0]+,\ ,g;
@@ -193,7 +200,7 @@ sub snip {
 sub _loop_snip {
 
     my $self = shift;
-    $self->snipper_name('loop');
+    $self->type_used('loop');
 
     my $txt = shift or return '';
 
@@ -289,18 +296,13 @@ WORD: for my $w (@words) {
     }
 
     $self->count( scalar(@snips) + $self->count );
-
     my $snippet = join( '', @snips );
+    $self->debug and warn "before no_start_partial: '$snippet'\n";
     $self->_no_start_partial($snippet);
-
     $snippet = $ellip . $snippet unless $snippet =~ m/^$words[0]/;
-
     $self->_escape($snippet);
 
-    $self->debug and warn "before no_start_partial: $snippet\n";
-
     return $snippet;
-
 }
 
 sub _re_snip {
@@ -310,7 +312,7 @@ sub _re_snip {
     my $self = shift;
     my $text = shift;
     my @q    = $self->rekw->keywords;
-    $self->snipper_name('re');
+    $self->type_used('re');
 
     my $occur = $self->occur;
     my $Nchar = $self->context * $self->word_len;
@@ -570,7 +572,7 @@ sub _dumb_snip {
 
     my $txt = shift;
     my $max = $self->max_chars;
-    $self->snipper_name('dumb');
+    $self->type_used('dumb');
 
     my $show = substr( $txt, 0, $max );
     $self->_no_end_partial($show);
@@ -689,7 +691,7 @@ at the source code for snip() to see how snipper() is used.
 
 Available via new().
 
-=head2 snipper_type
+=head2 type
 
 There are three different algorithms used internally for snipping text.
 They are:
@@ -716,11 +718,11 @@ and (optionally) escaping the text.
 
 =cut
 
-=head2 snipper_name
+=head2 type_name
 
 The name of the internal snipper function used. In case you're curious.
 
-=head2 snipper_force
+=head2 force
 
 Boolean flag indicating whether the snipper() value should always be used,
 regardless of the type of query keyword. Default is 0 (false).

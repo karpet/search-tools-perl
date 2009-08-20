@@ -344,11 +344,13 @@ sub plain {
     my $text = shift or croak "need text to light()";
 
 Q: for my $query ( $self->_kworder ) {
-        my $re = $self->rekw->re($query)->plain;
-        my $o  = $self->open_tag($query);
-        my $c  = $self->close_tag($query);
+        my $re            = $self->rekw->re($query)->plain;
+        my $o             = $self->open_tag($query);
+        my $c             = $self->close_tag($query);
+        my $length_we_add = length( $o . $c ) - 1;
 
-        $self->debug > 1 and carp "looking for: $re against $query";
+        $self->debug > 1
+            and carp "plain hiliter looking for: $re against $query";
 
         # because s// fails to find duplicate instances like 'foo foo'
         # we use a while loop and increment pos()
@@ -356,16 +358,19 @@ Q: for my $query ( $self->_kworder ) {
         # this can suck into an infinite loop because increm pos()-- results
         # in repeated match on nonwordchar: > (since we just added a tag)
 
+        my $found_matches = 0;
         while ( $text =~ m/$re/g ) {
 
             my $s = $1 || '';
             my $m = $2 || $query;
             my $e = $3 || '';
 
+            $found_matches++;
+
             $self->debug > 1 and carp "matched $s $m $e against $re";
 
-        # use substr to do what s// would normally do if pos() wasn't an issue
-        # -- is this a big speed diff?
+            # use substr to do what s/// would normally do
+            # if pos() wasn't an issue -- is this a big speed diff?
             my $len       = length( $s . $m . $e );
             my $pos       = pos($text);
             my $newstring = $s . $o . $m . $c . $e;
@@ -373,9 +378,16 @@ Q: for my $query ( $self->_kworder ) {
 
             last if $pos == length $text;
 
-        # need to account for all the new chars we just added with length(...)
-            pos($text) = $pos + length( $o . $c ) - 1;
+            # need to account for all the new chars we just added
+            pos($text) = $pos + $length_we_add;
 
+        }
+
+        # sanity check similar to Snipper->_re_snip()
+        if ( !$found_matches and $text =~ m/$query/ ) {
+
+            #warn "ERROR: regex failure for '$query'";
+            $text = $self->html($text);
         }
 
     }

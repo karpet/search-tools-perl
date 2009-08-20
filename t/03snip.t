@@ -29,7 +29,7 @@ ok( my $snip = $s->snip($text), "snip" );
 
 ok( length($snip) < $s->max_chars, "snip" );
 
-#diag($s->snipper_name);
+#diag($s->type_used);
 
 $text = read_file('t/test.txt');
 
@@ -83,13 +83,13 @@ my $snip_title = Search::Tools::Snipper->new(
 );
 
 like( $snip_excerpt->snip($text2), qr/$excerpt/, "excerpt context" );
-ok( $snip_excerpt->snipper_type('re'), "set re snipper_type" );
+ok( $snip_excerpt->type('re'), "set re type" );
 like( $snip_excerpt->snip($text2), qr/$excerpt/,
     "re matches loop algorithm" );
-diag( $snip_excerpt->snipper_name );
+diag( $snip_excerpt->type_used );
 
 is( $snip_title->snip($text2),
     qq{ ... justify your paltry existence. amen. when in the course ... },
     "8 context"
 );
-diag( $snip_title->snipper_name );
+diag( $snip_title->type_used );

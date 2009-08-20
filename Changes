@@ -125,10 +125,12 @@ Revision history for Perl extension Search::HiLiter.
       This makes them XML-spec compliant.
 
 0.24  20 Aug 2009
+    * thanks to henry at zen for prompting the bug fixes in this release.
     * fix Data::Dump calls from pp() to fully-qualified.
     * Snipper->snip() will always return UTF-8 encoded text.
-    * document Snipper->snipper_type()
+    * rename Snipper methods snipper_name, snipper_force and snipper_type to type_used, force and type.
+      document type().
     * fix some off-by-one errors in all the snip() algorithms
     * fix the debugging code in Snipper
-
+    * add sanity check fallback to plain() hiliter to persevere if plain regex obviously fails.
 
