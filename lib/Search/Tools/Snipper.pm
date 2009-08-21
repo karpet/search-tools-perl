@@ -722,7 +722,7 @@ and (optionally) escaping the text.
 
 =cut
 
-=head2 type_name
+=head2 type_used
 
 The name of the internal snipper function used. In case you're curious.
 

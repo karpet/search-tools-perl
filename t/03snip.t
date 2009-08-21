@@ -45,7 +45,7 @@ ok( $s = Search::Tools::Snipper->new(
 ok( $snip = $s->snip($text), "new snip" );
 
 #diag($snip);
-#diag($s->snipper_name);
+diag($s->type_used);
 
 ok( length($snip) < $s->max_chars, "more snip" );
 
