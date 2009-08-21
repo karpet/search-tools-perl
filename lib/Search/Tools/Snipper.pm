@@ -155,7 +155,7 @@ sub _pick_snipper {
             || grep {/\ /} $self->rekw->keywords
 
             # or if text looks like HTML/XML
-            || $text =~ m/[<>]/
+            || Search::Tools::RegExp->isHTML($text)
         )
         )
     {
