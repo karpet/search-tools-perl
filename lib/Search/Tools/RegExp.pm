@@ -16,6 +16,7 @@ __PACKAGE__->mk_accessors(
         kw
         start_bound
         end_bound
+        ignore_fields
         ),
     @Search::Tools::Accessors
 );
@@ -73,7 +74,8 @@ sub _init {
 
     $self->kw(
         Search::Tools::Keywords->new(
-            map { $_ => $self->$_ } @Search::Tools::Accessors
+            map { $_ => $self->$_ }
+                ( @Search::Tools::Accessors, 'ignore_fields' )
         )
     ) unless $self->kw;
 
@@ -346,6 +348,17 @@ Default is C<$IgnFirst>.
 =item ignore_last_char
 
 Default is C<$IgnLast>.
+
+=item ignore_fields
+
+Value may be a hash or array ref of field names to ignore in query parsing.
+Example:
+
+ ignore_fields => [qw( site )]
+
+would parse the query:
+
+ site:foo.bar AND baz   # keywords = baz
 
 =item stemmer
 

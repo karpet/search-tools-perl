@@ -22,6 +22,7 @@ __PACKAGE__->mk_accessors(
         and_word
         or_word
         not_word
+        ignore_fields
         ),
     @Search::Tools::Accessors
 );
@@ -47,6 +48,16 @@ sub _init {
     $self->{debug}             ||= $ENV{PERL_DEBUG} || 0;
     $self->{ignore_case} = 1 unless defined $self->{ignore_case};
 
+    # allow ignore_fields to be an array
+    # but convert to hash for easy lookup
+    if ( exists $self->{ignore_fields}
+        and ref( $self->{ignore_fields} ) eq 'ARRAY' )
+    {
+        my %h = map { $_ => 1 } @{ $self->{ignore_fields} };
+        $self->{ignore_fields} = \%h;
+    }
+    $self->{ignore_fields} ||= {};
+
 }
 
 sub extract {
@@ -66,8 +77,7 @@ sub extract {
     my $word_re      = qr/([$wordchar]+($esc_wildcard)?)/;
     my @query        = @{ ref $query ? $query : [$query] };
     $stopwords = [ split( /\s+/, $stopwords ) ] unless ref $stopwords;
-    my %stophash
-        = map { to_utf8( lc($_), $self->charset ) => 1 } @$stopwords;
+    my %stophash = map { to_utf8( lc($_), $self->charset ) => 1 } @$stopwords;
     my ( %words, %uniq, $c );
     my $parser = Search::QueryParser->new(
         rxAnd => qr{$and_word}i,
@@ -261,6 +271,7 @@ sub _get_v {
 
         for my $leaf (@branches) {
             my $v = $leaf->{value};
+            next if exists $self->ignore_fields->{ $leaf->{field} };
 
             if ( ref $v ) {
                 $self->_get_v( $uniq, $v, $c );
@@ -401,6 +412,17 @@ String of characters to strip from the end of all words.
 All queries are run through Perl's built-in lc() function before
 parsing. The default is C<1> (true). Set to C<0> (false) to preserve
 case.
+
+=head2 ignore_fields
+
+Value may be a hash or array ref of field names to ignore in query parsing.
+Example:
+
+ ignore_fields => [qw( site )]
+
+would parse the query:
+
+ site:foo.bar AND baz   # keywords = baz
 
 =head2 and_word
 

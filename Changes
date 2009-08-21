@@ -133,4 +133,4 @@ Revision history for Perl extension Search::HiLiter.
     * fix some off-by-one errors in all the snip() algorithms
     * fix the debugging code in Snipper
     * add sanity check fallback to plain() hiliter to persevere if plain regex obviously fails.
-
+    * add ignore_fields feature to RegExp and Keywords
