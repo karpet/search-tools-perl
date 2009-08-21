@@ -141,6 +141,30 @@ sub _build_query {
 # I have found that loop_snip() is faster for single-word queries,
 # while re_snip() seems to be the best compromise between speed and accuracy
 
+sub _pick_snipper {
+    my ( $self, $text ) = @_;
+
+    # default snipper is loop_snip since it is fastest for single words
+    # but we can specify re_snip if we want
+    my $func = \&_loop_snip;
+    if (!$self->force
+        && ($self->type eq 're'
+
+            # phrases must use regexp
+            # so check if any of our queries contain a space
+            || grep {/\ /} $self->rekw->keywords
+
+            # or if text looks like HTML/XML
+            || $text =~ m/[<>]/
+        )
+        )
+    {
+        $func = \&_re_snip;
+    }
+
+    return $func;
+}
+
 sub snip {
     my $self = shift;
     my $text = shift or return '';
@@ -148,32 +172,12 @@ sub snip {
     # normalize encoding, esp for regular expressions.
     $text = to_utf8($text);
 
-    # default snipper is loop_snip since it is fastest for single words
-    # but we can specify re_snip if we want
-    if ( $self->type eq 're' ) {
-        $self->snipper( \&_re_snip );
-    }
-    else {
-        $self->snipper( \&_loop_snip ) unless $self->snipper;
-    }
-
-    my $func = $self->snipper;
-
-    #carp "snipping: $text";
-
-    # phrases must use re_snip()
-    # so check if any of our queries contain a space
-    if ( grep {/\ /} $self->rekw->keywords ) {
-        $func = \&_re_snip unless $self->force;
-    }
-
-    # or if text looks like HTML/XML
-    elsif ( $text =~ m/[<>]/ ) {
-        $func = \&_re_snip unless $self->force;
-    }
-
     # don't snip if we're less than the threshold
     return $text if length($text) < $self->max_chars;
+
+    # we calculate the snipper each time since caller
+    # may set type() or snipper() between calls to snip().
+    my $func = $self->snipper || $self->_pick_snipper($text);
 
     my $s = &$func( $self, $text );
 
