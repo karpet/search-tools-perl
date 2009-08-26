@@ -23,6 +23,7 @@ __PACKAGE__->mk_accessors(
         or_word
         not_word
         ignore_fields
+        treat_uris_like_phrases
         ),
     @Search::Tools::Accessors
 );
@@ -47,6 +48,8 @@ sub _init {
     $self->{word_characters}   ||= $Search::Tools::RegExp::WordChar;
     $self->{debug}             ||= $ENV{PERL_DEBUG} || 0;
     $self->{ignore_case} = 1 unless defined $self->{ignore_case};
+    $self->{treat_uris_like_phrases} = 1
+        unless defined $self->{treat_uris_like_phrases};
 
     # allow ignore_fields to be an array
     # but convert to hash for easy lookup
@@ -110,6 +113,12 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
         # but due to our word_re, a single non-spaced string
         # might actually be multiple word tokens
         my $isphrase = $u =~ m/\s/ || 0;
+
+        if ( $self->treat_uris_like_phrases ) {
+
+            # special case: treat email addresses, uris, as phrase
+            $isphrase ||= $u =~ m/[$wordchar][\@\.\\][$wordchar]/ || 0;
+        }
 
         $self->debug && carp "$u -> isphrase = $isphrase";
 
@@ -318,7 +327,9 @@ Search::Tools::Keywords - extract keywords from a search query
             phrase_delim        => '"',
             charset             => 'iso-8859-1',
             lang                => 'en_US',
-            locale              => 'en_US.iso-8859-1'
+            locale              => 'en_US.iso-8859-1',
+            treat_uris_like_phrases => 1,
+            ignore_fields       => [qw( site )],
             );
             
  my @words = $kw->extract( $query );
@@ -423,6 +434,13 @@ Example:
 would parse the query:
 
  site:foo.bar AND baz   # keywords = baz
+
+=head2 treat_uris_like_phrases
+
+Boolean (default true (1)).
+
+If set to true, queries like B<foo@bar.com> will be treated like a single
+phrase B<"foo bar com"> instead of being split into three separate keywords.
 
 =head2 and_word
 

@@ -165,6 +165,10 @@ sub _pick_snipper {
     return $func;
 }
 
+sub _normalize_whitespace {
+    $_[0] =~ s,[\s\xa0]+,\ ,go;
+}
+
 sub snip {
     my $self = shift;
     my $text = shift or return '';
@@ -174,6 +178,10 @@ sub snip {
 
     # don't snip if we're less than the threshold
     return $text if length($text) < $self->max_chars;
+
+    if ( $self->collapse_whitespace ) {
+        _normalize_whitespace($text);
+    }
 
     # we calculate the snipper each time since caller
     # may set type() or snipper() between calls to snip().
@@ -194,7 +202,7 @@ sub snip {
     }
 
     if ( $self->collapse_whitespace ) {
-        $s =~ s,[\s\xa0]+,\ ,g;
+        _normalize_whitespace($s);
     }
 
     return $s;
@@ -302,7 +310,7 @@ WORD: for my $w (@words) {
     $self->count( scalar(@snips) + $self->count );
     my $snippet = join( '', @snips );
     $self->debug and warn "before no_start_partial: '$snippet'\n";
-    $self->_no_start_partial($snippet);
+    _no_start_partial($snippet);
     $snippet = $ellip . $snippet unless $snippet =~ m/^$words[0]/;
     $self->_escape($snippet);
 
@@ -327,22 +335,35 @@ sub _re_snip {
     my $snip_per_q = int( $occur / scalar(@q) );
     $snip_per_q ||= 1;
 
-    my ( %snips, @snips, %ranges );
+    my ( %snips, @snips, %ranges, $snip_starts_with_query );
+    $snip_starts_with_query = 0;
 
 Q: for my $q (@q) {
         $snips{$q} = { t => [], offset => [] };
 
+        $self->debug and warn "$q : $snip_starts_with_query";
+        
         # try simple regexp first, then more complex if we don't match
         next Q
             if $self->_re_match( \$text, $self->{_re}->{$q}->{plain},
-            \$total, $snips{$q}, \%ranges, $Nchar, $snip_per_q );
+            \$total, $snips{$q}, \%ranges, $Nchar, $snip_per_q,
+            \$snip_starts_with_query );
 
         $self->debug and warn "failed match on plain regexp";
 
         pos $text = 0;    # do we really need to reset this?
 
-        $self->_re_match( \$text, $self->{_re}->{$q}->{html},
-            \$total, $snips{$q}, \%ranges, $Nchar, $snip_per_q );
+        unless (
+            $self->_re_match(
+                \$text,      $self->{_re}->{$q}->{html},
+                \$total,     $snips{$q},
+                \%ranges,    $Nchar,
+                $snip_per_q, \$snip_starts_with_query
+            )
+            )
+        {
+            $self->debug and warn "failed match on html regexp";
+        }
 
     }
 
@@ -371,7 +392,7 @@ Q: for my $q (@q) {
     $self->debug and warn Data::Dump::dump( \@snips );
 
     my $snip = join( $ellip, @snips );
-    $self->_no_start_partial($snip);
+    _no_start_partial($snip) unless $snip_starts_with_query;
     $snip = $ellip . $snip unless $text =~ m/^\Q$snips[0]/i;
     $snip .= $ellip unless $text =~ m/\Q$snips[-1]$/i;
 
@@ -391,7 +412,8 @@ sub _re_match {
     # if escape = 0 and if prefix or suffix contains a < or >,
     # try to include entire tagset.
 
-    my ( $self, $text, $re, $total, $snips, $ranges, $Nchar, $max_snips )
+    my ( $self, $text, $re, $total, $snips, $ranges, $Nchar, $max_snips,
+        $snip_starts_with_query )
         = @_;
 
     my $t_len = length $$text;
@@ -403,20 +425,24 @@ sub _re_match {
         warn "max_snips: $max_snips\n";
     }
 
-RE: while ( $$text =~ m/$re/gix ) {
+RE: while ( $$text =~ m/$re/g ) {
 
-        if ( $self->debug ) {
-            warn "re: '$re'\n";
-            warn "\$1 = '$1' = ", ord($1), "\n";
-            warn "\$2 = '$2'\n";
-            warn "\$3 = '$3' = ", ord($3), "\n";
-        }
-
+        my $pos          = pos $$text;
         my $before_match = $1;
         my $match        = $2;
         my $after_match  = $3;
         $cnt++;
-        my $pos = pos $$text;
+        my $len  = length $match;
+        my $blen = length $before_match;
+        if ( $self->debug ) {
+            warn "re: '$re'\n";
+            warn "\$1 = '$before_match' = ", ord($before_match), "\n";
+            warn "\$2 = '$match'\n";
+            warn "\$3 = '$after_match' = ", ord($after_match), "\n";
+            warn "pos = $pos\n";
+            warn "len = $len\n";
+            warn "blen= $blen\n";
+        }
 
         if ( $self->debug && exists $ranges->{$pos} ) {
             warn "already found $pos\n";
@@ -424,14 +450,14 @@ RE: while ( $$text =~ m/$re/gix ) {
 
         next RE if exists $ranges->{$pos};
 
-        my $len = length $match;
-
-        my $start_match = $pos - $len - length($before_match);
+        my $start_match = $pos - $len - ( $blen || 1 );
         $start_match = 0 if $start_match < 0;
+
+        $$snip_starts_with_query = 1 if $start_match == 0;
 
         # sanity
         $self->debug
-            and warn "match should be: '",
+            and warn "match should be [$start_match $len]: '",
             substr( $$text, $start_match, $len ), "'\n";
 
         my $prefix_start
@@ -579,7 +605,7 @@ sub _dumb_snip {
     $self->type_used('dumb');
 
     my $show = substr( $txt, 0, $max );
-    $self->_no_end_partial($show);
+    _no_end_partial($show);
     $show .= $ellip;
     $self->_escape($show);
 
@@ -590,11 +616,11 @@ sub _dumb_snip {
 }
 
 sub _no_start_partial {
-    $_[1] =~ s/^\S+\s+//gs;
+    $_[0] =~ s/^\S+\s+//gs;
 }
 
 sub _no_end_partial {
-    $_[1] =~ s/\s+\S+$//gs;
+    $_[0] =~ s/\s+\S+$//gs;
 }
 
 sub _escape {

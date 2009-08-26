@@ -155,6 +155,8 @@ sub light {
     }
 }
 
+*hilite = \&light;
+
 sub _get_real_html {
     my $self = shift;
     my $text = shift;
@@ -470,6 +472,10 @@ The following params are also supported. Each is available as a method as well:
 =head2 close_tag( I<keyword> )
 
 =head2 light( I<text> )
+
+=head2 hilite( I<text> )
+
+An alias for light().
 
 =head2 plain( I<text> )
 

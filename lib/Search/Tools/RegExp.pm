@@ -44,16 +44,17 @@ our $TagRE = qr/<[^>]+>/s;
 # see example/utf8re.pl
 #our $UTF8Char = qr/\p{L}\p{M}*/;
 our $UTF8Char = '\w';
-our $WordChar = $UTF8Char . quotemeta("'-."); # contractions and compounds ok.
+our $WordChar = $UTF8Char . quotemeta("'-");  # contractions and compounds ok.
 our $IgnFirst = quotemeta("'-");
-our $IgnLast  = quotemeta("'-.");
+our $IgnLast  = quotemeta("'-");
 our $PhraseDelim = '"';
 our $Wildcard    = '*';
 
 # regexp for what constitutes whitespace in an HTML doc
 # it's not as simple as \s|&nbsp; so we define it separately
 
-# NOTE that the pound sign # needs escaping because we use the 'x' flag in our regexp.
+# NOTE that the pound sign # needs escaping because we use
+# the 'x' flag in our regexp.
 
 my @whitesp = (
     '&\#0020;', '&\#0009;', '&\#000C;', '&\#200B;', '&\#2028;', '&\#2029;',
@@ -127,11 +128,11 @@ sub _init {
     # define for both text and html
 
     $self->{text_phrase_bound} = join '', qr/[$self->{ignore_last_char}]*/i,
-        qr/[\s\x20]|[^$self->{word_characters}]/is, '+',
-        qr/[$self->{ignore_first_char}]*/i;
+        qr/[\s\x20]|[^$self->{word_characters}]/is,
+        qr/[$self->{ignore_first_char}]?/i;
     $self->{html_phrase_bound} = join '', qr/[$self->{ignore_last_char}]*/i,
-        qr/$WhiteSpace|[^$self->{word_characters}]/is, '+',
-        qr/[$self->{ignore_first_char}]*/i;
+        qr/$WhiteSpace|[^$self->{word_characters}]/is,
+        qr/[$self->{ignore_first_char}]?/i;
 
 }
 
@@ -299,7 +300,7 @@ Regexp defining a valid UTF-8 word character. Default C<\w>.
 
 =item WordChar
 
-Default word_characters regexp. Defaults to C<UTF8Char> plus C<'>, C<.> and C<->.
+Default word_characters regexp. Defaults to C<UTF8Char> plus C<'> and C<->.
 
 =item IgnFirst
 
@@ -307,7 +308,7 @@ Default ignore_first_char regexp. Defaults to C<'> and C<->.
 
 =item IgnLast
 
-Default ignore_last_char regexp. Defaults to C<'>, C<.> and C<->.
+Default ignore_last_char regexp. Defaults to C<'> and C<->.
 
 =item PhraseDelim
 

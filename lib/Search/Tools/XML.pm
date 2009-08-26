@@ -438,6 +438,14 @@ sub no_html {
     return $text;
 }
 
+=head2 strip_html
+
+An alias for no_html().
+
+=cut
+
+*strip_html = \&no_html;
+
 =head2 escape( I<text> )
 
 Similar to escape() functions in more famous CPAN modules, but without the added
