@@ -1,3 +1,9 @@
+/* Copyright 2009 Peter Karman
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * under the same terms as Perl itself.
+ */
+
 /*
  * Standard XS greeting.
  */
@@ -18,6 +24,9 @@ extern "C" {
 #endif
 
 #define EXTERN static
+
+/* pure C helpers */
+#include "search-tools.c"
 
 MODULE = Search::Tools       PACKAGE = Search::Tools::UTF8
 
@@ -165,4 +174,7 @@ find_bad_latin1(string)
     OUTPUT:
         RETVAL
 
- 
+
+# end Search::Tools package
+# include other .xs
+INCLUDE: Tokenizer.xs
