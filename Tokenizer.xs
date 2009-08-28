@@ -6,6 +6,7 @@
 
 MODULE = Search::Tools       PACKAGE = Search::Tools::Tokenizer
 
+# TODO make handler optional
 SV*
 tokenize(self, str, handler)
     SV* self;

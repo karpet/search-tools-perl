@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 10;
+use Test::More tests => 78;
 use File::Slurp;
 
 use_ok('Search::Tools');
@@ -27,7 +27,6 @@ my $count = 0;
 while ( my $tok = $tokens->next ) {
     ok( $tok->str, "tok->str" );
     cmp_ok( $tok->len, '>=', 1, "tok->len >= 1" );
-    ok( $tok->chrs,           "tok->chrs" );
     ok( defined $tok->offset, "tok->offset defined" );
     $count++;
 }
