@@ -327,13 +327,13 @@ DESTROY(self)
         
         tl = (st_token_list*)st_extract_ptr(self);
         tl->ref_cnt--;
-      if (ST_DEBUG) {
-        warn("............................");
-        warn("DESTROY %s [%d] [0x%x]\n", 
-            SvPV(self, PL_na), tl->ref_cnt, tl);
-        st_describe_object(self);
-        st_describe_object((SV*)tl->tokens);
-      }
+        if (ST_DEBUG) {
+            warn("............................");
+            warn("DESTROY %s [%d] [0x%x]\n", 
+                SvPV(self, PL_na), tl->ref_cnt, tl);
+            st_describe_object(self);
+            st_describe_object((SV*)tl->tokens);
+        }
         if (tl->ref_cnt < 1) {
             st_free_token_list(tl);
         }
@@ -417,11 +417,11 @@ DESTROY(self)
     CODE:
         tok = (st_token*)st_extract_ptr(self);
         tok->ref_cnt--;
-      if (ST_DEBUG) {
-        warn("............................");
-        warn("DESTROY %s [%d] [0x%x]\n", 
-            SvPV(self, PL_na), tok->ref_cnt, tok);
-      }
+        if (ST_DEBUG) {
+            warn("............................");
+            warn("DESTROY %s [%d] [0x%x]\n", 
+                SvPV(self, PL_na), tok->ref_cnt, tok);
+        }
         if (tok->ref_cnt < 1) {
             st_free_token(tok);
         }
