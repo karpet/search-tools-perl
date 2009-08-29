@@ -28,6 +28,8 @@ extern "C" {
 /* pure C helpers */
 #include "search-tools.c"
 
+/********************************************************************/
+
 MODULE = Search::Tools       PACKAGE = Search::Tools::UTF8
 
 PROTOTYPES: enable
@@ -180,6 +182,8 @@ find_bad_latin1(string)
 
 MODULE = Search::Tools       PACKAGE = Search::Tools::Tokenizer
 
+PROTOTYPES: enable
+
 # TODO make handler optional
 SV*
 tokenize(self, str)
@@ -198,7 +202,7 @@ tokenize(self, str)
         }
 
         token_re = st_hvref_fetch(self, "re");
-        RETVAL = st_tokenize( str, token_re );
+        RETVAL = SvREFCNT_inc(st_tokenize( str, token_re ));
     
     OUTPUT:
         RETVAL
@@ -208,32 +212,35 @@ tokenize(self, str)
 
 MODULE = Search::Tools       PACKAGE = Search::Tools::TokenList
 
+PROTOTYPES: enable
+
+void
+dump(self)
+    st_token_list *self;
+    
+    CODE:
+        st_dump_token_list(self);
+        
+
 SV*
 next(self)
-    SV* self;
-    
+    st_token_list *self;
+   
     PREINIT:
-        SV *list;
-        SV *pos;
+        IV len;
         
     CODE:
-        pos = st_hvref_fetch(self, "pos");
-        
-        //warn("fetching pos %d from list\n", SvIV(pos));
-        list = st_hvref_fetch(self, "list");
-        //st_describe_object(list);
-        //warn("fetched list from object\n");
-        
-        if (st_hvref_fetch_as_int(self, "num") < SvIV(pos)) {
-            //warn("exceeded length of array\n");
+        len = av_len(self->tokens);
+        if (len == -1) {
+            // empty list
+            RETVAL = &PL_sv_undef;
+        }
+        else if (self->pos > len) {
+            // exceeded end of list
             RETVAL = &PL_sv_undef;
         }
         else {
-            RETVAL = SvREFCNT_inc(st_av_fetch((AV*)SvRV(list), SvIV(pos)));
-            
-            // bump position
-            SvIV_set(pos, SvIV(pos)+1);
-            //warn("pos now == %d\n", SvIV(st_hvref_fetch(self, "pos")));
+            RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, self->pos++));
         }
         
             
@@ -241,9 +248,103 @@ next(self)
         RETVAL
 
 
+IV
+set_pos(self, new_pos)
+    st_token_list *self;
+    IV  new_pos;
+            
+    CODE:
+        RETVAL = self->pos;
+        self->pos = new_pos;
+       
+    OUTPUT:
+        RETVAL
+
+IV
+reset_pos(self)
+    st_token_list *self;
+        
+    CODE:
+        RETVAL = self->pos;
+        self->pos = 0;
+    
+    OUTPUT:
+        RETVAL
+ 
+
+IV
+len(self)
+    st_token_list *self;
+    
+    CODE:
+        RETVAL = av_len(self->tokens) + 1;
+        
+    OUTPUT:
+        RETVAL
+
+
+IV
+num(self)
+    st_token_list *self;
+    
+    CODE:
+        RETVAL = self->num;
+    
+    OUTPUT:
+        RETVAL
+
+
+IV
+pos(self)
+    st_token_list *self;
+    
+    CODE:
+        RETVAL = self->pos;
+    
+    OUTPUT:
+        RETVAL
+
+SV*
+as_array(self)
+    st_token_list *self;
+    
+    CODE:
+        RETVAL = newRV((SV*)self->tokens);
+    
+    OUTPUT:
+        RETVAL
+
+    
+void
+DESTROY(self)
+    SV *self;
+    
+    PREINIT:
+        st_token_list *tl;
+        
+    CODE:
+        
+        
+        tl = (st_token_list*)st_extract_ptr(self);
+        tl->ref_cnt--;
+      if (ST_DEBUG) {
+        warn("............................");
+        warn("DESTROY %s [%d] [0x%x]\n", 
+            SvPV(self, PL_na), tl->ref_cnt, tl);
+        st_describe_object(self);
+        st_describe_object((SV*)tl->tokens);
+      }
+        if (tl->ref_cnt < 1) {
+            st_free_token_list(tl);
+        }
+
+
+
 ############################################################################
 
 MODULE = Search::Tools       PACKAGE = Search::Tools::Token
+
+PROTOTYPES: enable
 
 IV
 pos(self)
@@ -260,8 +361,8 @@ str(self)
     st_token *self;
             
     CODE:
-        //warn("[pos %d] [len %d] [%s]", self->pos, self->len, self->offset);
-        RETVAL = newSVpvn_utf8(self->offset, self->len, 1);
+        //warn("[pos %d] [len %d] [%s]", self->pos, self->len, self->ptr);
+        RETVAL = newSVpvn_utf8(self->ptr, self->len, 1);
 
     OUTPUT:
         RETVAL
@@ -298,6 +399,30 @@ is_match(self)
     OUTPUT:
         RETVAL
 
-
+void
+dump(self)
+    st_token *self;
     
+    CODE:
+        st_dump_token(self);
+
+
+void
+DESTROY(self)
+    SV *self;
+    
+    PREINIT:
+        st_token *tok;
+        
+    CODE:
+        tok = (st_token*)st_extract_ptr(self);
+        tok->ref_cnt--;
+      if (ST_DEBUG) {
+        warn("............................");
+        warn("DESTROY %s [%d] [0x%x]\n", 
+            SvPV(self, PL_na), tok->ref_cnt, tok);
+      }
+        if (tok->ref_cnt < 1) {
+            st_free_token(tok);
+        }
     

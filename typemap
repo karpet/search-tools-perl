@@ -1,7 +1,7 @@
 TYPEMAP
 boolean                 T_IV
 st_token*               O_OBJECT
-
+st_token_list*          O_OBJECT
 
 INPUT
 O_OBJECT

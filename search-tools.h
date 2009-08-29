@@ -11,25 +11,45 @@
 #define ST_CROAK(args...) \
     st_croak(__FILE__, __LINE__, __func__, args)
 
+#define ST_CLASS_TOKEN      "Search::Tools::Token"
+#define ST_CLASS_TOKENLIST  "Search::Tools::TokenList"
+
+
 typedef char    boolean;
 typedef struct  st_token st_token;
+typedef struct  st_token_list st_token_list;
 struct st_token {
-    unsigned int    pos;    // this token's position in document
-    unsigned int    len;
-    const char      *offset;
-    boolean         is_hot;
-    boolean         is_match;    
+    IV              pos;        // position in buffer
+    IV              len;        // token length
+    const char     *ptr;        // ptr into the buffer
+    boolean         is_hot;     // interesting token flag
+    boolean         is_match;   // matched regex
+    IV              ref_cnt;    // reference counter
+};
+struct st_token_list {
+    const char     *buf;        // the buffer
+    IV              pos;        // current iterator position (array index)
+    IV              num;        // number of parsed tokens
+    AV             *tokens;     // array of st_token objects
+    IV              ref_cnt;    // reference counter
 };
 
 static st_token*    
 st_new_token(
     unsigned int pos, 
     unsigned int len,
-    const char *offset,
+    const char *ptr,
     boolean is_hot,
     boolean is_match
 );
 
+static st_token_list* st_new_token_list(
+    AV *tokens, 
+    unsigned int num,
+    const char *buf
+);
+static void     st_dump_token_list(st_token_list *tl);
+static void     st_dump_token(st_token *tok);
 static SV*      st_hv_store( HV* h, const char* key, SV* val );
 static SV*      st_hv_store_char( HV* h, const char* key, char *val );
 static SV*      st_hv_store_int( HV* h, const char* key, int i);
@@ -55,5 +75,5 @@ static void     st_croak(
     const char *msgfmt,
     ...
 );
-static void     st_dump_hash( SV* hash_ref );
+static void     st_dump_sv( SV* hash_ref );
 static void     st_describe_object( SV* object );
