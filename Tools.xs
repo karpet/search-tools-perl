@@ -277,6 +277,7 @@ set_pos(self, new_pos)
     OUTPUT:
         RETVAL
 
+
 IV
 reset_pos(self)
     st_token_list *self;
@@ -321,6 +322,7 @@ pos(self)
     OUTPUT:
         RETVAL
 
+
 SV*
 as_array(self)
     st_token_list *self;
@@ -349,7 +351,7 @@ DESTROY(self)
             warn("DESTROY %s [%d] [0x%x]\n", 
                 SvPV(self, PL_na), tl->ref_cnt, tl);
             st_describe_object(self);
-            st_describe_object((SV*)tl->tokens);
+            st_dump_sv((SV*)tl->tokens);
         }
         if (tl->ref_cnt < 1) {
             st_free_token_list(tl);
@@ -373,6 +375,7 @@ pos(self)
     OUTPUT:
         RETVAL
 
+
 SV*
 str(self)
     st_token *self;
@@ -383,6 +386,7 @@ str(self)
 
     OUTPUT:
         RETVAL
+
 
 IV
 len(self)
@@ -416,6 +420,7 @@ is_match(self)
     OUTPUT:
         RETVAL
 
+
 IV
 set_match(self, val)
     st_token *self;
@@ -427,6 +432,7 @@ set_match(self, val)
     
     OUTPUT:
         RETVAL
+
 
 IV
 set_hot(self, val)

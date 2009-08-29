@@ -11,7 +11,7 @@
 #include "search-tools.h"
 
 /* global debug var */
-static boolean ST_DEBUG = 0;
+static boolean ST_DEBUG = 1;
 
 /* store SV* in a hash, incrementing its refcnt */
 static SV*
@@ -172,8 +172,9 @@ st_new_token_list(
 static void
 st_free_token(st_token *tok) {
     dTHX;
-    if (tok->ref_cnt > 0) {
-        ST_CROAK("Won't free token 0x%x with ref_cnt > 0", tok);
+    if (tok->ref_cnt != 0) {
+        ST_CROAK("Won't free token 0x%x with ref_cnt != 0 [%d]", 
+            tok, tok->ref_cnt);
     }
     free(tok);
 }
@@ -181,14 +182,16 @@ st_free_token(st_token *tok) {
 static void
 st_free_token_list(st_token_list *token_list) {
     dTHX;
-    if (token_list->ref_cnt > 0) {
-        ST_CROAK("Won't free token_list 0x%x with ref_cnt > 0", token_list);
+    if (token_list->ref_cnt != 0) {
+        ST_CROAK("Won't free token_list 0x%x with ref_cnt > 0 [%d]", 
+            token_list, token_list->ref_cnt);
     }
     
     Safefree(token_list->buf);
     if (SvREFCNT(token_list->tokens)) {
         if (ST_DEBUG) {
-            warn("refcnt_dec tokens from token_list: %d\n", SvREFCNT(token_list->tokens));
+            warn("refcnt_dec tokens from token_list: %d\n", 
+                SvREFCNT(token_list->tokens));
             st_dump_sv((SV*)token_list->tokens);
         }
         SvREFCNT_dec(token_list->tokens);
@@ -283,7 +286,8 @@ st_dump_sv(SV* ref) {
             sv_key      = hv_iterkeysv(hash_entry);
             sv_val      = hv_iterval(hash, hash_entry);
             refcnt      = SvREFCNT(sv_val);
-            warn("  %s => %s  [%d]\n", SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
+            warn("  %s => %s  [%d]\n", 
+                SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
         }
     }
     else if (SvTYPE(SvRV(ref))==SVt_PVAV) {
