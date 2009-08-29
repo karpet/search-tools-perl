@@ -7,6 +7,4 @@ use Carp;
 
 our $VERSION = '0.24';
 
-__PACKAGE__->mk_accessors(qw( str len offset prev ));
-
 1;

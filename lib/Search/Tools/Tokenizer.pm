@@ -13,9 +13,7 @@ __PACKAGE__->mk_accessors(qw( re ));
 sub _init {
     my $self = shift;
     $self->SUPER::_init(@_);
-    if ( !exists $self->{re} ) {
-        croak "token_re required";
-    }
+    $self->{re} ||= qr/\w+(?:'\w+)*/;
     return $self;
 }
 

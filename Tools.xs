@@ -175,6 +175,129 @@ find_bad_latin1(string)
         RETVAL
 
 
-# end Search::Tools package
-# include other .xs
-INCLUDE: Tokenizer.xs
+
+#############################################################################
+
+MODULE = Search::Tools       PACKAGE = Search::Tools::Tokenizer
+
+# TODO make handler optional
+SV*
+tokenize(self, str)
+    SV* self;
+    SV* str;
+    
+    PREINIT:
+        SV* token_re;
+        STRLEN len;
+        U8* bytes;
+        
+    CODE:
+        bytes  = (U8*)SvPV(str, len);
+        if(!is_utf8_string(bytes, len)) {
+            croak("str must be UTF-8 encoded. Check to_utf8() first.");
+        }
+
+        token_re = st_hvref_fetch(self, "re");
+        RETVAL = st_tokenize( str, token_re );
+    
+    OUTPUT:
+        RETVAL
+
+
+############################################################################
+
+MODULE = Search::Tools       PACKAGE = Search::Tools::TokenList
+
+SV*
+next(self)
+    SV* self;
+    
+    PREINIT:
+        SV *list;
+        SV *pos;
+        
+    CODE:
+        pos = st_hvref_fetch(self, "pos");
+        
+        //warn("fetching pos %d from list\n", SvIV(pos));
+        list = st_hvref_fetch(self, "list");
+        //st_describe_object(list);
+        //warn("fetched list from object\n");
+        
+        if (st_hvref_fetch_as_int(self, "num") < SvIV(pos)) {
+            //warn("exceeded length of array\n");
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = SvREFCNT_inc(st_av_fetch((AV*)SvRV(list), SvIV(pos)));
+            
+            // bump position
+            SvIV_set(pos, SvIV(pos)+1);
+            //warn("pos now == %d\n", SvIV(st_hvref_fetch(self, "pos")));
+        }
+        
+            
+    OUTPUT:
+        RETVAL
+
+
+############################################################################
+
+MODULE = Search::Tools       PACKAGE = Search::Tools::Token
+
+IV
+pos(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->pos;
+    
+    OUTPUT:
+        RETVAL
+
+SV*
+str(self)
+    st_token *self;
+            
+    CODE:
+        //warn("[pos %d] [len %d] [%s]", self->pos, self->len, self->offset);
+        RETVAL = newSVpvn_utf8(self->offset, self->len, 1);
+
+    OUTPUT:
+        RETVAL
+
+IV
+len(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->len;
+    
+    OUTPUT:
+        RETVAL
+
+
+IV
+is_hot(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->is_hot;
+    
+    OUTPUT:
+        RETVAL
+
+
+IV
+is_match(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->is_match;
+    
+    OUTPUT:
+        RETVAL
+
+
+    
+    
