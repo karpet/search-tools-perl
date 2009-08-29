@@ -248,6 +248,23 @@ next(self)
         RETVAL
 
 
+SV*
+get_token(self, pos)
+    st_token_list *self;
+    IV pos;
+    
+    CODE:
+        if (!av_exists(self->tokens, pos)) {
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, pos));
+        }
+    
+    OUTPUT:
+        RETVAL
+
+
 IV
 set_pos(self, new_pos)
     st_token_list *self;
@@ -398,6 +415,31 @@ is_match(self)
     
     OUTPUT:
         RETVAL
+
+IV
+set_match(self, val)
+    st_token *self;
+    IV val;
+    
+    CODE:
+        RETVAL = self->is_match;
+        self->is_match = val;
+    
+    OUTPUT:
+        RETVAL
+
+IV
+set_hot(self, val)
+    st_token *self;
+    IV val;
+    
+    CODE:
+        RETVAL = self->is_hot;
+        self->is_hot = val;
+    
+    OUTPUT:
+        RETVAL
+
 
 void
 dump(self)

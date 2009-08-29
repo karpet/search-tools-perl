@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 558;
+use Test::More tests => 916;
 use File::Slurp;
 
 # http://code.google.com/p/test-more/issues/detail?id=46
@@ -52,13 +52,18 @@ sub check_tokens {
 
         #diag( $tok->str );
         cmp_ok( $tok->len, '>=', 1, "tok->len >= 1" );
-        ok( defined $tok->pos, "token pos" );
+        ok( defined $tok->pos,          "token pos" );
+        ok( defined $tok->set_match(0), "set match" );
+        ok( defined $tok->set_hot(1),   "set hot" );
+
         $count++;
     }
     is( $count,       $tokens->num, "count == num" );
     is( $tokens->pos, $tokens->num, "pos == num-1 when all seen" );
     is( $tokens->len, $tokens->num, "len == num" );
     is( scalar( @{ $tokens->as_array } ), $count, "get as_array" );
+    ok( defined $tokens->get_token(0), "get first token" );
+
     #dump($tokens);
     return $count;
 
