@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 916;
+use Test::More tests => 924;
 use File::Slurp;
 
 # http://code.google.com/p/test-more/issues/detail?id=46
@@ -40,6 +40,8 @@ is( check_tokens($tokens2), 25, "str2 count" );
 ok( my $grtokens = $tokenizer->tokenize($greek), "tokenize greek" );
 is( check_tokens($grtokens), 99, "grtokens count" );
 
+# snip
+
 sub handler {
     warn dump( \@_ );
 }
@@ -63,6 +65,11 @@ sub check_tokens {
     is( $tokens->len, $tokens->num, "len == num" );
     is( scalar( @{ $tokens->as_array } ), $count, "get as_array" );
     ok( defined $tokens->get_token(0), "get first token" );
+    ok( my $matches = $tokens->matches, "get matches" );
+
+    # only place this would not be true
+    # is an original string of one token
+    cmp_ok( scalar(@$matches), '<', $count, "matches < count" );
 
     #dump($tokens);
     return $count;

@@ -207,6 +207,15 @@ tokenize(self, str)
     OUTPUT:
         RETVAL
 
+void
+set_debug(self, val)
+    SV* self;
+    boolean val;
+    
+    CODE:
+        ST_DEBUG = val;
+
+
 
 ############################################################################
 
@@ -333,7 +342,34 @@ as_array(self)
     OUTPUT:
         RETVAL
 
+SV*
+matches(self)
+    st_token_list *self;
     
+    PREINIT:
+        AV *matches;
+        IV pos;
+        IV len;
+        SV* tok;
+        st_token *token;
+    
+    CODE:
+        matches = newAV();
+        pos = 0;
+        len = av_len(self->tokens);
+        while (pos < len) {
+            tok = st_av_fetch(self->tokens, pos++);
+            token = (st_token*)st_extract_ptr(tok);
+            if (token->is_match) {
+                av_push(matches, SvREFCNT_inc(tok));
+            }
+        }
+        RETVAL = newRV((SV*)matches);
+    
+    OUTPUT:
+        RETVAL
+
+
 void
 DESTROY(self)
     SV *self;

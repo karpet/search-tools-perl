@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 26;
+use Test::More tests => 28;
 
 # http://code.google.com/p/test-more/issues/detail?id=46
 binmode Test::More->builder->output,         ":utf8";
@@ -22,10 +22,13 @@ diag("destroy tokens");
 $tokens = undef;
 diag("tokens are undef");
 ok( defined $tok, "0 token still defined" );
-$tok->dump;
-diag("make a copy");
-my $tok_copy = $tok;
-diag("copy made");
+
+if ( $tokenizer->debug ) {
+    $tok->dump;
+    diag("make a copy");
+    my $tok_copy = $tok;
+    diag("copy made");
+}
 
 sub check_tokens {
     my $tokens = shift;
@@ -42,6 +45,11 @@ sub check_tokens {
     is( $tokens->pos, $tokens->num, "pos == num-1 when all seen" );
     is( $tokens->len, $tokens->num, "len == num" );
     is( scalar( @{ $tokens->as_array } ), $count, "get as_array" );
+    ok( my $matches = $tokens->matches, "get matches" );
+
+    # only place this would not be true
+    # is an original string of one token
+    cmp_ok( scalar(@$matches), '<', $count, "matches < count" );
 
     #dump($tokens);
     #$tokens->dump;

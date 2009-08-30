@@ -13,6 +13,7 @@ sub _init {
     my $self = shift;
     $self->SUPER::_init(@_);
     $self->{re} ||= qr/\w+(?:'\w+)*/;
+    $self->set_debug( $self->debug );
     return $self;
 }
 

@@ -11,7 +11,7 @@
 #include "search-tools.h"
 
 /* global debug var */
-static boolean ST_DEBUG = 1;
+static boolean ST_DEBUG;
 
 /* store SV* in a hash, incrementing its refcnt */
 static SV*
