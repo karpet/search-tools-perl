@@ -19,10 +19,10 @@ sub _init {
 
 package Search::Tools::Token;
 use overload
-    'cmp'    => sub { Data::Dump::dump(\@_) },
-    'eq'     => sub { Data::Dump::dump(\@_) },
-    '""'     => 'str',
-    'bool'   => sub { Data::Dump::dump(\@_); return $_[0]->len; },
+    'cmp'    => sub { $_[0]->cmp( $_[1] ); },
+    'eq'     => sub { $_[0]->equals( $_[1] ); },
+    '""'     => sub { $_[0]->str; },
+    'bool'   => sub { $_[0]->len; },
     fallback => 1;
 
 1;

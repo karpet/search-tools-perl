@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 1224;
+use Test::More tests => 1276;
 use File::Slurp;
 
 # http://code.google.com/p/test-more/issues/detail?id=46
@@ -19,7 +19,7 @@ sub handler {
     ok( $_[0]->equals( $_[0]->str ),     "token->equals itself" );
     ok( $_[0]->like( uc( $_[0]->str ) ), "token->like uc(itself)" );
     ok( $_[0] eq $_[0], "eq overload" );
-    ok( $_[0] cmp $_[0], "cmp overload" );
+    ok( $_[0] cmp 'ZZZZ', "cmp overload" );
     ok( $_[0] =~ $_[0]->str, "stringify overload" );
     ok( $_[0], "bool overload" );
 }
