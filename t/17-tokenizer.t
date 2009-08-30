@@ -18,6 +18,10 @@ sub handler {
     #warn "handler called";
     ok( $_[0]->equals( $_[0]->str ),     "token->equals itself" );
     ok( $_[0]->like( uc( $_[0]->str ) ), "token->like uc(itself)" );
+    ok( $_[0] eq $_[0], "eq overload" );
+    ok( $_[0] cmp $_[0], "cmp overload" );
+    ok( $_[0] =~ $_[0]->str, "stringify overload" );
+    ok( $_[0], "bool overload" );
 }
 
 my $simple = "foo bar baz";

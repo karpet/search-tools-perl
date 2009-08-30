@@ -539,7 +539,24 @@ like(self, val)
     OUTPUT:
         RETVAL
 
+
+IV
+cmp(self, val)
+    st_token *self;
+    SV *val;
+
+    PREINIT:
+        char    *val_bytes;
+        STRLEN  val_len;
     
+    CODE:
+        val_bytes = SvPV(val, val_len);
+        RETVAL = strncmp(self->ptr, val_bytes, val_len);
+    
+    OUTPUT:
+        RETVAL
+
+
 void
 dump(self)
     st_token *self;

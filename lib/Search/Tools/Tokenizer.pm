@@ -17,4 +17,12 @@ sub _init {
     return $self;
 }
 
+package Search::Tools::Token;
+use overload
+    'cmp'    => sub { Data::Dump::dump(\@_) },
+    'eq'     => sub { Data::Dump::dump(\@_) },
+    '""'     => 'str',
+    'bool'   => sub { Data::Dump::dump(\@_); return $_[0]->len; },
+    fallback => 1;
+
 1;
