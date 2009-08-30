@@ -503,6 +503,43 @@ set_hot(self, val)
         RETVAL
 
 
+boolean
+equals(self, val)
+    st_token *self;
+    SV *val;
+
+    PREINIT:
+        char    *val_bytes;
+        STRLEN  val_len;
+        IV      diff;
+    
+    CODE:
+        val_bytes = SvPV(val, val_len);
+        diff = strncmp(self->ptr, val_bytes, val_len);
+        RETVAL = (diff == 0) ? 1 : 0;
+    
+    OUTPUT:
+        RETVAL
+
+boolean
+like(self, val)
+    st_token *self;
+    SV *val;
+
+    PREINIT:
+        char    *val_bytes;
+        STRLEN  val_len;
+        IV      diff;
+    
+    CODE:
+        val_bytes = SvPV(val, val_len);
+        diff = strncasecmp(self->ptr, val_bytes, val_len);
+        RETVAL = (diff == 0) ? 1 : 0;
+    
+    OUTPUT:
+        RETVAL
+
+    
 void
 dump(self)
     st_token *self;

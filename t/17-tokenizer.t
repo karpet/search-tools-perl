@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 1198;
+use Test::More tests => 1224;
 use File::Slurp;
 
 # http://code.google.com/p/test-more/issues/detail?id=46
@@ -14,8 +14,10 @@ use Search::Tools::UTF8;
 
 # snipper example
 sub handler {
-    warn "handler called";
-    warn dump( \@_ );
+
+    #warn "handler called";
+    ok( $_[0]->equals( $_[0]->str ),     "token->equals itself" );
+    ok( $_[0]->like( uc( $_[0]->str ) ), "token->like uc(itself)" );
 }
 
 my $simple = "foo bar baz";
@@ -51,7 +53,8 @@ is( check_tokens($grtokens), 99, "grtokens count" );
 my $chinese = '布朗在迅速跳下懒狐狗';
 ok( my $cjk_tokenizer = Search::Tools::Tokenizer->new( re => qr/\w/ ),
     "cjk_tokenizer" );
-ok( my $cjk_tokens = $cjk_tokenizer->tokenize($chinese), "tokenize chinese" );
+ok( my $cjk_tokens = $cjk_tokenizer->tokenize( $chinese, \&handler ),
+    "tokenize chinese" );
 is( check_tokens($cjk_tokens), 10, "check cjk_tokens" );
 
 # try cjk against ascii
