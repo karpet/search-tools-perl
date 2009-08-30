@@ -184,9 +184,8 @@ MODULE = Search::Tools       PACKAGE = Search::Tools::Tokenizer
 
 PROTOTYPES: enable
 
-# TODO make handler optional
 SV*
-tokenize(self, str)
+tokenize(self, str, ...)
     SV* self;
     SV* str;
     
@@ -194,15 +193,25 @@ tokenize(self, str)
         SV* token_re;
         STRLEN len;
         U8* bytes;
+        SV* match_handler = NULL;
         
     CODE:
+        if (items > 2) {
+            match_handler = ST(2);
+        }
         bytes  = (U8*)SvPV(str, len);
         if(!is_utf8_string(bytes, len)) {
-            croak("str must be UTF-8 encoded. Check to_utf8() first.");
+            croak(ST_BAD_UTF8);
+        }
+        else if (!SvUTF8(str)) {
+            /* force the flag on in case they forgot to run to_utf8().
+             * otherwise the regex can fail for \w
+             */
+            SvUTF8_on(str);
         }
 
         token_re = st_hvref_fetch(self, "re");
-        RETVAL = SvREFCNT_inc(st_tokenize( str, token_re ));
+        RETVAL = SvREFCNT_inc(st_tokenize(str, token_re, match_handler));
     
     OUTPUT:
         RETVAL
@@ -430,6 +439,17 @@ len(self)
     
     CODE:
         RETVAL = self->len;
+    
+    OUTPUT:
+        RETVAL
+
+
+IV
+u8len(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->u8len;
     
     OUTPUT:
         RETVAL

@@ -13,6 +13,8 @@
 
 #define ST_CLASS_TOKEN      "Search::Tools::Token"
 #define ST_CLASS_TOKENLIST  "Search::Tools::TokenList"
+#define ST_BAD_UTF8 "str must be UTF-8 encoded and flagged by Perl. \
+See the Search::Tools::to_utf8() function."
 
 
 typedef char    boolean;
@@ -20,7 +22,8 @@ typedef struct  st_token st_token;
 typedef struct  st_token_list st_token_list;
 struct st_token {
     IV              pos;        // position in buffer
-    IV              len;        // token length
+    IV              len;        // token length (bytes)
+    IV              u8len;      // token length (utf8 chars)
     const char     *ptr;        // ptr into the buffer
     boolean         is_hot;     // interesting token flag
     boolean         is_match;   // matched regex
@@ -36,8 +39,9 @@ struct st_token_list {
 
 static st_token*    
 st_new_token(
-    unsigned int pos, 
-    unsigned int len,
+    IV pos, 
+    IV len,
+    IV u8len,
     const char *ptr,
     boolean is_hot,
     boolean is_match
@@ -62,7 +66,7 @@ static SV*      st_hvref_fetch( SV* h, const char* key );
 static char*    st_hv_fetch_as_char( HV* h, const char* key );
 static char*    st_hvref_fetch_as_char( SV* h, const char* key );
 static IV       st_hvref_fetch_as_int( SV* h, const char* key );
-static SV*      st_tokenize( SV* str, SV* token_re );
+static SV*      st_tokenize( SV* str, SV* token_re, SV* match_handler );
 static SV*      st_new_hash_object(const char *class);
 static SV*      st_bless_ptr( const char* class, IV c_ptr );
 static IV       st_extract_ptr( SV* object );

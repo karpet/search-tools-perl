@@ -134,8 +134,9 @@ st_malloc(size_t size) {
 
 static st_token*    
 st_new_token(
-    unsigned int pos, 
-    unsigned int len,
+    IV pos, 
+    IV len,
+    IV u8len,
     const char *ptr,
     boolean is_hot,
     boolean is_match
@@ -145,6 +146,7 @@ st_new_token(
     tok = st_malloc(sizeof(st_token));
     tok->pos = pos;
     tok->len = len;
+    tok->u8len = u8len;
     tok->ptr = ptr;
     tok->is_hot = is_hot;
     tok->is_match = is_match;
@@ -220,6 +222,7 @@ st_dump_token(st_token *tok) {
     warn("Token 0x%x", tok);
     warn(" pos = %d\n", tok->pos);
     warn(" len = %d\n", tok->len);
+    warn(" u8len = %d\n", tok->u8len);
     warn(" is_match = %d\n", tok->is_match);
     warn(" is_hot   = %d\n", tok->is_hot);
     warn(" ref_cnt  = %d\n", tok->ref_cnt);
@@ -340,15 +343,16 @@ st_describe_object( SV* object ) {
 */
 
 static SV*
-st_tokenize( SV* str, SV* token_re ) {
-    dTHX; /* thread-safe perlism */
+st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
+    dTHX;   /* thread-safe perlism */
+    dSP;    /* callback macro */
     
 /* declare */
-    unsigned int     num_tokens;
+    IV               num_tokens;
     MAGIC           *mg;
     REGEXP          *rx;
     char            *buf, *str_start, *str_end;
-    int              str_len;
+    STRLEN           str_len;
     const char      *prev_end, *prev_start;
     AV              *tokens;
     SV              *tok;
@@ -357,7 +361,6 @@ st_tokenize( SV* str, SV* token_re ) {
     num_tokens      = 0;
     mg              = NULL;
     rx              = NULL;
-    //wrapper         = sv_newmortal();
     /* copy the original string and ref it from each token */
     buf             = savepv(SvPV(str, PL_na));
     str_start       = buf;
@@ -396,14 +399,18 @@ st_tokenize( SV* str, SV* token_re ) {
         /* advance the pointers */
         buf = (char*)end_ptr;
         
-        /* create token for the bytes between the last match and this one */
-        /* check first that we have moved past first byte */
-        if (start_ptr != str_start) {
+        /*  create token for the bytes between the last match and this one
+         *  check first that we have moved past first byte 
+         *  and that the regex has moved us forward at least one byte
+         */
+        if (start_ptr != str_start && start_ptr != prev_end) {
             token = st_new_token(num_tokens++, 
                                 (start_ptr - prev_end),
-                                 prev_end, 0, 0);
+                                utf8_distance((U8*)start_ptr, (U8*)prev_end),
+                                prev_end, 0, 0);
             if (ST_DEBUG) {
-                warn("prev: [%d] [%d] [%s]", token->pos, token->len, token->ptr);
+                warn("prev [%d] [%d] [%d] [%s]", 
+                    token->pos, token->len, token->u8len, token->ptr);
             }
             
             tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
@@ -412,14 +419,22 @@ st_tokenize( SV* str, SV* token_re ) {
         
         /* create token object for the current match */            
         token = st_new_token(num_tokens++, 
-                            (end_ptr - start_ptr), 
+                            (end_ptr - start_ptr),
+                            utf8_distance((U8*)end_ptr, (U8*)start_ptr),
                             start_ptr,
                             0, 1);
         if (ST_DEBUG) {
-            warn("[%d] [%d] [%s]", token->pos, token->len, token->ptr);
+            warn("[%d] [%d] [%d] [%s]", 
+                token->pos, token->len, token->u8len, token->ptr);
         }
         
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
+        if (match_handler != NULL) {
+            PUSHMARK(SP);
+            XPUSHs(tok);
+            PUTBACK;
+            call_sv(match_handler, G_DISCARD);
+        }
         av_push(tokens, SvREFCNT_inc(tok));
         
         /* remember where we are for next time */
@@ -431,10 +446,12 @@ st_tokenize( SV* str, SV* token_re ) {
         /* some bytes after the last match */
         st_token *token = st_new_token(num_tokens++, 
                                     (str_end - prev_end),
+                                    utf8_distance((U8*)str_end, (U8*)prev_end),
                                     prev_end, 
                                     0, 0);
         if (ST_DEBUG) {
-            warn("tail: [%d] [%d] [%s]", token->pos, token->len, token->ptr);
+            warn("tail [%d] [%d] [%d] [%s]", 
+                token->pos, token->len, token->u8len, token->ptr);
         }
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
         av_push(tokens, SvREFCNT_inc(tok));
