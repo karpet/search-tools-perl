@@ -17,12 +17,17 @@ sub _init {
     return $self;
 }
 
-package Search::Tools::Token;
-use overload
-    'cmp'    => sub { $_[0]->cmp( $_[1] ); },
-    'eq'     => sub { $_[0]->equals( $_[1] ); },
-    '""'     => sub { $_[0]->str; },
-    'bool'   => sub { $_[0]->len; },
-    fallback => 1;
+{
+
+    # we overload some common operators to call the XS methods
+    package    # hide package from CPAN
+        Search::Tools::Token;
+    use overload
+        'cmp'    => sub { $_[0]->cmp( $_[1] ); },
+        'eq'     => sub { $_[0]->equals( $_[1] ); },
+        '""'     => sub { $_[0]->str; },
+        'bool'   => sub { $_[0]->len; },
+        fallback => 1;
+}
 
 1;
