@@ -31,6 +31,7 @@ struct st_token {
 };
 struct st_token_list {
     const char     *buf;        // the buffer
+    IV              buf_len;    // the buffer length
     IV              pos;        // current iterator position (array index)
     IV              num;        // number of parsed tokens
     AV             *tokens;     // array of st_token objects
@@ -50,7 +51,8 @@ st_new_token(
 static st_token_list* st_new_token_list(
     AV *tokens, 
     unsigned int num,
-    const char *buf
+    const char *buf,
+    IV buf_len
 );
 static void     st_dump_token_list(st_token_list *tl);
 static void     st_dump_token(st_token *tok);

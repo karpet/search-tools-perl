@@ -4,6 +4,7 @@ use warnings;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS package required
 use Search::Tools::Token;
+use Search::Tools::TokenList;
 use Carp;
 
 our $VERSION = '0.24';

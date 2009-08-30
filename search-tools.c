@@ -158,7 +158,8 @@ static st_token_list*
 st_new_token_list(
     AV *tokens, 
     unsigned int num,
-    const char *buf
+    const char *buf,
+    IV buf_len
 ) {
     dTHX;
     st_token_list *tl;
@@ -167,6 +168,7 @@ st_new_token_list(
     tl->tokens = tokens;
     tl->num = (IV)num;
     tl->buf = buf;
+    tl->buf_len = buf_len;
     tl->ref_cnt = 1;
     return tl;
 }
@@ -208,6 +210,7 @@ st_dump_token_list(st_token_list *tl) {
     len = av_len(tl->tokens);
     pos = 0;
     warn("TokenList 0x%x", tl);
+    warn(" buf_len = %d\n", tl->buf_len);
     warn(" pos = %d\n", tl->pos);
     warn(" len = %d\n", len + 1);
     warn(" num = %d\n", tl->num);
@@ -362,9 +365,8 @@ st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
     mg              = NULL;
     rx              = NULL;
     /* copy the original string and ref it from each token */
-    buf             = savepv(SvPV(str, PL_na));
+    buf             = savepv(SvPV(str, str_len));
     str_start       = buf;
-    str_len         = strlen(buf);
     str_end         = str_start + str_len;
     prev_start      = str_start;
     prev_end        = prev_start;
@@ -458,6 +460,6 @@ st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
     }
         
     return st_bless_ptr(ST_CLASS_TOKENLIST, 
-            (IV)st_new_token_list(tokens, num_tokens, str_start));
+            (IV)st_new_token_list(tokens, num_tokens, str_start, str_len));
 }
 

@@ -241,6 +241,17 @@ dump(self)
         
 
 SV*
+str(self)
+    st_token_list *self;
+            
+    CODE:
+        RETVAL = newSVpvn_utf8(self->buf, self->buf_len, 1);
+
+    OUTPUT:
+        RETVAL
+
+
+SV*
 next(self)
     st_token_list *self;
    
@@ -259,6 +270,32 @@ next(self)
         }
         else {
             RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, self->pos++));
+        }
+        
+            
+    OUTPUT:
+        RETVAL
+
+
+SV*
+prev(self)
+    st_token_list *self;
+   
+    PREINIT:
+        IV len;
+        
+    CODE:
+        len = av_len(self->tokens);
+        if (len == -1) {
+            // empty list
+            RETVAL = &PL_sv_undef;
+        }
+        else if (self->pos < 0) {
+            // exceeded start of list
+            RETVAL = &PL_sv_undef;
+        }
+        else {
+            RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, --(self->pos)));
         }
         
             
@@ -350,6 +387,7 @@ as_array(self)
     
     OUTPUT:
         RETVAL
+
 
 SV*
 matches(self)
