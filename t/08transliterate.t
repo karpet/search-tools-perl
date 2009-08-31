@@ -14,7 +14,7 @@ use Encode;
 
 ok(my $t = Search::Tools::Transliterate->new(ebit => 0), "new transliterator");
 
-my $babel = do 't/quick_brown_babel.dmp';
+my $babel = do 't/docs/quick_brown_babel.dmp';
 
 for my $lang (sort keys %$babel)
 {

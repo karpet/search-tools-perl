@@ -31,7 +31,7 @@ ok( length($snip) < $s->max_chars, "snip" );
 
 #diag($s->type_used);
 
-$text = read_file('t/test.txt');
+$text = read_file('t/docs/test.txt');
 
 @q = qw(intramuralism maimedly sculpt);
 

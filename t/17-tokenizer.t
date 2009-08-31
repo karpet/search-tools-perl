@@ -34,7 +34,7 @@ my $str2 = <<EOF;
 !@#0^    some strings with non-token at the start and end !@#0^&*() 
 EOF
 
-my $greek = read_file('t/greek_and_ojibwe.txt');
+my $greek = read_file('t/docs/greek_and_ojibwe.txt');
 
 ok( my $tokenizer = Search::Tools::Tokenizer->new(), "new tokenizer" );
 

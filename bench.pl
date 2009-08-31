@@ -6,7 +6,7 @@ use Search::Tools::UTF8;
 use Benchmark qw(:all);
 use File::Slurp;
 
-my $greek = read_file('t/greek_and_ojibwe.txt');
+my $greek = read_file('t/docs/greek_and_ojibwe.txt');
 my $ascii = read_file('t/docs/ascii.txt');
 my $regex = qr/\w+(?:'\w+)*/;
 
