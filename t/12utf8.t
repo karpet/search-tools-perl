@@ -16,7 +16,7 @@ ok(is_sane_utf8($latin1),
 # now break some stuff
 my $nonsense = 'æ ascii ã“';  # 1st byte is latin1, last 3 bytes are valid utf8
 
-diag("nonsense = " . dump( $nonsense ));
+#diag("nonsense = " . dump( $nonsense ));
 
 ok(!is_valid_utf8($nonsense), "nonsense is not utf8");
 ok(!is_ascii($nonsense),      "nonsense is not ascii");
@@ -27,7 +27,7 @@ is(find_bad_latin1($nonsense), 10,        "find_bad_latin1");
 
 my $ambiguous = "this string is ambiguous \x{d9}\x{a6}";
 
-diag("ambiguous = " . dump( $ambiguous ));
+#diag("ambiguous = " . dump( $ambiguous ));
 
 ok(is_valid_utf8($ambiguous),           "is_valid_utf8 ambiguous");
 ok(is_latin1($ambiguous),               "is_latin1 ambiguous");
@@ -36,7 +36,7 @@ is(find_bad_latin1($ambiguous), -1, "find_bad_latin1 ambiguous");
 
 my $moreamb   = "this string should break is_latin1 \x{c3}\x{81}";
 
-diag("moreamb = " . dump( $moreamb ) );
+#diag("moreamb = " . dump( $moreamb ) );
 
 ok(is_valid_utf8($moreamb),             "is_valid_utf8 moreamb");
 ok(!is_latin1($moreamb),                "!is_latin1 moreamb");
