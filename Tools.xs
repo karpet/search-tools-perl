@@ -183,13 +183,24 @@ tokenize(self, str, ...)
         
         /* test if utf8 flag on and make sure it is.
          * otherwise, regex for \w can fail for multibyte chars.
+         * we do a *slight* optimization for ascii str because
+         * the regex engine is faster for all-ascii texts.
+         * the logic is: 
+         *  if the flag is on, ok.
+         *  else, 
+         *      if the string is ascii, ok for flag to be off,
+         *      but we don't turn it off. 
+         *      if the string is NOT ascii, make sure it is utf8
+         *      and turn the flag on. 
          */
-        if (!SvUTF8(str) && !st_is_ascii(str)) {
-            bytes  = (U8*)SvPV(str, len);
-            if(!is_utf8_string(bytes, len)) {
-                croak(ST_BAD_UTF8);
+        if (!SvUTF8(str)) {
+            if (!st_is_ascii(str)) {
+                bytes  = (U8*)SvPV(str, len);
+                if(!is_utf8_string(bytes, len)) {
+                    croak(ST_BAD_UTF8);
+                }
+                SvUTF8_on(str);
             }
-            SvUTF8_on(str);
         }
 
         token_re = st_hvref_fetch(self, "re");
