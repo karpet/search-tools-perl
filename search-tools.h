@@ -24,14 +24,12 @@ struct st_token {
     IV              pos;        // position in buffer
     IV              len;        // token length (bytes)
     IV              u8len;      // token length (utf8 chars)
-    const char     *ptr;        // ptr into the buffer
+    SV             *str;        // SV* for the string
     boolean         is_hot;     // interesting token flag
     boolean         is_match;   // matched regex
     IV              ref_cnt;    // reference counter
 };
 struct st_token_list {
-    const char     *buf;        // the buffer
-    IV              buf_len;    // the buffer length
     IV              pos;        // current iterator position (array index)
     IV              num;        // number of parsed tokens
     AV             *tokens;     // array of st_token objects
@@ -50,9 +48,7 @@ st_new_token(
 
 static st_token_list* st_new_token_list(
     AV *tokens, 
-    unsigned int num,
-    const char *buf,
-    IV buf_len
+    unsigned int num
 );
 static void     st_dump_token_list(st_token_list *tl);
 static void     st_dump_token(st_token *tok);

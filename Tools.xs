@@ -238,17 +238,6 @@ dump(self)
     
     CODE:
         st_dump_token_list(self);
-        
-
-SV*
-str(self)
-    st_token_list *self;
-            
-    CODE:
-        RETVAL = newSVpvn_utf8(self->buf, self->buf_len, 1);
-
-    OUTPUT:
-        RETVAL
 
 
 SV*
@@ -383,7 +372,7 @@ as_array(self)
     st_token_list *self;
     
     CODE:
-        RETVAL = newRV((SV*)self->tokens);
+        RETVAL = newRV_inc((SV*)self->tokens);
     
     OUTPUT:
         RETVAL
@@ -411,7 +400,7 @@ matches(self)
                 av_push(matches, SvREFCNT_inc(tok));
             }
         }
-        RETVAL = newRV((SV*)matches);
+        RETVAL = newRV((SV*)matches); /* no _inc -- this is only copy */
     
     OUTPUT:
         RETVAL
@@ -464,8 +453,7 @@ str(self)
     st_token *self;
             
     CODE:
-        //warn("[pos %d] [len %d] [%s]", self->pos, self->len, self->ptr);
-        RETVAL = newSVpvn_utf8(self->ptr, self->len, 1);
+        RETVAL = SvREFCNT_inc(self->str);
 
     OUTPUT:
         RETVAL
@@ -536,60 +524,6 @@ set_hot(self, val)
     CODE:
         RETVAL = self->is_hot;
         self->is_hot = val;
-    
-    OUTPUT:
-        RETVAL
-
-
-boolean
-equals(self, val)
-    st_token *self;
-    SV *val;
-
-    PREINIT:
-        char    *val_bytes;
-        STRLEN  val_len;
-        IV      diff;
-    
-    CODE:
-        val_bytes = SvPV(val, val_len);
-        diff = strncmp(self->ptr, val_bytes, val_len);
-        RETVAL = (diff == 0) ? 1 : 0;
-    
-    OUTPUT:
-        RETVAL
-
-boolean
-like(self, val)
-    st_token *self;
-    SV *val;
-
-    PREINIT:
-        char    *val_bytes;
-        STRLEN  val_len;
-        IV      diff;
-    
-    CODE:
-        val_bytes = SvPV(val, val_len);
-        diff = strncasecmp(self->ptr, val_bytes, val_len);
-        RETVAL = (diff == 0) ? 1 : 0;
-    
-    OUTPUT:
-        RETVAL
-
-
-IV
-cmp(self, val)
-    st_token *self;
-    SV *val;
-
-    PREINIT:
-        char    *val_bytes;
-        STRLEN  val_len;
-    
-    CODE:
-        val_bytes = SvPV(val, val_len);
-        RETVAL = strncmp(self->ptr, val_bytes, val_len);
     
     OUTPUT:
         RETVAL

@@ -147,9 +147,9 @@ st_new_token(
     tok->pos = pos;
     tok->len = len;
     tok->u8len = u8len;
-    tok->ptr = ptr;
     tok->is_hot = is_hot;
     tok->is_match = is_match;
+    tok->str = newSVpvn_utf8(ptr, len, 1);
     tok->ref_cnt = 1;
     return tok;
 }
@@ -157,9 +157,7 @@ st_new_token(
 static st_token_list*
 st_new_token_list(
     AV *tokens, 
-    unsigned int num,
-    const char *buf,
-    IV buf_len
+    unsigned int num
 ) {
     dTHX;
     st_token_list *tl;
@@ -167,8 +165,6 @@ st_new_token_list(
     tl->pos = 0;
     tl->tokens = tokens;
     tl->num = (IV)num;
-    tl->buf = buf;
-    tl->buf_len = buf_len;
     tl->ref_cnt = 1;
     return tl;
 }
@@ -180,6 +176,7 @@ st_free_token(st_token *tok) {
         ST_CROAK("Won't free token 0x%x with ref_cnt != 0 [%d]", 
             tok, tok->ref_cnt);
     }
+    SvREFCNT_dec(tok->str);
     free(tok);
 }
 
@@ -190,17 +187,7 @@ st_free_token_list(st_token_list *token_list) {
         ST_CROAK("Won't free token_list 0x%x with ref_cnt > 0 [%d]", 
             token_list, token_list->ref_cnt);
     }
-    
-    Safefree(token_list->buf);
-    if (SvREFCNT(token_list->tokens)) {
-        if (ST_DEBUG) {
-            warn("refcnt_dec tokens from token_list: %d\n", 
-                SvREFCNT(token_list->tokens));
-            st_dump_sv((SV*)token_list->tokens);
-        }
-        SvREFCNT_dec(token_list->tokens);
-    }
-
+    SvREFCNT_dec(token_list->tokens);
     free(token_list);
 }
 
@@ -210,7 +197,6 @@ st_dump_token_list(st_token_list *tl) {
     len = av_len(tl->tokens);
     pos = 0;
     warn("TokenList 0x%x", tl);
-    warn(" buf_len = %d\n", tl->buf_len);
     warn(" pos = %d\n", tl->pos);
     warn(" len = %d\n", len + 1);
     warn(" num = %d\n", tl->num);
@@ -223,6 +209,7 @@ st_dump_token_list(st_token_list *tl) {
 static void
 st_dump_token(st_token *tok) {
     warn("Token 0x%x", tok);
+    warn(" str = %s\n", SvPV(tok->str, PL_na));
     warn(" pos = %d\n", tok->pos);
     warn(" len = %d\n", tok->len);
     warn(" u8len = %d\n", tok->u8len);
@@ -364,8 +351,7 @@ st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
     num_tokens      = 0;
     mg              = NULL;
     rx              = NULL;
-    /* copy the original string and ref it from each token */
-    buf             = savepv(SvPV(str, str_len));
+    buf             = SvPV(str, str_len);
     str_start       = buf;
     str_end         = str_start + str_len;
     prev_start      = str_start;
@@ -412,7 +398,7 @@ st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
                                 prev_end, 0, 0);
             if (ST_DEBUG) {
                 warn("prev [%d] [%d] [%d] [%s]", 
-                    token->pos, token->len, token->u8len, token->ptr);
+                    token->pos, token->len, token->u8len, SvPV(token->str, PL_na));
             }
             
             tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
@@ -427,7 +413,7 @@ st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
                             0, 1);
         if (ST_DEBUG) {
             warn("[%d] [%d] [%d] [%s]", 
-                token->pos, token->len, token->u8len, token->ptr);
+                token->pos, token->len, token->u8len, SvPV(token->str, PL_na));
         }
         
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
@@ -453,13 +439,15 @@ st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
                                     0, 0);
         if (ST_DEBUG) {
             warn("tail [%d] [%d] [%d] [%s]", 
-                token->pos, token->len, token->u8len, token->ptr);
+                token->pos, token->len, token->u8len, SvPV(token->str, PL_na));
         }
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
         av_push(tokens, SvREFCNT_inc(tok));
     }
         
-    return st_bless_ptr(ST_CLASS_TOKENLIST, 
-            (IV)st_new_token_list(tokens, num_tokens, str_start, str_len));
+    return st_bless_ptr(
+            ST_CLASS_TOKENLIST, 
+            (IV)st_new_token_list(tokens, num_tokens)
+           );
 }
 
