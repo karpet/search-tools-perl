@@ -183,7 +183,7 @@ tokenize(self, str, ...)
         
         /* test if utf8 flag on and make sure it is.
          * otherwise, regex for \w can fail for multibyte chars.
-         * we do a *slight* optimization for ascii str because
+         * we do a slight (~7%) optimization for ascii str because
          * the regex engine is faster for all-ascii texts.
          * the logic is: 
          *  if the flag is on, ok.
