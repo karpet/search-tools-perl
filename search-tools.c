@@ -325,6 +325,21 @@ st_describe_object( SV* object ) {
     st_dump_sv( object );
 }
 
+static boolean
+st_is_ascii( SV* str ) {
+    STRLEN len;
+    U8 *bytes;
+    IV i;
+    
+    bytes = (U8*)SvPV(str, len);
+    for(i=0; i<len; i++) {
+        if (bytes[i] >= 0x80) {
+            return 0;
+        }  
+    }
+    return 1;
+}
+
 
 /*
     st_tokenize() et al based on KinoSearch::Analysis::Tokenizer 
@@ -333,7 +348,7 @@ st_describe_object( SV* object ) {
 */
 
 static SV*
-st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
+st_tokenize( SV* str, SV* token_re, SV* heat_seeker ) {
     dTHX;   /* thread-safe perlism */
     dSP;    /* callback macro */
     
@@ -417,11 +432,11 @@ st_tokenize( SV* str, SV* token_re, SV* match_handler ) {
         }
         
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
-        if (match_handler != NULL) {
+        if (heat_seeker != NULL) {
             PUSHMARK(SP);
             XPUSHs(tok);
             PUTBACK;
-            call_sv(match_handler, G_DISCARD);
+            call_sv(heat_seeker, G_DISCARD);
         }
         av_push(tokens, SvREFCNT_inc(tok));
         

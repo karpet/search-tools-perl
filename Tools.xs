@@ -77,31 +77,18 @@ find_bad_utf8(string)
         
 # benchmarks show these XS versions are 9x faster
 # than their native Perl regex counterparts
-int 
+boolean 
 is_ascii(string)
     SV* string;
-    
-    PREINIT:
-        STRLEN          len;
-        unsigned char*  bytes;
-        unsigned int    i;
-        
+            
     CODE:
-        bytes  = (unsigned char*)SvPV(string, len);
-        RETVAL = 1;
-        for(i=0; i < len; i++)
-        {
-            if (bytes[i] >= 0x80)
-            {
-                RETVAL = 0;
-                break;
-            }  
-        }
+        RETVAL = st_is_ascii(string);
 
     OUTPUT:
         RETVAL
-    
-int
+
+
+boolean
 is_latin1(string)
     SV* string;
 
@@ -113,10 +100,8 @@ is_latin1(string)
     CODE:
         bytes  = (unsigned char*)SvPV(string, len);
         RETVAL = 1;
-        for(i=0; i < len; i++)
-        {
-            if (bytes[i] > 0x7f && bytes[i] < 0xa0)
-            {
+        for(i=0; i < len; i++) {
+            if (bytes[i] > 0x7f && bytes[i] < 0xa0) {
                 RETVAL = 0;
                 break;
             }
@@ -126,7 +111,7 @@ is_latin1(string)
         RETVAL
 
 
-int
+IV
 find_bad_ascii(string)
     SV* string;
     
@@ -138,10 +123,8 @@ find_bad_ascii(string)
     CODE:
         bytes  = (unsigned char*)SvPV(string, len);
         RETVAL = -1;
-        for(i=0; i < len; i++)
-        {
-            if (bytes[i] >= 0x80)
-            {
+        for(i=0; i < len; i++) {
+            if (bytes[i] >= 0x80) {
             # return $+[0], so base-1
                 RETVAL = i + 1;
                 break;
@@ -163,10 +146,8 @@ find_bad_latin1(string)
     CODE:
         bytes  = (unsigned char*)SvPV(string, len);
         RETVAL = -1;
-        for(i=0; i < len; i++)
-        {
-            if (bytes[i] > 0x7f && bytes[i] < 0xa0)
-            {
+        for(i=0; i < len; i++) {
+            if (bytes[i] > 0x7f && bytes[i] < 0xa0) {
             # return $+[0], so base-1
                 RETVAL = i + 1;
                 break;
@@ -203,7 +184,7 @@ tokenize(self, str, ...)
         /* test if utf8 flag on and make sure it is.
          * otherwise, regex for \w can fail for multibyte chars.
          */
-        if (!SvUTF8(str)) {
+        if (!SvUTF8(str) && !st_is_ascii(str)) {
             bytes  = (U8*)SvPV(str, len);
             if(!is_utf8_string(bytes, len)) {
                 croak(ST_BAD_UTF8);
