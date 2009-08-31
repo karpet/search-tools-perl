@@ -199,14 +199,15 @@ tokenize(self, str, ...)
         if (items > 2) {
             match_handler = ST(2);
         }
-        bytes  = (U8*)SvPV(str, len);
-        if(!is_utf8_string(bytes, len)) {
-            croak(ST_BAD_UTF8);
-        }
-        else if (!SvUTF8(str)) {
-            /* force the flag on in case they forgot to run to_utf8().
-             * otherwise the regex can fail for \w
-             */
+        
+        /* test if utf8 flag on and make sure it is.
+         * otherwise, regex for \w can fail for multibyte chars.
+         */
+        if (!SvUTF8(str)) {
+            bytes  = (U8*)SvPV(str, len);
+            if(!is_utf8_string(bytes, len)) {
+                croak(ST_BAD_UTF8);
+            }
             SvUTF8_on(str);
         }
 
