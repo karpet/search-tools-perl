@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 28;
+use Test::More tests => 29;
 
 # http://code.google.com/p/test-more/issues/detail?id=46
 binmode Test::More->builder->output,         ":utf8";
@@ -22,6 +22,7 @@ diag("destroy tokens");
 $tokens = undef;
 diag("tokens are undef");
 ok( defined $tok, "0 token still defined" );
+ok( "$tok",       "token still returns string" );
 
 if ( $tokenizer->debug ) {
     $tok->dump;
