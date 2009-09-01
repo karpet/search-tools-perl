@@ -213,7 +213,7 @@ st_dump_token_list(st_token_list *tl) {
 static void
 st_dump_token(st_token *tok) {
     warn("Token 0x%x", tok);
-    warn(" str = %s\n", SvPV(tok->str, PL_na));
+    warn(" str = '%s'\n", SvPV(tok->str, PL_na));
     warn(" pos = %d\n", tok->pos);
     warn(" len = %d\n", tok->len);
     warn(" u8len = %d\n", tok->u8len);
