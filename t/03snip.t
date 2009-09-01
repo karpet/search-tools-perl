@@ -1,8 +1,59 @@
+use strict;
 use Test::More tests => 11;
-
+use Data::Dump qw( dump );
 use File::Slurp;
 
 BEGIN { use_ok('Search::Tools::Snipper') }
+
+sub token_snipper {
+
+    #warn dump(\@_);
+    my $self = shift;
+    my $qre  = $self->{_qre};
+    warn $self->tokenizer->re;
+    warn $qre;
+    my $tokens = $self->tokenizer->tokenize(
+        $_[0],
+        sub {
+            if ( $_[0] =~ /$qre/ ) {
+                warn "---------- HOT MATCH $_[0] [$qre] --------";
+                $_[0]->set_hot(1);
+            }
+
+            # TODO phrase match
+        }
+    );
+
+    # build heatmap
+    my @heatmap;
+    my @snips;
+    my $num_toks   = $tokens->num;
+    my $tokens_arr = $tokens->as_array;
+    while ( my $tok = $tokens->next ) {
+        if ( $tok->is_hot ) {
+
+            # get window
+            my $pos = $tok->pos;
+            my ( $start, $end );
+            if ( $pos > 10 ) {
+                $start = $pos - 10;
+            }
+            if ( $pos < ( $num_toks - 10 ) ) {
+                $end = $pos + 10;
+            }
+            $start ||= 0;
+            $end   ||= $num_toks;
+            push( @snips,
+                join( '', map {"$_"} @$tokens_arr[ $start .. $end ] ) );
+            push( @heatmap, $tok->pos );
+        }
+    }
+    warn "heatmap: " . dump \@heatmap;
+    warn "snips: " . dump \@snips;
+
+    return $tokens->str;
+
+}
 
 my $text = <<EOF;
 when in the course of human events
@@ -19,6 +70,7 @@ my @q = ( 'squiggle', 'type', 'course', '"human events"' );
 ok( my $s = Search::Tools::Snipper->new(
         query     => [@q],
         max_chars => length($text) - 1,
+        snipper   => \&token_snipper,
     ),
     "snipper"
 );
@@ -37,7 +89,8 @@ $text = read_file('t/docs/test.txt');
 
 ok( $s = Search::Tools::Snipper->new(
         query     => [@q],
-        max_chars => length($text) - 1
+        max_chars => length($text) - 1,
+        snipper   => \&token_snipper,
     ),
     "new snipper"
 );
@@ -45,7 +98,7 @@ ok( $s = Search::Tools::Snipper->new(
 ok( $snip = $s->snip($text), "new snip" );
 
 #diag($snip);
-diag($s->type_used);
+diag( $s->type_used );
 
 ok( length($snip) < $s->max_chars, "more snip" );
 
@@ -74,12 +127,14 @@ my $regex = Search::Tools->regexp( query => 'amen' );
 my $snip_excerpt = Search::Tools::Snipper->new(
     query   => $regex,
     occur   => 1,
-    context => 26
+    context => 26,
+    snipper => \&token_snipper,
 );
 my $snip_title = Search::Tools::Snipper->new(
     query   => $regex,
     occur   => 1,
-    context => 8
+    context => 8,
+    snipper => \&token_snipper,
 );
 
 like( $snip_excerpt->snip($text2), qr/$excerpt/, "excerpt context" );

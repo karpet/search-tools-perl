@@ -13,6 +13,7 @@ use Data::Dump;
 use Search::Tools::XML;
 use Search::Tools::RegExp;
 use Search::Tools::UTF8;
+use Search::Tools::Tokenizer;
 
 use base qw( Search::Tools::Object );
 
@@ -35,6 +36,7 @@ __PACKAGE__->mk_accessors(
         type
         count
         collapse_whitespace
+        tokenizer
         ),
     @Search::Tools::Accessors
 );
@@ -101,6 +103,9 @@ sub _word_regexp {
 
     $self->{_ignoreFirst} = $igf;
     $self->{_ignoreLast}  = $igl;
+
+    #
+    $self->{tokenizer} = Search::Tools::Tokenizer->new();  # TODO construct re
 }
 
 sub _build_query {
@@ -342,7 +347,7 @@ Q: for my $q (@q) {
         $snips{$q} = { t => [], offset => [] };
 
         $self->debug and warn "$q : $snip_starts_with_query";
-        
+
         # try simple regexp first, then more complex if we don't match
         next Q
             if $self->_re_match( \$text, $self->{_re}->{$q}->{plain},

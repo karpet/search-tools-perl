@@ -172,13 +172,19 @@ tokenize(self, str, ...)
     
     PREINIT:
         SV* token_re;
+        SV* token_list_sv;
         STRLEN len;
         U8* bytes;
-        SV* match_handler = NULL;
+        SV* heat_seeker = NULL;
+        IV match_num;
         
     CODE:
         if (items > 2) {
-            match_handler = ST(2);
+            heat_seeker = ST(2);
+        }
+        match_num = 0;
+        if (items > 3) {
+            match_num = SvIV(ST(3));
         }
         
         /* test if utf8 flag on and make sure it is.
@@ -204,7 +210,8 @@ tokenize(self, str, ...)
         }
 
         token_re = st_hvref_fetch(self, "re");
-        RETVAL = SvREFCNT_inc(st_tokenize(str, token_re, match_handler));
+        token_list_sv = st_tokenize(str, token_re, heat_seeker, match_num);
+        RETVAL = SvREFCNT_inc(token_list_sv);
     
     OUTPUT:
         RETVAL
@@ -316,7 +323,7 @@ set_pos(self, new_pos)
 
 
 IV
-reset_pos(self)
+reset(self)
     st_token_list *self;
         
     CODE:
@@ -365,6 +372,7 @@ as_array(self)
     st_token_list *self;
     
     CODE:
+        self->ref_cnt++;
         RETVAL = newRV_inc((SV*)self->tokens);
     
     OUTPUT:
