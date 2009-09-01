@@ -64,7 +64,12 @@ static SV*      st_hvref_fetch( SV* h, const char* key );
 static char*    st_hv_fetch_as_char( HV* h, const char* key );
 static char*    st_hvref_fetch_as_char( SV* h, const char* key );
 static IV       st_hvref_fetch_as_int( SV* h, const char* key );
-static SV*      st_tokenize( SV* str, SV* token_re, SV* heat_seeker );
+static SV*      st_tokenize( 
+    SV* str, 
+    SV* token_re, 
+    SV* heat_seeker, 
+    IV match_num 
+);
 static SV*      st_new_hash_object(const char *class);
 static SV*      st_bless_ptr( const char* class, IV c_ptr );
 static IV       st_extract_ptr( SV* object );

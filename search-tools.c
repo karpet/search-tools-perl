@@ -188,6 +188,10 @@ st_free_token_list(st_token_list *token_list) {
             token_list, token_list->ref_cnt);
     }
     SvREFCNT_dec(token_list->tokens);
+    if (SvREFCNT(token_list->tokens)) {
+        warn("Warning: possible memory leak for token_list 0x%x with REFCNT %d\n", 
+            token_list->tokens, SvREFCNT(token_list->tokens));
+    }
     free(token_list);
 }
 
@@ -243,10 +247,13 @@ st_croak(
     ...
 )
 {
+    dTHX;
     va_list args;
     va_start(args, msgfmt);
     warn("Search::Tools error at %s:%d %s: ", file, line, func);
+    //warn(msgfmt, args);
     croak(msgfmt, args);
+    /* NEVER REACH HERE */
     va_end(args);
 }
 
@@ -348,7 +355,7 @@ st_is_ascii( SV* str ) {
 */
 
 static SV*
-st_tokenize( SV* str, SV* token_re, SV* heat_seeker ) {
+st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
     dTHX;   /* thread-safe perlism */
     dSP;    /* callback macro */
     
@@ -392,11 +399,11 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker ) {
         st_token *token;
         
 #if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
-        start_ptr = buf + rx->offs[0].start;
-        end_ptr   = buf + rx->offs[0].end;
+        start_ptr = buf + rx->offs[match_num].start;
+        end_ptr   = buf + rx->offs[match_num].end;
 #else
-        start_ptr = buf + rx->startp[0];
-        end_ptr   = buf + rx->endp[0];
+        start_ptr = buf + rx->startp[match_num];
+        end_ptr   = buf + rx->endp[match_num];
 #endif
 
         /* advance the pointers */
