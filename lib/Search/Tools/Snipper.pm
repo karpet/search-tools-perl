@@ -45,7 +45,7 @@ sub _init {
     my $self = shift;
     $self->SUPER::_init(@_);
 
-    $self->{type}      ||= 'loop';
+    $self->{type}      ||= 'token';
     $self->{occur}     ||= 5;
     $self->{max_chars} ||= 300;
     $self->{context}   ||= 8;
@@ -125,6 +125,11 @@ sub _build_query {
 
         $q =~ s/\\$wild_esc/[$wc]*/;    # wildcard match is very approximate
 
+        # treat phrases like OR'd words
+        # since that will just create more matches.
+        # if hiliting later, the phrase will be treated as such.
+        $q =~ s/(\\ )+/\|/g;
+
         push( @re, $q );
 
         my $r = {
@@ -151,21 +156,22 @@ sub _pick_snipper {
 
     # default snipper is loop_snip since it is fastest for single words
     # but we can specify re_snip if we want
-    my $func = \&_loop_snip;
-    if (!$self->force
-        && ($self->type eq 're'
+    my $func = \&_token_snip;
 
-            # phrases must use regexp
-            # so check if any of our queries contain a space
-            || grep {/\ /} $self->rekw->keywords
-
-            # or if text looks like HTML/XML
-            || Search::Tools::RegExp->isHTML($text)
-        )
-        )
-    {
-        $func = \&_re_snip;
-    }
+    #    if (!$self->force
+    #        && ($self->type eq 're'
+    #
+    #            # phrases must use regexp
+    #            # so check if any of our queries contain a space
+    #            || grep {/\ /} $self->rekw->keywords
+    #
+    #            # or if text looks like HTML/XML
+    #            || Search::Tools::RegExp->isHTML($text)
+    #        )
+    #        )
+    #    {
+    #        $func = \&_re_snip;
+    #    }
 
     return $func;
 }
@@ -211,6 +217,125 @@ sub snip {
     }
 
     return $s;
+
+}
+
+sub _token_snip {
+
+    #warn Data::Dump::dump(\@_);
+    my $self   = shift;
+    my $qre    = $self->{_qre};
+    my $window = $self->{context};
+
+    #warn $self->tokenizer->re;
+    #warn $qre;
+    my $tokens = $self->tokenizer->tokenize(
+        $_[0],
+        sub {
+            if ( $_[0] =~ /$qre/ ) {
+
+                #warn "---------- HOT MATCH $_[0] [$qre] --------";
+                $_[0]->set_hot(1);
+            }
+
+            # TODO phrase match
+        }
+    );
+
+    # build heatmap
+    my @hot;
+    my @snips;
+    my $max_index  = $tokens->len - 1;
+    my $tokens_arr = $tokens->as_array;
+    while ( my $tok = $tokens->next ) {
+        if ( $tok->is_hot ) {
+            push( @hot, $tok->pos );
+        }
+    }
+    my $i = 0;
+    my %heatmap;
+
+    #warn Data::Dump::dump \@hot;
+    for my $pos (@hot) {
+
+        $heatmap{$pos}++;
+
+        # if the next $pos after this is < $window
+        # then flip all the hot bits on for the range
+        my $max = $pos + $window;
+        if ( $max > $max_index ) {
+            $max = $max_index;
+        }
+
+        #warn "\$i = $i  \$max = $max";
+        if ( $i < $#hot && $hot[ $i + 1 ] < $max ) {
+            my $pos_copy = $pos;
+            while ( $pos_copy++ < $max ) {
+                $heatmap{$pos_copy}++;
+            }
+        }
+        else {
+
+            # grap window on either side
+            my ( $start, $end );
+            if ( $pos > $window ) {
+                $start = $pos - $window;
+            }
+            if ( $pos < ( $max_index - $window ) ) {
+                $end = $pos + $window;
+            }
+            $start ||= 0;
+            $end   ||= $max_index;
+            for ( $start .. $end ) {
+                $heatmap{$_}++;
+            }
+
+        }
+
+        $i++;
+    }
+
+    my @positions = sort { $a <=> $b } keys %heatmap;
+
+    #warn Data::Dump::dump \@positions;
+
+    my @spans = ( [] );
+    $i = 0;
+    for my $pos (@positions) {
+        if ( $i && $positions[ $i - 1 ] != $pos - 1 ) {
+
+            # start a new span
+            push( @spans, [$pos] );
+        }
+        else {
+            push( @{ $spans[-1] }, $pos );
+        }
+        $i++;
+    }
+
+    #warn Data::Dump::dump \@spans;
+
+    # stringify positions
+    for my $span ( sort { @$b <=> @$a } @spans ) {
+        push( @snips, join( '', map { $tokens_arr->[$_]->str } @$span ) );
+    }
+
+    #warn "snips: " . Data::Dump::dump \@snips;
+    if (@snips) {
+        my $occur_index = $self->occur - 1;
+        if ( $#snips > $occur_index ) {
+            @snips = @snips[ 0 .. $occur_index ];
+        }
+        my $snip = join( ' ... ', @snips );
+        my $snips_start_with_query = $_[0] =~ m/^\Q$snip\E/;
+        my $snips_end_with_query   = $_[0] =~ m/\Q$snip\E$/;
+        return join( '',
+            ( $snips_start_with_query ? '' : ' ... ' ),
+            $snip, ( $snips_end_with_query ? '' : ' ... ' ) );
+    }
+    else {
+        return $self->_dumb_snip( $_[0] );
+    }
 
 }
 
