@@ -41,19 +41,19 @@ my $greek = read_file('t/docs/greek_and_ojibwe.txt');
 
 ok( my $tokenizer = Search::Tools::Tokenizer->new(), "new tokenizer" );
 
-ok( my $simple_tokens = $tokenizer->tokenize( $simple, \&handler ),
+ok( my $simple_tokens = $tokenizer->tokenize_pp( $simple, \&handler ),
     "tokenize simple" );
 is( check_tokens($simple_tokens), 5,       "5 simple tokens" );
 is( $simple_tokens,               $simple, "simple_tokens->str" );
 
-ok( my $tokens = $tokenizer->tokenize($str), "tokenize str for tokens" );
+ok( my $tokens = $tokenizer->tokenize_pp($str), "tokenize str for tokens" );
 is( check_tokens($tokens), 48,   "str count" );
 is( $tokens->str,          $str, "tokens->str" );
 
-ok( my $tokens2 = $tokenizer->tokenize($str2), "tokenize str2" );
+ok( my $tokens2 = $tokenizer->tokenize_pp($str2), "tokenize str2" );
 is( check_tokens($tokens2), 25,    "str2 count" );
 is( $tokens2->str,          $str2, "tokens2->str" );
-ok( my $grtokens = $tokenizer->tokenize($greek), "tokenize greek" );
+ok( my $grtokens = $tokenizer->tokenize_pp($greek), "tokenize greek" );
 is( check_tokens($grtokens), 99,     "grtokens count" );
 is( $grtokens->str,          $greek, "grtokens->str" );
 
@@ -62,14 +62,15 @@ is( $grtokens->str,          $greek, "grtokens->str" );
 my $chinese = '布朗在迅速跳下懒狐狗';
 ok( my $cjk_tokenizer = Search::Tools::Tokenizer->new( re => qr/\w/ ),
     "cjk_tokenizer" );
-ok( my $cjk_tokens = $cjk_tokenizer->tokenize( $chinese, \&handler ),
+ok( my $cjk_tokens = $cjk_tokenizer->tokenize_pp( $chinese, \&handler ),
     "tokenize chinese" );
 is( check_tokens($cjk_tokens), 10,       "check cjk_tokens" );
 is( $cjk_tokens,               $chinese, "cjk_tokens->str" );
 
 # try cjk against ascii
 my $ascii = 'abc';
-ok( my $ascii_tokens = $cjk_tokenizer->tokenize($ascii), "tokenize ascii" );
+ok( my $ascii_tokens = $cjk_tokenizer->tokenize_pp($ascii),
+    "tokenize ascii" );
 is( check_tokens($ascii_tokens), 3,      "check ascii tokens" );
 is( $ascii_tokens,               $ascii, "ascii_tokens->str" );
 
@@ -77,7 +78,9 @@ is( $handler_count, 13, "handler_count" );
 
 sub check_tokens {
     my $tokens = shift;
-    my $count  = 0;
+
+    #dump $tokens;
+    my $count = 0;
     while ( my $tok = $tokens->next ) {
         ok( length( $tok->str ), "tok->str" );
 

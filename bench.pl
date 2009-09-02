@@ -6,41 +6,38 @@ use Search::Tools::UTF8;
 use Benchmark qw(:all);
 use File::Slurp;
 
-my $greek = to_utf8( read_file('t/docs/greek_and_ojibwe.txt') );
-my $ascii = to_utf8( read_file('t/docs/ascii.txt') );
-my $regex = qr/\w+(?:'\w+)*/;
+my $greek     = to_utf8( read_file('t/docs/greek_and_ojibwe.txt') );
+my $ascii     = to_utf8( read_file('t/docs/ascii.txt') );
+my $regex     = qr/\w+(?:'\w+)*/;
+my $tokenizer = Search::Tools::Tokenizer->new( re => $regex );
 
 cmpthese(
-    100000,
-    {   'pure-perl-greek' => sub { pure_perl($greek) },
-        'xs-greek'        => sub {
-            my $tokenizer = Search::Tools::Tokenizer->new( re => $regex );
-            my $tokens = $tokenizer->tokenize($greek);
+    10000,
+    {   'pure-perl-greek' => sub {
+            my $tokens = $tokenizer->tokenize_pp( $greek, \&heat_seeker );
         },
-        'pure-perl-ascii' => sub { pure_perl($ascii) },
-        'xs-ascii'        => sub {
-            my $tokenizer = Search::Tools::Tokenizer->new( re => $regex );
-            my $tokens = $tokenizer->tokenize($ascii);
+        'pure-perl-bare-greek' => sub {
+            my $tokens
+                = $tokenizer->tokenize_pp_bare( $greek, \&heat_seeker );
+        },
+        'xs-greek' => sub {
+            my $tokens = $tokenizer->tokenize( $greek, \&heat_seeker );
+        },
+        'pure-perl-ascii' => sub {
+            my $tokens = $tokenizer->tokenize_pp( $ascii, \&heat_seeker );
+        },
+        'pure-perl-bare-ascii' => sub {
+            my $tokens
+                = $tokenizer->tokenize_pp_bare( $ascii, \&heat_seeker );
+        },
+        'xs-ascii' => sub {
+            my $tokens = $tokenizer->tokenize( $ascii, \&heat_seeker );
         },
     }
 );
 
 sub heat_seeker {
-    return 0;    # trivial case
+
+    # trivial case no-op just to measure sub call overhead
 }
 
-sub pure_perl {
-    my @tokens = ();
-    my $i      = 0;
-    for ( split( m/($regex)/, $_[0] ) ) {
-        push(
-            @tokens,
-            {   'pos'    => $i++,
-                str      => $_,
-                is_hot   => heat_seeker($_),
-                is_match => ( $_ =~ m/^$regex$/ ) ? 1 : 0,
-            }
-        );
-    }
-
-}
