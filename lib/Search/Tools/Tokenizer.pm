@@ -28,8 +28,11 @@ sub tokenize_pp {
         croak "str required";
     }
 
-    # xs modifies the original arg, so we do too.
-    $_[0] = to_utf8( $_[0] );
+    # XS modifies the original arg, so we do too.
+    # this is same slight optimization XS does. ~5%
+    if ( !is_ascii( $_[0] ) ) {
+        $_[0] = to_utf8( $_[0] );
+    }
     my $heat_seeker = $_[1];
 
     # match_num ($_[2]) not supported in PP

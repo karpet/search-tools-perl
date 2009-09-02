@@ -8,38 +8,28 @@ use File::Slurp;
 
 my $ascii      = read_file('t/docs/test.txt');
 my $ascii_utf8 = to_utf8($ascii);
-my $regex      = qr/\w+(?:'\w+)*/;
+my $ascii_xs   = $ascii;                            # no utf8 flag!
+my $tokenizer  = Search::Tools::Tokenizer->new();
 
 cmpthese(
-    10000,
-    {   'ascii-pp'      => sub { pure_perl($ascii) },
-        'ascii_utf8-pp' => sub { pure_perl($ascii_utf8) },
-        'ascii-xs'      => sub {
-            my $tokenizer = Search::Tools::Tokenizer->new( re => $regex );
-            my $tokens = $tokenizer->tokenize($ascii);
+    1000,
+    {   'ascii-pp' => sub {
+            my $tokens = $tokenizer->tokenize_pp($ascii);
+        },
+        'ascii_utf8-pp' => sub {
+            my $tokens = $tokenizer->tokenize_pp($ascii_utf8);
+        },
+        'ascii-xs' => sub {
+            my $tokens = $tokenizer->tokenize($ascii_xs);
         },
         'ascii_utf8-xs' => sub {
-            my $tokenizer = Search::Tools::Tokenizer->new( re => $regex );
             my $tokens = $tokenizer->tokenize($ascii_utf8);
         },
     }
 );
 
 sub heat_seeker {
-    return 0;    # trivial case
+
+    # trivial case
 }
 
-sub pure_perl {
-    my @tokens = split( m/($regex)/, to_utf8( $_[0] ) );
-    my %markers;
-    my $i = 0;
-    for (@tokens) {
-        $markers{$i} = {
-            'pos'    => $i,
-            str      => $_,
-            is_hot   => heat_seeker($_),
-            is_match => ( $_ =~ m/^$regex$/ ) ? 1 : 0,
-        };
-        $i++;
-    }
-}
