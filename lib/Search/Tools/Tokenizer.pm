@@ -18,7 +18,9 @@ sub _init {
     my $self = shift;
     $self->SUPER::_init(@_);
     $self->{re} ||= qr/\w+(?:'\w+)*/;
-    $self->set_debug( $self->debug );
+    if ( $self->debug ) {
+        $self->set_debug( $self->debug - 1 );    # XS debug a level higher
+    }
     return $self;
 }
 

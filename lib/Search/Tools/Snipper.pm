@@ -1,19 +1,14 @@
 package Search::Tools::Snipper;
-
-#
-# TODO GNU grep does this much better and faster.
-# could we XS some of that beauty?
-#
-
 use strict;
 use warnings;
 
 use Carp;
-use Data::Dump;
+use Data::Dump qw( dump );
 use Search::Tools::XML;
 use Search::Tools::RegExp;
 use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
+use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
@@ -74,6 +69,8 @@ sub _init {
         croak "Search:Tools::RegExp::Keywords object required";
     }
 
+    #
+    $self->{tokenizer} = Search::Tools::Tokenizer->new();  # TODO construct re
     $self->_word_regexp;
     $self->_build_query;
 
@@ -104,8 +101,6 @@ sub _word_regexp {
     $self->{_ignoreFirst} = $igf;
     $self->{_ignoreLast}  = $igl;
 
-    #
-    $self->{tokenizer} = Search::Tools::Tokenizer->new();  # TODO construct re
 }
 
 sub _build_query {
@@ -203,7 +198,7 @@ sub snip {
     $self->debug and warn "snipped: '$s'\n";
 
     # sanity check
-    if ( length($s) > ( $self->max_chars * 2 ) ) {
+    if ( length($s) > ( $self->max_chars * 4 ) ) {
         $s = $self->_dumb_snip($s);
         $self->debug and warn "too long. dumb snip: '$s'\n";
     }
@@ -221,11 +216,10 @@ sub snip {
 }
 
 sub _token_snip {
+    my $self = shift;
+    my $qre  = $self->{_qre};
 
-    #warn Data::Dump::dump(\@_);
-    my $self   = shift;
-    my $qre    = $self->{_qre};
-    my $window = $self->{context};
+    #dump $self;
 
     #warn $self->tokenizer->re;
     #warn $qre;
@@ -242,86 +236,23 @@ sub _token_snip {
         }
     );
 
-    # build heatmap
-    my @hot;
-    my @snips;
-    my $max_index  = $tokens->len - 1;
+    my $heatmap = Search::Tools::HeatMap->new(
+        tokens      => $tokens,
+        window_size => $self->{context},
+    );
+
+    $self->debug and dump $heatmap;
+
     my $tokens_arr = $tokens->as_array;
-    while ( my $tok = $tokens->next ) {
-        if ( $tok->is_hot ) {
-            push( @hot, $tok->pos );
+
+    #warn "snips: " . dump \@snips;
+    if ( $heatmap->has_spans ) {
+
+        # stringify positions
+        my @snips;
+        for my $span ( @{ $heatmap->spans } ) {
+            push( @snips, $span->{str} );
         }
-    }
-    my $i = 0;
-    my %heatmap;
-
-    #warn Data::Dump::dump \@hot;
-    for my $pos (@hot) {
-
-        $heatmap{$pos}++;
-
-        # if the next $pos after this is < $window
-        # then flip all the hot bits on for the range
-        my $max = $pos + $window;
-        if ( $max > $max_index ) {
-            $max = $max_index;
-        }
-
-        #warn "\$i = $i  \$max = $max";
-        if ( $i < $#hot && $hot[ $i + 1 ] < $max ) {
-            my $pos_copy = $pos;
-            while ( $pos_copy++ < $max ) {
-                $heatmap{$pos_copy}++;
-            }
-        }
-        else {
-
-            # grap window on either side
-            my ( $start, $end );
-            if ( $pos > $window ) {
-                $start = $pos - $window;
-            }
-            if ( $pos < ( $max_index - $window ) ) {
-                $end = $pos + $window;
-            }
-            $start ||= 0;
-            $end   ||= $max_index;
-            for ( $start .. $end ) {
-                $heatmap{$_}++;
-            }
-
-        }
-
-        $i++;
-    }
-
-    my @positions = sort { $a <=> $b } keys %heatmap;
-
-    #warn Data::Dump::dump \@positions;
-
-    my @spans = ( [] );
-    $i = 0;
-    for my $pos (@positions) {
-        if ( $i && $positions[ $i - 1 ] != $pos - 1 ) {
-
-            # start a new span
-            push( @spans, [$pos] );
-        }
-        else {
-            push( @{ $spans[-1] }, $pos );
-        }
-        $i++;
-    }
-
-    #warn Data::Dump::dump \@spans;
-
-    # stringify positions
-    for my $span ( sort { @$b <=> @$a } @spans ) {
-        push( @snips, join( '', map { $tokens_arr->[$_]->str } @$span ) );
-    }
-
-    #warn "snips: " . Data::Dump::dump \@snips;
-    if (@snips) {
         my $occur_index = $self->occur - 1;
         if ( $#snips > $occur_index ) {
             @snips = @snips[ 0 .. $occur_index ];
@@ -519,7 +450,7 @@ Q: for my $q (@q) {
     # max = $occur
     @snips = splice @snips, 0, $occur;
 
-    $self->debug and warn Data::Dump::dump( \@snips );
+    $self->debug and warn dump( \@snips );
 
     my $snip = join( $ellip, @snips );
     _no_start_partial($snip) unless $snip_starts_with_query;
@@ -754,9 +685,8 @@ sub _no_end_partial {
 }
 
 sub _escape {
-    my $self = shift;
-    if ( $self->escape ) {
-        return Search::Tools::XML->escape( $_[0] );
+    if ( $_[0]->escape ) {
+        return Search::Tools::XML->escape( $_[1] );
     }
 }
 
@@ -832,6 +762,8 @@ Available via new().
 
 Boolean flag indicating whether snip() should succeed no matter what, or if it should
 give up if no snippets were found. Default is 1 (true).
+
+If no matches are found, the first I<max_chars> of the snippet are returned.
 
 Available via new().
 

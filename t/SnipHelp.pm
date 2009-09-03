@@ -20,7 +20,7 @@ sub test {
             occur     => 1,
             context   => 25,
             max_chars => 190,
-            type      => 're',    # make explicit
+            type      => 're',     # make explicit
         ),
         "new snipper"
     );
@@ -28,6 +28,7 @@ sub test {
             query => $regex,
             tag   => "b",
             class => "x",
+            tty   => $snipper->debug,
         ),
         "new hiliter"
     );
