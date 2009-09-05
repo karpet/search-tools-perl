@@ -430,11 +430,8 @@ I<text> is returned with no markup in it.
 sub no_html {
     my $class = shift;
     my $text = shift or croak "need text to strip HTML from";
-
     $text =~ s,$Search::Tools::RegExp::TagRE,,g;
-
-    $class->unescape($text);
-
+    $text = $class->unescape($text);
     return $text;
 }
 
@@ -474,15 +471,15 @@ dependency. unescape() will convert all entities to their chr() equivalents.
 B<NOTE:> unescape() does more than reverse the effects of escape(). It attempts
 to resolve B<all> entities, not just the special XML entities (><'"&).
 
-B<IMPORTANT:> The API for this method has changed as of version 0.16. I<text> is no longer
-modified in-place.
+B<IMPORTANT:> The API for this method has changed as of version 0.16. 
+I<text> is no longer modified in-place.
 
 =cut
 
 sub unescape {
     my ( $self, $text ) = @_;
-    $self->unescape_named($text);
-    $self->unescape_decimal($text);
+    $text = $self->unescape_named($text);
+    $text = $self->unescape_decimal($text);
     return $text;
 }
 
@@ -490,37 +487,42 @@ sub unescape {
 
 Replace all named HTML entities with their chr() equivalents.
 
-I<text> is modified in place.
+Returns modified copy of I<text>.
 
 =cut
 
 sub unescape_named {
-    if ( defined( $_[1] ) ) {
+    my $t = pop;
+    if ( defined($t) ) {
 
         # named entities - check first to see if it is worth looping
-        if ( $_[1] =~ m/&[a-zA-Z]+;/ ) {
+        if ( $t =~ m/&[a-zA-Z]+;/ ) {
             for ( keys %HTML_ents ) {
-                my $n = $HTML_ents{$_};
-                $_[1] =~ s/&$_;/chr($n)/eg;
+                if ( my $n = $t =~ s/&$_;/chr($HTML_ents{$_})/eg ) {
+
+                    #warn "replaced $_ -> $HTML_ents{$_} $n times in text";
+                }
             }
         }
     }
-    return $_[1];
+    return $t;
 }
 
 =head2 unescape_decimal( I<text> )
 
 Replace all decimal entities with their chr() equivalents.
 
-I<text> is modified in place.
+Returns modified copy of I<text>.
 
 =cut
 
 sub unescape_decimal {
 
+    my $t = pop;
+
     # resolve numeric entities as best we can
-    $_[1] =~ s/&#(\d+);/chr($1)/ego if defined( $_[1] );
-    return $_[1];
+    $t =~ s/&#(\d+);/chr($1)/ego if defined($t);
+    return $t;
 }
 
 1;

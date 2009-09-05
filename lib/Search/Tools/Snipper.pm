@@ -137,7 +137,7 @@ sub _build_query {
 
     }
     my $j = sprintf( '(%s)', join( '|', @re ) );
-    $self->{_qre} = qr/($self->{_ignoreFirst}$j$self->{_ignoreLast})/i;
+    $self->{_qre} = qr/$j/i;
 
 }
 
@@ -207,6 +207,9 @@ sub snip {
         $self->debug and warn "too short. dumb snip: '$s'\n";
     }
 
+    # escape entities before collapsing whitespace.
+    $s = $self->_escape($s);
+
     if ( $self->collapse_whitespace ) {
         _normalize_whitespace($s);
     }
@@ -218,21 +221,19 @@ sub snip {
 sub _token_snip {
     my $self = shift;
     my $qre  = $self->{_qre};
+    
+    $self->debug and warn "$qre";
 
-    #dump $self;
-
-    #warn $self->tokenizer->re;
-    #warn $qre;
+    # we don't bother testing for phrases here.
+    # instead we rely on HeatMap to find them for us later.
     my $tokens = $self->tokenizer->tokenize(
         $_[0],
         sub {
-            if ( $_[0] =~ /$qre/ ) {
+            if ( $_[0] =~ /^$qre$/ ) {
 
                 #warn "---------- HOT MATCH $_[0] [$qre] --------";
                 $_[0]->set_hot(1);
             }
-
-            # TODO phrase match
         }
     );
 
@@ -251,6 +252,8 @@ sub _token_snip {
         # stringify positions
         my @snips;
         for my $span ( @{ $heatmap->spans } ) {
+
+            $self->debug and warn '>>>' . $span->{str_w_pos} . '<<<';
             push( @snips, $span->{str} );
         }
         my $occur_index = $self->occur - 1;
@@ -260,9 +263,10 @@ sub _token_snip {
         my $snip = join( ' ... ', @snips );
         my $snips_start_with_query = $_[0] =~ m/^\Q$snip\E/;
         my $snips_end_with_query   = $_[0] =~ m/\Q$snip\E$/;
-        return join( '',
+        my $extract                = join( '',
             ( $snips_start_with_query ? '' : ' ... ' ),
             $snip, ( $snips_end_with_query ? '' : ' ... ' ) );
+        return $extract;
     }
     else {
         return $self->_dumb_snip( $_[0] );
@@ -373,7 +377,6 @@ WORD: for my $w (@words) {
     $self->debug and warn "before no_start_partial: '$snippet'\n";
     _no_start_partial($snippet);
     $snippet = $ellip . $snippet unless $snippet =~ m/^$words[0]/;
-    $self->_escape($snippet);
 
     return $snippet;
 }
@@ -458,8 +461,6 @@ Q: for my $q (@q) {
     $snip .= $ellip unless $text =~ m/\Q$snips[-1]$/i;
 
     $self->count( scalar(@snips) + $self->count );
-
-    $self->_escape($snip);
 
     return $snip;
 
@@ -668,7 +669,6 @@ sub _dumb_snip {
     my $show = substr( $txt, 0, $max );
     _no_end_partial($show);
     $show .= $ellip;
-    $self->_escape($show);
 
     $self->count( 1 + $self->count );
 
@@ -687,6 +687,9 @@ sub _no_end_partial {
 sub _escape {
     if ( $_[0]->escape ) {
         return Search::Tools::XML->escape( $_[1] );
+    }
+    else {
+        return $_[1];
     }
 }
 

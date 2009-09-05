@@ -138,7 +138,7 @@ st_new_token(
     IV len,
     IV u8len,
     const char *ptr,
-    boolean is_hot,
+    IV is_hot,
     boolean is_match
 ) {
     dTHX;

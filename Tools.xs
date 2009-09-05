@@ -407,6 +407,34 @@ matches(self)
         RETVAL
 
 
+IV
+num_matches(self)
+    st_token_list *self;
+    
+    PREINIT:
+        IV pos;
+        IV len;
+        IV num_matches;
+        SV* tok;
+        st_token *token;
+    
+    CODE:
+        num_matches = 0;
+        pos = 0;
+        len = av_len(self->tokens);
+        while (pos < len) {
+            tok = st_av_fetch(self->tokens, pos++);
+            token = (st_token*)st_extract_ptr(tok);
+            if (token->is_match) {
+                num_matches++;
+            }
+        }
+        RETVAL = num_matches;
+    
+    OUTPUT:
+        RETVAL
+
+
 void
 DESTROY(self)
     SV *self;

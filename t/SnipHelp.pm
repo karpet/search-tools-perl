@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Data::Dump qw( dump );
 use File::Slurp;
+use Search::Tools::RegExp;
 
 sub test {
     my ( $file, $q ) = @_;
@@ -14,6 +15,19 @@ sub test {
     ok( my $html  = read_file($file),        "read buf" );
     ok( my $xml   = Search::Tools::XML->new, "new xml object" );
     ok( my $plain = $xml->strip_html($html), "strip_html" );
+    if ( Search::Tools::RegExp->isHTML($html) ) {
+        cmp_ok( $html, 'ne', $plain, "strip_html ok" );
+        if ( Search::Tools::RegExp->isHTML($plain) ) {
+            fail("plain text has no html");
+        }
+        else {
+            pass("plain text has no html");
+        }
+    }
+    else {
+        pass("strip_html skipped");
+        pass("strip_html skipped");
+    }
     ok( my $regex = Search::Tools->regexp( query => $q ), "new regex" );
     ok( my $snipper = Search::Tools::Snipper->new(
             query     => $regex,
@@ -21,6 +35,7 @@ sub test {
             context   => 25,
             max_chars => 190,
             type      => 're',     # make explicit
+                                   #escape    => 1,
         ),
         "new snipper"
     );

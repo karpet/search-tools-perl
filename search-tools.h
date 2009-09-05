@@ -25,7 +25,7 @@ struct st_token {
     IV              len;        // token length (bytes)
     IV              u8len;      // token length (utf8 chars)
     SV             *str;        // SV* for the string
-    boolean         is_hot;     // interesting token flag
+    IV              is_hot;     // interesting token flag
     boolean         is_match;   // matched regex
     IV              ref_cnt;    // reference counter
 };
@@ -42,7 +42,7 @@ st_new_token(
     IV len,
     IV u8len,
     const char *ptr,
-    boolean is_hot,
+    IV is_hot,
     boolean is_match
 );
 
