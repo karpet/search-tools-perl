@@ -143,13 +143,19 @@ st_new_token(
 ) {
     dTHX;
     st_token *tok;
+    
+    if (!len) {
+        ST_CROAK("cannot create token with zero length: '%s'", ptr);
+    }
+    
     tok = st_malloc(sizeof(st_token));
     tok->pos = pos;
     tok->len = len;
     tok->u8len = u8len;
     tok->is_hot = is_hot;
     tok->is_match = is_match;
-    tok->str = newSVpvn_utf8(ptr, len, 1);
+    tok->str = newSVpvn(ptr, len); /* newSVpvn_utf8 not available in some perls? */
+    SvUTF8_on(tok->str);
     tok->ref_cnt = 1;
     return tok;
 }
@@ -347,6 +353,43 @@ st_is_ascii( SV* str ) {
     return 1;
 }
 
+static REGEXP*
+st_get_regex_from_sv( SV *regex_sv ) {
+    dTHX;   /* thread-safe perlism */
+    MAGIC *mg;
+    mg = NULL;
+
+    /* extract regexp struct from qr// entity */
+    if (SvROK(regex_sv)) {
+        SV *sv = SvRV(regex_sv);
+        if (SvMAGICAL(sv))
+            mg = mg_find(sv, PERL_MAGIC_qr);
+    }
+    if (!mg)
+        ST_CROAK("regex is not a qr// entity");
+        
+    return (REGEXP*)mg->mg_obj;
+}
+
+static void
+st_heat_seeker( st_token *token, SV *re ) {
+    dTHX;   /* thread-safe perlism */
+    
+    REGEXP *rx;
+    char *buf, *str_end;
+    
+    rx = st_get_regex_from_sv(re);
+    buf = SvPVX(token->str);
+    str_end = buf + token->len;
+
+    if ( pregexec(rx, buf, str_end, buf, 1, token->str, 1) ) {
+        if (ST_DEBUG) {
+            warn("st_heat_seeker: token is hot: %s", buf);
+        }
+        token->is_hot = 1;
+    }
+
+}
 
 /*
     st_tokenize() et al based on KinoSearch::Analysis::Tokenizer 
@@ -361,36 +404,28 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
     
 /* declare */
     IV               num_tokens;
-    MAGIC           *mg;
     REGEXP          *rx;
     char            *buf, *str_start, *str_end;
     STRLEN           str_len;
     const char      *prev_end, *prev_start;
     AV              *tokens;
     SV              *tok;
+    boolean          heat_map_is_CV;
 
 /* initialize */
     num_tokens      = 0;
-    mg              = NULL;
-    rx              = NULL;
+    rx              = st_get_regex_from_sv(token_re);
     buf             = SvPV(str, str_len);
     str_start       = buf;
     str_end         = str_start + str_len;
     prev_start      = str_start;
     prev_end        = prev_start;
     tokens          = newAV();
-        
-/* extract regexp struct from qr// entity */
-    if (SvROK(token_re)) {
-        SV *sv = SvRV(token_re);
-        if (SvMAGICAL(sv))
-            mg = mg_find(sv, PERL_MAGIC_qr);
+    heat_map_is_CV  = 0;
+    if (heat_seeker != NULL && (SvTYPE(SvRV(heat_seeker))==SVt_PVCV)) {
+         heat_map_is_CV = 1;
     }
-    if (!mg)
-        ST_CROAK("regex is not a qr// entity");
         
-    rx = (REGEXP*)mg->mg_obj;
-    
     //warn("tokenizing: '%s'\n", buf);
     
     while ( pregexec(rx, buf, str_end, buf, 1, str, 1) ) {
@@ -440,10 +475,15 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
         
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
         if (heat_seeker != NULL) {
-            PUSHMARK(SP);
-            XPUSHs(tok);
-            PUTBACK;
-            call_sv(heat_seeker, G_DISCARD);
+            if (heat_map_is_CV) {
+                PUSHMARK(SP);
+                XPUSHs(tok);
+                PUTBACK;
+                call_sv(heat_seeker, G_DISCARD);
+            }
+            else {
+                st_heat_seeker(token, heat_seeker);
+            }
         }
         av_push(tokens, SvREFCNT_inc(tok));
         

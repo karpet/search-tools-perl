@@ -147,10 +147,14 @@ sub light {
     my $self = shift;
     my $text = shift or return '';
 
-    if ( Search::Tools::RegExp->isHTML($text) && !$self->no_html ) {
+    if ( Search::Tools::RegExp->is_html($text) && !$self->no_html ) {
+
+        #warn "running ->html";
         return $self->html($text);
     }
     else {
+
+        #warn "running ->plain";
         return $self->plain($text);
     }
 }
@@ -393,6 +397,8 @@ Q: for my $query ( $self->_kworder ) {
         }
 
     }
+
+    #warn "plain done";
 
     return $text;
 

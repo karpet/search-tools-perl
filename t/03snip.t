@@ -20,8 +20,6 @@ my @q = ( 'squiggle', 'type', 'course', '"human events"' );
 ok( my $s = Search::Tools::Snipper->new(
         query     => [@q],
         max_chars => length($text) - 1,
-        #snipper   => \&token_snipper,
-        #type_used => 'tokenizer',
     ),
     "snipper"
 );
@@ -29,6 +27,7 @@ ok( my $s = Search::Tools::Snipper->new(
 ok( my $snip = $s->snip($text), "snip" );
 
 diag($snip);
+diag($s->type_used);
 
 ok( length($snip) < $s->max_chars, "max_chars" );
 
@@ -41,8 +40,6 @@ $text = read_file('t/docs/test.txt');
 ok( $s = Search::Tools::Snipper->new(
         query     => [@q],
         max_chars => length($text) - 1,
-        #snipper   => \&token_snipper,
-        #type_used => 'tokenizer',
     ),
     "new snipper"
 );
@@ -77,18 +74,14 @@ my $excerpt
 
 my $regex = Search::Tools->regexp( query => 'amen' );
 my $snip_excerpt = Search::Tools::Snipper->new(
-    query     => $regex,
-    occur     => 1,
-    context   => 26,
-    #snipper   => \&token_snipper,
-    #type_used => 'tokenizer',
+    query   => $regex,
+    occur   => 1,
+    context => 26,
 );
 my $snip_title = Search::Tools::Snipper->new(
-    query     => $regex,
-    occur     => 1,
-    context   => 8,
-    #snipper   => \&token_snipper,
-    #type_used => 'tokenizer',
+    query   => $regex,
+    occur   => 1,
+    context => 8,
 );
 
 like( $snip_excerpt->snip($text2), qr/$excerpt/, "excerpt context" );

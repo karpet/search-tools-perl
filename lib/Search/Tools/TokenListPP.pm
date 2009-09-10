@@ -7,19 +7,11 @@ use overload
     'bool'   => sub { $_[0]->len; },
     fallback => 1;
 use Carp;
+use base qw( Search::Tools::TokenListUtils );
 
 our $VERSION = '0.24';
 
 __PACKAGE__->mk_accessors(qw( pos num tokens ));
-
-sub str {
-    my $self   = shift;
-    my $joiner = shift(@_);
-    if ( !defined $joiner ) {
-        $joiner = '';
-    }
-    return join( $joiner, map {"$_"} @{ $self->as_array } );
-}
 
 sub len {
     return scalar @{ $_[0]->{tokens} };
@@ -84,6 +76,10 @@ sub as_array {
 
 sub matches {
     return [ grep { $_->{is_match} } @{ $_[0]->{tokens} } ];
+}
+
+sub num_matches {
+    return scalar @{ shift->matches };
 }
 
 1;

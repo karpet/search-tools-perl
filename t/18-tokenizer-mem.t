@@ -13,7 +13,7 @@ use_ok('Search::Tools::Tokenizer');
 my $str = "foo bar bing";
 
 ok( my $tokenizer = Search::Tools::Tokenizer->new, "new tokenizer" );
-ok( my $tokens    = $tokenizer->tokenize($str),    "tokenize str" );
+ok( my $tokens    = $tokenizer->tokenize($str, qr/\w/),    "tokenize str" );
 is( check_tokens($tokens), 5, "check_tokens" );
 
 # test for some leaks and refcnt bugs

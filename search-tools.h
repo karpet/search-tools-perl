@@ -70,6 +70,8 @@ static SV*      st_tokenize(
     SV* heat_seeker, 
     IV match_num 
 );
+static void     st_heat_seeker( st_token *token, SV *re );
+static REGEXP*  st_get_regex_from_sv( SV* regex_sv );
 static SV*      st_new_hash_object(const char *class);
 static SV*      st_bless_ptr( const char* class, IV c_ptr );
 static IV       st_extract_ptr( SV* object );

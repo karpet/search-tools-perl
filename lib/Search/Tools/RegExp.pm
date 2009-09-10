@@ -8,6 +8,7 @@ use Search::Tools::Keywords;
 use Search::Tools::RegExp::Keywords;
 use Search::Tools::RegExp::Keyword;
 use Search::Tools::XML;
+use Search::Tools::UTF8;
 
 our $VERSION = '0.24';
 
@@ -136,7 +137,8 @@ sub _init {
 
 }
 
-sub isHTML { $_[1] =~ m/[<>]|&[#\w]+;/ }
+sub isHTML { return $_[1] =~ m/[<>]|&[\#\w]+;/o }
+*is_html = \&isHTML;
 
 sub build {
     my $self = shift;

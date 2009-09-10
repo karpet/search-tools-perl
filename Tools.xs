@@ -30,6 +30,21 @@ extern "C" {
 
 /********************************************************************/
 
+MODULE = Search::Tools       PACKAGE = Search::Tools
+
+PROTOTYPES: enable
+
+
+void
+describe(thing)
+    SV *thing
+    
+    CODE:
+        st_describe_object(thing);
+        st_dump_sv(thing);
+
+
+######################################################################
 MODULE = Search::Tools       PACKAGE = Search::Tools::UTF8
 
 PROTOTYPES: enable
@@ -249,6 +264,8 @@ next(self)
         
     CODE:
         len = av_len(self->tokens);
+        //warn("len = %d and pos = %d", len, self->pos);
+        
         if (len == -1) {
             // empty list
             RETVAL = &PL_sv_undef;
@@ -258,7 +275,13 @@ next(self)
             RETVAL = &PL_sv_undef;
         }
         else {
-            RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, self->pos++));
+            if (!av_exists(self->tokens, self->pos)) {
+                ST_CROAK("no such index at %d", self->pos);
+            }
+            else {
+                st_dump_sv( st_av_fetch(self->tokens, self->pos) );
+                RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, self->pos++));
+            }
         }
         
             

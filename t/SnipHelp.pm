@@ -5,9 +5,11 @@ use warnings;
 use Data::Dump qw( dump );
 use File::Slurp;
 use Search::Tools::RegExp;
+use Search::Tools::Snipper;
+use Search::Tools::UTF8;
 
 sub test {
-    my ( $file, $q ) = @_;
+    my ( $file, $q, $snipper_type ) = @_;
     use_ok('Search::Tools');
     use_ok('Search::Tools::Snipper');
     use_ok('Search::Tools::HiLiter');
@@ -15,9 +17,10 @@ sub test {
     ok( my $html  = read_file($file),        "read buf" );
     ok( my $xml   = Search::Tools::XML->new, "new xml object" );
     ok( my $plain = $xml->strip_html($html), "strip_html" );
-    if ( Search::Tools::RegExp->isHTML($html) ) {
+
+    if ( Search::Tools::RegExp->is_html($html) ) {
         cmp_ok( $html, 'ne', $plain, "strip_html ok" );
-        if ( Search::Tools::RegExp->isHTML($plain) ) {
+        if ( Search::Tools::RegExp->is_html($plain) ) {
             fail("plain text has no html");
         }
         else {
@@ -34,8 +37,8 @@ sub test {
             occur     => 1,
             context   => 25,
             max_chars => 190,
-            type      => 're',     # make explicit
-                                   #escape    => 1,
+            type      => $snipper_type,    # make explicit
+                                           #escape    => 1,
         ),
         "new snipper"
     );

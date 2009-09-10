@@ -429,7 +429,10 @@ I<text> is returned with no markup in it.
 
 sub no_html {
     my $class = shift;
-    my $text = shift or croak "need text to strip HTML from";
+    my $text  = shift;
+    if ( !defined $text ) {
+        croak "text required";
+    }
     $text =~ s,$Search::Tools::RegExp::TagRE,,g;
     $text = $class->unescape($text);
     return $text;

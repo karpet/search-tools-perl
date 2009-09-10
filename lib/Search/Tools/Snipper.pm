@@ -12,8 +12,9 @@ use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.24';
-our $ellip   = ' ... ';
+our $VERSION        = '0.24';
+our $ellip          = ' ... ';
+our $DefaultSnipper = 'token';
 
 __PACKAGE__->mk_accessors(
     qw(
@@ -40,7 +41,7 @@ sub _init {
     my $self = shift;
     $self->SUPER::_init(@_);
 
-    $self->{type}      ||= 'token';
+    $self->{type}      ||= $DefaultSnipper;
     $self->{occur}     ||= 5;
     $self->{max_chars} ||= 300;
     $self->{context}   ||= 8;
@@ -108,7 +109,7 @@ sub _build_query {
     my $wildcard = $self->rekw->wildcard || '*';
     my $wild_esc = quotemeta($wildcard);
 
-    # create regexp for loop_snip()
+    # create regexp for _loop()
     # other regexp come from S::H::RegExp
     my @re;
     my $wc = $self->rekw->word_characters;
@@ -143,31 +144,16 @@ sub _build_query {
 
 # I tried Text::Context but that was too slow
 # here are several different models.
-# I have found that loop_snip() is faster for single-word queries,
-# while re_snip() seems to be the best compromise between speed and accuracy
+# I have found that _loop() is faster for single-word queries,
+# while _re() seems to be the best compromise between speed and accuracy.
+# new in version 0.24 is _token() which is mostly XS and should be best.
 
 sub _pick_snipper {
     my ( $self, $text ) = @_;
-
-    # default snipper is loop_snip since it is fastest for single words
-    # but we can specify re_snip if we want
-    my $func = \&_token_snip;
-
-    #    if (!$self->force
-    #        && ($self->type eq 're'
-    #
-    #            # phrases must use regexp
-    #            # so check if any of our queries contain a space
-    #            || grep {/\ /} $self->rekw->keywords
-    #
-    #            # or if text looks like HTML/XML
-    #            || Search::Tools::RegExp->isHTML($text)
-    #        )
-    #        )
-    #    {
-    #        $func = \&_re_snip;
-    #    }
-
+    my $snipper_name = $self->type || $DefaultSnipper;
+    my $method_name = '_' . $snipper_name;
+    $self->type_used($snipper_name);
+    my $func = sub { shift->$method_name(@_) };
     return $func;
 }
 
@@ -177,7 +163,10 @@ sub _normalize_whitespace {
 
 sub snip {
     my $self = shift;
-    my $text = shift or return '';
+    my $text = shift;
+    if ( !defined $text ) {
+        croak "text required to snip";
+    }
 
     # normalize encoding, esp for regular expressions.
     $text = to_utf8($text);
@@ -193,17 +182,17 @@ sub snip {
     # may set type() or snipper() between calls to snip().
     my $func = $self->snipper || $self->_pick_snipper($text);
 
-    my $s = &$func( $self, $text );
+    my $s = $func->( $self, $text );
 
     $self->debug and warn "snipped: '$s'\n";
 
     # sanity check
     if ( length($s) > ( $self->max_chars * 4 ) ) {
-        $s = $self->_dumb_snip($s);
+        $s = $self->_dumb($s);
         $self->debug and warn "too long. dumb snip: '$s'\n";
     }
     elsif ( !length($s) ) {
-        $s = $self->_dumb_snip($text);
+        $s = $self->_dumb($text);
         $self->debug and warn "too short. dumb snip: '$s'\n";
     }
 
@@ -218,24 +207,14 @@ sub snip {
 
 }
 
-sub _token_snip {
+sub _token {
     my $self = shift;
     my $qre  = $self->{_qre};
-    
     $self->debug and warn "$qre";
 
     # we don't bother testing for phrases here.
     # instead we rely on HeatMap to find them for us later.
-    my $tokens = $self->tokenizer->tokenize(
-        $_[0],
-        sub {
-            if ( $_[0] =~ /^$qre$/ ) {
-
-                #warn "---------- HOT MATCH $_[0] [$qre] --------";
-                $_[0]->set_hot(1);
-            }
-        }
-    );
+    my $tokens = $self->tokenizer->tokenize( $_[0], qr/^$qre$/ );
 
     my $heatmap = Search::Tools::HeatMap->new(
         tokens      => $tokens,
@@ -269,18 +248,114 @@ sub _token_snip {
         return $extract;
     }
     else {
-        return $self->_dumb_snip( $_[0] );
+        return $self->_dumb( $_[0] );
     }
 
 }
 
-sub _loop_snip {
-
+sub _get_offsets {
     my $self = shift;
-    $self->type_used('loop');
+    my $txt  = shift;
+    my $re   = $self->{_qre};
 
-    my $txt = shift or return '';
+    # get rough idea of the offsets of all the matches.
+    # benchmarks show this kind of loop is fast,
+    # so we use it to reduce the size of the target text.
+    my @offsets;
+    while ( $txt =~ m/$re/g ) {
+        push @offsets, pos($txt);
+    }
+    return \@offsets;
+}
 
+sub _offset {
+    my $self    = shift;
+    my $txt     = shift;
+    my $offsets = $self->_get_offsets($txt);
+    my $snips   = $self->_get_offset_snips( $txt, $offsets );
+    return $self->_re( join( '', @$snips ) );
+}
+
+sub _get_offset_snips {
+    my $self    = shift;
+    my $txt     = shift;
+    my $offsets = shift;
+
+    # grab $size chars on either side of each offset
+    # and tokenize each.
+    # $size should be nice and wide to minimize the substr() calls.
+    my $size = $self->max_chars * 2;
+
+    #warn "window size $size";
+
+    my @buf;
+    my $len = length($txt);
+    if ( $size > $len ) {
+
+        #warn "window bigger than document";
+        return $self->_token($txt);
+    }
+
+    my ( $seen_start, $seen_end );
+    my $last_ending = 0;
+    for my $pos (@$offsets) {
+
+        my $tmp;
+
+        my $start = $pos - ( $size / 2 );
+        my $end   = $pos + ( $size / 2 );
+
+        # avoid overlaps
+        if ( $last_ending && $start < $last_ending ) {
+            $start = $last_ending + 1;
+            $end   = $start + $size;
+        }
+
+        #warn "$start .. $pos .. $end";
+
+        if ( $pos > $end or $pos < $start ) {
+            next;
+        }
+
+        $last_ending = $end;
+
+        #warn "$start .. $end";
+
+        # if $pos is close to the front of $txt
+        if ( $start <= 0 ) {
+            next if $seen_start++;
+
+            #warn "start";
+            $tmp = substr( $txt, 0, $size );
+        }
+
+        # if $pos is somewhere near the end
+        elsif ( $end > $len ) {
+            next if $seen_end++;
+
+            #warn "end";
+            $tmp = substr( $txt, ( $len - $size ) );
+        }
+
+        # default is somewhere in the ripe middle.
+        else {
+
+            #warn "middle";
+            $tmp = substr( $txt, $start, $size );
+        }
+
+        #_no_start_partial($tmp);
+        #_no_end_partial($tmp);
+
+        push @buf, $tmp;
+    }
+
+    return \@buf;
+}
+
+sub _loop {
+    my $self   = shift;
+    my $txt    = shift;
     my $regexp = $self->{_qre};
 
     #carp "loop snip: $txt";
@@ -290,12 +365,12 @@ sub _loop_snip {
     my $debug = $self->debug || 0;
 
     # no matches
-    return $self->_dumb_snip($txt) unless $txt =~ m/$regexp/;
+    return $self->_dumb($txt) unless $txt =~ m/$regexp/;
 
     #carp "loop snip: $txt";
 
-    my $context = $self->context;
-    my $occur   = $self->occur;
+    my $context = $self->context - 1;
+    my $occur = $self->occur || 1;
     my @snips;
 
     my $notwc = $self->{_wc_regexp};
@@ -304,6 +379,7 @@ sub _loop_snip {
     my $count       = -1;
     my $start_again = $count;
     my $total       = 0;
+    my $first_match = 0;
 
 WORD: for my $w (@words) {
 
@@ -327,6 +403,8 @@ WORD: for my $w (@words) {
                 warn "w: '$w' match: '$1'\n";
             }
 
+            $first_match = $count;
+
             my $before = $last - $context;
             $before = 0 if $before < 0;
             my $after = $next + $context;
@@ -339,29 +417,34 @@ WORD: for my $w (@words) {
             my @before = @words[ $before .. $last ];
             my @after  = @words[ $next .. $after ];
 
-            $total += grep {m/^$regexp$/i} ( @before, @after );
+            my $this_snip_matches = grep {m/^$regexp$/i} ( @before, @after );
+            if ($this_snip_matches) {
+                $after += $this_snip_matches;
+                @after = @words[ $next .. $after ];
+            }
+            $total += $this_snip_matches;
             $total++;    # for current $w
 
             my $t = join( '', @before, $w, @after );
 
             $t .= $ellip unless $count == $#words;
 
-            #$t = $ellip . $t unless $count == 0;
-
             if ( $debug > 1 ) {
                 warn "t: $t\n";
+                warn "this_snip_matches: $this_snip_matches\n";
                 warn "total: $total\n";
             }
 
-            push( @snips, $t );
-            last WORD if scalar @snips >= $occur;
-
+            push( @snips, [ $t, $this_snip_matches + 1 ] );    # +1 for $w
             $start_again = $after;
         }
 
-        last WORD if $total >= $occur;
-
     }
+
+    # sort by match density.
+    # consistent with HeatMap and lets us find
+    # the *best* match, including phrases.
+    @snips = map { $_->[0] } sort { $b->[1] <=> $a->[1] } @snips;
 
     if ( $debug > 1 ) {
         carp "snips: " . scalar @snips;
@@ -373,23 +456,28 @@ WORD: for my $w (@words) {
     }
 
     $self->count( scalar(@snips) + $self->count );
-    my $snippet = join( '', @snips );
+    my $last_snip = $occur - 1;
+    if ( $last_snip > $#snips ) {
+        $last_snip = $#snips;
+    }
+
+    #warn dump \@snips;
+    my $snippet = join( '', @snips[ 0 .. $last_snip ] );
     $self->debug and warn "before no_start_partial: '$snippet'\n";
-    _no_start_partial($snippet);
-    $snippet = $ellip . $snippet unless $snippet =~ m/^$words[0]/;
+
+    #_no_start_partial($snippet);
+    $snippet = $ellip . $snippet if $first_match;
 
     return $snippet;
 }
 
-sub _re_snip {
+sub _re {
 
    # get first N matches for each q, then take one of each till we have $occur
 
-    my $self = shift;
-    my $text = shift;
-    my @q    = $self->rekw->keywords;
-    $self->type_used('re');
-
+    my $self  = shift;
+    my $text  = shift;
+    my @q     = $self->rekw->keywords;
     my $occur = $self->occur;
     my $Nchar = $self->context * $self->word_len;
     my $total = 0;
@@ -431,7 +519,7 @@ Q: for my $q (@q) {
 
     }
 
-    return $self->_dumb_snip($text) unless $total;
+    return $self->_dumb($text) unless $total;
 
     # get all snips into one array in order they appeared in $text
     # should be a max of $snip_per_q in any one $q snip array
@@ -655,7 +743,7 @@ RE: while ( $$text =~ m/$re/g ) {
     return $cnt;
 }
 
-sub _dumb_snip {
+sub _dumb {
 
     # just grap the first X chars and return
 
@@ -788,26 +876,33 @@ Available via new().
 
 =head2 type
 
-There are three different algorithms used internally for snipping text.
-They are:
+There are different algorithms used internally for snipping text.
+They are, in order of speed:
 
 =over
-
-=item loop
-
-Fastest for single-word queries.
-
-=item re (default)
-
-The regular expression algorithm. Slower than I<loop> for the common
-case (single word) but the best compromise between
-speed and accuracy.
 
 =item dumb
 
 Just grabs the first B<max_chars> characters and returns it,
 doing a little clean up to prevent partial words from ending the snippet
 and (optionally) escaping the text.
+
+=item loop
+
+Fastest for single-word queries.
+
+=item token (default)
+
+Most accurate, for both single-word and phrase queries, although it relies
+on a HeatMap in order to locate phrases.
+
+=item offset
+
+Same as C<re> but optimized slightly to look at a substr of text.
+
+=item re
+
+The regular expression algorithm. Will match phrases exactly.
 
 =back
 

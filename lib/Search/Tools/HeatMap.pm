@@ -23,7 +23,7 @@ sub _init {
     return $self;
 }
 
-# TODO this is mostly integer math and would likely be *much*
+# TODO this is mostly integer math and might be much
 # faster if rewritten in XS once the algorithm is "final".
 sub _build {
     my $self       = shift;
@@ -141,7 +141,7 @@ sub _build {
 
         # TODO is the sort necessary? dump pos above
         $span{tokens} = [ sort { $a->pos <=> $b->pos } @cluster_tokens ];
-        $span{str} = join( '', map { $_->str } @cluster_tokens );
+        $span{str} = join( '', map { $_->str } @{ $span{tokens} } );
 
         # just for debug
         $span{str_w_pos} = join(
