@@ -203,6 +203,7 @@ st_free_token_list(st_token_list *token_list) {
 
 static void
 st_dump_token_list(st_token_list *tl) {
+    dTHX;
     IV len, pos;
     len = av_len(tl->tokens);
     pos = 0;
@@ -218,6 +219,7 @@ st_dump_token_list(st_token_list *tl) {
 
 static void
 st_dump_token(st_token *tok) {
+    dTHX;
     warn("Token 0x%x", tok);
     warn(" str = '%s'\n", SvPV(tok->str, PL_na));
     warn(" pos = %d\n", tok->pos);
@@ -340,6 +342,7 @@ st_describe_object( SV* object ) {
 
 static boolean
 st_is_ascii( SV* str ) {
+    dTHX;
     STRLEN len;
     U8 *bytes;
     IV i;
