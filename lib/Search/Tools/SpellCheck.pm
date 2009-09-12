@@ -18,9 +18,9 @@ __PACKAGE__->mk_accessors(
         )
 );
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
 
     $self->{max_suggest} ||= 4;
 

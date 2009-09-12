@@ -18,8 +18,7 @@ __PACKAGE__->mk_accessors(
         start_bound
         end_bound
         ignore_fields
-        ),
-    @Search::Tools::Accessors
+        )
 );
 
 my %char2entity = ();
@@ -64,9 +63,9 @@ my @whitesp = (
 
 our $WhiteSpace = join( '|', @whitesp );
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
 
     $self->{wildcard}          ||= $Wildcard;
     $self->{word_characters}   ||= $WordChar;
@@ -76,8 +75,7 @@ sub _init {
 
     $self->kw(
         Search::Tools::Keywords->new(
-            map { $_ => $self->$_ }
-                ( @Search::Tools::Accessors, 'ignore_fields' )
+            map { $_ => $self->$_ } ( $self->common_methods, 'ignore_fields' )
         )
     ) unless $self->kw;
 
@@ -164,7 +162,7 @@ sub build {
         kw          => $self->kw,
         start_bound => $self->start_bound,
         end_bound   => $self->end_bound,
-        map { $_ => $self->$_ } @Search::Tools::Accessors
+        map { $_ => $self->$_ } ( $self->common_methods ),
     );
 
     return $kw;
@@ -173,13 +171,13 @@ sub build {
 sub _build {
     my $self      = shift;
     my $q         = shift or croak "need query to build()";
-    my $wild      = $self->word_characters;
+    my $wild      = $self->kw->word_characters;
     my $st_bound  = $self->{start_bound};
     my $end_bound = $self->{end_bound};
-    my $wc        = $self->word_characters;
+    my $wc        = $self->kw->word_characters;
     my $tpb       = $self->{text_phrase_bound};
     my $hpb       = $self->{html_phrase_bound};
-    my $wildcard  = $self->wildcard;
+    my $wildcard  = $self->kw->wildcard;
     my $wild_esc  = quotemeta($wildcard);
 
     # define simple pattern for plain text

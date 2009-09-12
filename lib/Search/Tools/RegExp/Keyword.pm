@@ -8,11 +8,6 @@ our $VERSION = '0.24';
 
 __PACKAGE__->mk_ro_accessors(qw( plain html word phrase ));
 
-sub _init {
-    my $self = shift;
-    $self->SUPER::_init(@_);
-}
-
 1;
 __END__
 

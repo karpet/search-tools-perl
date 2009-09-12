@@ -8,16 +8,12 @@ __PACKAGE__->mk_ro_accessors(
         kw
         start_bound
         end_bound
-        ),
-    @Search::Tools::Accessors
+        hash
+        array
+        )
 );
 
 our $VERSION = '0.24';
-
-sub _init {
-    my $self = shift;
-    $self->SUPER::_init(@_);
-}
 
 sub keywords {
     my $self = shift;

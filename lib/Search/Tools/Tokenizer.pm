@@ -4,9 +4,7 @@ use warnings;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS package required
 use Search::Tools::Token;
-use Search::Tools::TokenPP;
 use Search::Tools::TokenList;
-use Search::Tools::TokenListPP;
 use Search::Tools::UTF8;
 use Carp;
 
@@ -14,9 +12,9 @@ our $VERSION = '0.24';
 
 __PACKAGE__->mk_accessors(qw( re ));
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
     $self->{re} ||= qr/\w+(?:'\w+)*/;
     if ( $self->debug ) {
         $self->set_debug( $self->debug - 1 );    # XS debug a level higher
@@ -25,6 +23,9 @@ sub _init {
 }
 
 sub tokenize_pp {
+    require Search::Tools::TokenPP;
+    require Search::Tools::TokenListPP;
+
     my $self = shift;
     if ( !defined $_[0] ) {
         croak "str required";

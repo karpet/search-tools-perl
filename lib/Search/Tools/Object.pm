@@ -2,8 +2,12 @@ package Search::Tools::Object;
 use strict;
 use warnings;
 use Carp;
-use base qw( Class::Accessor::Fast );
-use Search::Tools;
+use base qw( Rose::Object );
+use Search::Tools::MethodMaker;
+
+our $VERSION = '0.24';
+
+__PACKAGE__->mk_accessors( __PACKAGE__->common_methods );
 
 =pod
 
@@ -13,30 +17,76 @@ Search::Tools::Object - base class for Search::Tools objects
 
 =head1 METHODS
 
-=head2 new( I<args> )
-
-I<args> should be a hash.
-
 =cut
 
-__PACKAGE__->mk_accessors(qw( debug ));
+sub _init {
+    croak "use init() instead";
+}
 
-sub new {
-    my $class = shift;
-    my $args  = ref( $_[0] ) eq 'HASH' ? shift(@_) : {@_};
-    my $self  = $class->SUPER::new($args);
-    $self->_init(@_);
+sub init {
+    my $self = shift;
+    while (@_) {
+        my $method = shift;
+        $self->{$method} = shift;
+    }
+    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
     return $self;
 }
 
-sub _init {
-    my $self = shift;
-    $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+# backcompat for CAF
+sub mk_accessors {
+    my $class = shift;
+    Search::Tools::MethodMaker->make_methods( { target_class => $class },
+        scalar => \@_ );
+}
+
+sub mk_ro_accessors {
+    my $class = shift;
+    Search::Tools::MethodMaker->make_methods( { target_class => $class },
+        'scalar --ro' => \@_ );
+}
+
+sub common_methods {
+    return qw(
+        debug
+        locale
+        charset
+        lang
+        stopwords
+        wildcard
+        token_re
+        word_characters
+        ignore_first_char
+        ignore_last_char
+        stemmer
+        phrase_delim
+        ignore_case
+    );
 }
 
 1;
 
 __END__
+
+=head1 COMMON ACCESSORS
+
+The following common accessors are inherited by every module in Search::Tools:
+
+    stopwords
+    wildcard
+    token_re
+    word_characters
+    ignore_first_char
+    ignore_last_char
+    stemmer
+    phrase_delim
+    ignore_case
+    debug
+    locale
+    charset
+    lang
+
+See each module's documentation for more details.
 
 =head1 AUTHOR
 

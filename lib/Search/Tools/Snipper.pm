@@ -33,13 +33,12 @@ __PACKAGE__->mk_accessors(
         count
         collapse_whitespace
         tokenizer
-        ),
-    @Search::Tools::Accessors
+        )
 );
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
 
     $self->{type}      ||= $DefaultSnipper;
     $self->{occur}     ||= 5;
@@ -84,7 +83,10 @@ sub _word_regexp {
     # this based on SWISH::PhraseHighlight::set_match_regexp()
 
     my $self = shift;
-    my $wc   = $self->rekw->word_characters;
+
+    #dump $self;
+
+    my $wc = $self->rekw->word_characters;
     $self->{_wc_regexp}
         = qr/[^$wc]+/io;    # regexp for splitting into swish-words
 

@@ -39,6 +39,7 @@ t/docs/test.txt
 lib/Search/Tools.pm
 lib/Search/Tools/HiLiter.pm
 lib/Search/Tools/Object.pm
+lib/Search/Tools/MethodMaker.pm
 lib/Search/Tools/Snipper.pm
 lib/Search/Tools/Keywords.pm
 lib/Search/Tools/Token.pm

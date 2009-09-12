@@ -18,13 +18,12 @@ __PACKAGE__->mk_accessors(
         tty
         ttycolors
         no_html
-        ),
-    @Search::Tools::Accessors
+        )
 );
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
 
     if ( $self->debug ) {
         carp "debug level set at " . $self->debug;
@@ -34,8 +33,10 @@ sub _init {
         croak "query required.";
     }
     elsif ( ref $self->query eq 'ARRAY' or !ref $self->query ) {
-        my $re = Search::Tools::RegExp->new( map { $_ => $self->$_ }
-                @Search::Tools::Accessors );
+        my $re
+            = Search::Tools::RegExp->new( map { $_ => $self->$_ }
+                $self->common_methods,
+            );
         $self->rekw( $re->build( $self->query ) );
     }
     elsif ( $self->query->isa('Search::Tools::RegExp::Keywords') ) {

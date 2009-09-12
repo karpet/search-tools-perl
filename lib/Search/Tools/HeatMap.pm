@@ -16,9 +16,9 @@ if ( !$@ ) {
 
 __PACKAGE__->mk_accessors(qw( window_size tokens hot spans ));
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
     $self->_build;
     return $self;
 }

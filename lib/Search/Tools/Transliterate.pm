@@ -1,5 +1,4 @@
 package Search::Tools::Transliterate;
-
 use strict;
 use warnings;
 use base qw( Search::Tools::Object );
@@ -136,9 +135,9 @@ sub _Utag_to_chr {
     return $t;
 }
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
 
     $self->{ebit} = 1 unless defined $self->{ebit};
 

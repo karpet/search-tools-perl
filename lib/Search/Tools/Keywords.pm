@@ -24,13 +24,12 @@ __PACKAGE__->mk_accessors(
         not_word
         ignore_fields
         treat_uris_like_phrases
-        ),
-    @Search::Tools::Accessors
+        )
 );
 
-sub _init {
+sub init {
     my $self = shift;
-    $self->SUPER::_init(@_);
+    $self->SUPER::init(@_);
 
     # set defaults
     $self->{locale} ||= setlocale(LC_CTYPE);
@@ -41,7 +40,7 @@ sub _init {
     $self->{and_word}          ||= 'and|near\d*';
     $self->{or_word}           ||= 'or';
     $self->{not_word}          ||= 'not';
-    $self->{wildcard}          ||= '*';
+    $self->{wildcard}          ||= $Search::Tools::RegExp::Wildcard;
     $self->{stopwords}         ||= [];
     $self->{ignore_first_char} ||= $Search::Tools::RegExp::IgnFirst;
     $self->{ignore_last_char}  ||= $Search::Tools::RegExp::IgnLast;

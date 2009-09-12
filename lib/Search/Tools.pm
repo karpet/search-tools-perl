@@ -9,23 +9,6 @@ our $VERSION = '0.24';
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
 
-# accessors that every object should inherit from its parent
-our @Accessors = qw(
-    stopwords
-    wildcard
-    word_characters
-    ignore_first_char
-    ignore_last_char
-    stemmer
-    phrase_delim
-    ignore_case
-    debug
-    locale
-    charset
-    lang
-
-);
-
 sub regexp {
     my $class = shift;
     my %extra = @_;
@@ -141,17 +124,34 @@ more general purpose features.
 
 =head1 REQUIREMENTS
 
-Perl 5.8 or later is required. This is for full UTF-8 support.
+Perl 5.8.3 or later is required. This is for full UTF-8 support.
 
 The following CPAN modules are required:
 
 =over
 
-=item Class::Accessor::Fast
+=item Rose::Object
 
 =item Search::QueryParser
 
+=item Data::Dump
+
+=item File::Slurp
+
+=item Encode
+
+=item Carp
+
+=back
+
+The following CPAN modules are recommended for the full set of features
+and for performance.
+
+=over
+
 =item Text::Aspell
+
+=item Class::XSAccessor
 
 =back
 
@@ -176,28 +176,9 @@ parameter.
 
 =head2 spellcheck
 
-=head1 COMMON ACCESSORS
-
-The following common accessors are inherited by every module in Search::Tools:
-
-    stopwords
-    wildcard
-    word_characters
-    ignore_first_char
-    ignore_last_char
-    stemmer
-    phrase_delim
-    ignore_case
-    debug
-    locale
-    charset
-    lang
-
-See each module's documentation for more details.
-
 =head1 EXAMPLES
 
-See the tests in t/ for examples.
+See the tests in t/ and the example scripts in example/.
  
 =head1 AUTHOR
 
