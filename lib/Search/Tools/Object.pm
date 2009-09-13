@@ -7,13 +7,44 @@ use Search::Tools::MethodMaker;
 
 our $VERSION = '0.24';
 
-__PACKAGE__->mk_accessors( __PACKAGE__->common_methods );
+__PACKAGE__->mk_accessors(qw( debug ));
 
 =pod
 
 =head1 NAME
 
 Search::Tools::Object - base class for Search::Tools objects
+
+=head1 SYNOPSIS
+
+ package MyClass;
+ use base qw( Search::Tools::Object );
+ 
+ __PACKAGE__->mk_accessors( qw( foo bar ) );
+ 
+ sub init {
+    my $self = shift;
+    $self->SUPER::init(@_);
+
+    # do stuff to set up object
+    
+ }
+ 
+ 1;
+ 
+ # elsewhere
+ 
+ use MyClass;
+ my $object = MyClass->new;
+ $object->foo(123);
+ print $object->bar . "\n";
+
+=head1 DESCRIPTION
+
+Search::Tools::Object is a subclass of Rose::Object. Prior to version 0.24
+STO was a subclass of Class::Accessor::Fast. Backwards compatability for
+the mk_accessors() and mk_ro_accessors() class methods are preserved
+via Search::Tools::MethodMaker.
 
 =head1 METHODS
 
@@ -25,6 +56,9 @@ sub _init {
 
 sub init {
     my $self = shift;
+
+    # assume object is hash and set key
+    # rather than call method, since we have read-only methods.
     while (@_) {
         my $method = shift;
         $self->{$method} = shift;
@@ -46,47 +80,9 @@ sub mk_ro_accessors {
         'scalar --ro' => \@_ );
 }
 
-sub common_methods {
-    return qw(
-        debug
-        locale
-        charset
-        lang
-        stopwords
-        wildcard
-        token_re
-        word_characters
-        ignore_first_char
-        ignore_last_char
-        stemmer
-        phrase_delim
-        ignore_case
-    );
-}
-
 1;
 
 __END__
-
-=head1 COMMON ACCESSORS
-
-The following common accessors are inherited by every module in Search::Tools:
-
-    stopwords
-    wildcard
-    token_re
-    word_characters
-    ignore_first_char
-    ignore_last_char
-    stemmer
-    phrase_delim
-    ignore_case
-    debug
-    locale
-    charset
-    lang
-
-See each module's documentation for more details.
 
 =head1 AUTHOR
 
@@ -94,7 +90,7 @@ Peter Karman C<perl@peknet.com>
 
 =head1 COPYRIGHT
 
-Copyright 2007 by Peter Karman.
+Copyright 2009 by Peter Karman.
 
 This package is free software; you can redistribute it and/or modify it under the 
 same terms as Perl itself.

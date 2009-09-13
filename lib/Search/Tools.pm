@@ -9,6 +9,12 @@ our $VERSION = '0.24';
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
 
+sub parser {
+    my $class = shift;
+    require Search::Tools::QueryParser;
+    return Search::Tools::QueryParser->new(@_);
+}
+
 sub regexp {
     my $class = shift;
     my %extra = @_;
@@ -55,30 +61,25 @@ Search::Tools - tools for building search applications
 
  use Search::Tools;
  
- my $query = 'the quik brown fox';
- 
- my $re = Search::Tools->regexp(query => $query);
- 
- my $snipper    = Search::Tools->snipper(query => $re);
- my $hiliter    = Search::Tools->hiliter(query => $re);
- my $spellcheck = Search::Tools->spellcheck(query => $re);
+ my $string     = 'the quik brown fox';
+ my $qparser    = Search::Tools->parser();
+ my $query      = $qparser->parse($string);
+ my $snipper    = Search::Tools->snipper(query => $query);
+ my $hiliter    = Search::Tools->hiliter(query => $query);
+ my $spellcheck = Search::Tools->spellcheck(query => $query);
 
  my $suggestions = $spellcheck->suggest($query);
  
- for my $s (@$suggestions)
- {
-    if (! $s->{suggestions})
-    {
+ for my $s (@$suggestions) {
+    if (! $s->{suggestions}) {
         # $s->{word} was spelled correctly
     }
-    elsif (@{ $s->{suggestions} })
-    {
+    elsif (@{ $s->{suggestions} }) {
         print "Did you mean: " . join(' or ', @{$s->{suggestions}}) . "\n";
     }
  }
 
- for my $result (@search_results)
- {
+ for my $result (@search_results) {
     print $hiliter->light( $snipper->snip( $result->summary ) );
  }
   

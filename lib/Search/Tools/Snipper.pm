@@ -86,12 +86,12 @@ sub _word_regexp {
 
     #dump $self;
 
-    my $wc = $self->rekw->word_characters;
+    my $wc = $self->rekw->kw->word_characters;
     $self->{_wc_regexp}
         = qr/[^$wc]+/io;    # regexp for splitting into swish-words
 
-    my $igf = $self->rekw->ignore_first_char;
-    my $igl = $self->rekw->ignore_last_char;
+    my $igf = $self->rekw->kw->ignore_first_char;
+    my $igl = $self->rekw->kw->ignore_last_char;
     for ( $igf, $igl ) {
         if ($_) {
             $_ = "[$_]*";
@@ -108,13 +108,13 @@ sub _word_regexp {
 
 sub _build_query {
     my $self     = shift;
-    my $wildcard = $self->rekw->wildcard || '*';
+    my $wildcard = $self->rekw->kw->wildcard || '*';
     my $wild_esc = quotemeta($wildcard);
 
     # create regexp for _loop()
     # other regexp come from S::H::RegExp
     my @re;
-    my $wc = $self->rekw->word_characters;
+    my $wc = $self->rekw->kw->word_characters;
 
     for ( $self->rekw->keywords ) {
 

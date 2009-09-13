@@ -41,9 +41,7 @@ ok( my $kw = $re->build( [ keys %q ] ), "build re" );
 for my $w ( $kw->keywords ) {
     my $r = $kw->re($w);
 
-    # interesting. diag() doesn't print utf-8 correctly but carp does.
     #diag($w);
-    #carp $w;
     like( $w, $r->plain, $w );
     like( $w, $r->html,  $w );
 

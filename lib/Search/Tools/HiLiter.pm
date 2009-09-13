@@ -33,10 +33,11 @@ sub init {
         croak "query required.";
     }
     elsif ( ref $self->query eq 'ARRAY' or !ref $self->query ) {
-        my $re
-            = Search::Tools::RegExp->new( map { $_ => $self->$_ }
-                $self->common_methods,
-            );
+#        my $re
+#            = Search::Tools::RegExp->new( map { $_ => $self->$_ }
+#                $self->common_methods,
+#            );
+        my $re = Search::Tools::RegExp->new;
         $self->rekw( $re->build( $self->query ) );
     }
     elsif ( $self->query->isa('Search::Tools::RegExp::Keywords') ) {
