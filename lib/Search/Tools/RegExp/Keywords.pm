@@ -63,23 +63,11 @@ build() method. This class is typically not used in isolation.
 
 =head1 METHODS
 
-In addition, a Search::Tools::RegExp::Keywords object inherits from its parent
-Search::Tools::RegExp object the common
-accessors defined in @Search::Tools::Accessors. Since a S::T::R::Keywords object
-doesn't modify anything, you should consider those common accessors as accessors
-only, not mutators.
-
-The following methods are available.
-
-=head2 new
-
-Create an object. Used internally.
-
+Only new or overridden methods are documented here. See Search::Tools::Object.
 
 =head2 keywords
 
-Returns array of keywords in same order
-as they appeared in the original query.
+Returns array of keywords in same order as they appeared in the original query.
 
 =head2 re( I<keyword> )
 
