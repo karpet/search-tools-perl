@@ -17,6 +17,7 @@ lib/Search/Tools/MethodMaker.pm
 lib/Search/Tools/Object.pm
 lib/Search/Tools/Query.pm
 lib/Search/Tools/QueryParser.pm
+lib/Search/Tools/RegEx.pm
 lib/Search/Tools/RegExp.pm
 lib/Search/Tools/RegExp/Keyword.pm
 lib/Search/Tools/RegExp/Keywords.pm
@@ -60,6 +61,7 @@ t/19-tokenizer-pp.t
 t/20transliterate-map.t
 t/21-hiliter-with-hyphen.t
 t/22-query-parser.t
+t/23-regex-builder.t
 t/docs/ascii.txt
 t/docs/child-adoption.html
 t/docs/chiradtest.htm
