@@ -2,7 +2,6 @@ package Search::Tools::XML;
 use strict;
 use warnings;
 use Carp;
-use Search::Tools::RegExp;
 use base qw( Search::Tools::Object );
 
 our $VERSION = '0.24';
@@ -81,6 +80,19 @@ our %Ents = (
     "'" => '&apos;'
 );
 my $ToEscape = join( '', keys %Ents );
+
+# regexp for what constitutes whitespace in an HTML doc
+# it's not as simple as \s|&nbsp; so we define it separately
+
+# NOTE that the pound sign # needs escaping because we use
+# the 'x' flag in our regexp.
+
+my @whitesp = (
+    '&\#0020;', '&\#0009;', '&\#000C;', '&\#200B;', '&\#2028;', '&\#2029;',
+    '&nbsp;',   '&\#32;',   '&\#160;',  '\s',       '\xa0',     '\x20',
+);
+
+my $whitespace = join( '|', @whitesp );
 
 # HTML entity table
 # this just removes a dependency on another module...
@@ -341,6 +353,20 @@ our %HTML_ents = (
     diams    => 9830,
 );
 
+my %char2entity = ();
+while ( my ( $e, $n ) = each(%HTML_ents) ) {
+    my $char = chr($n);
+    $char2entity{$char} = "&$e;";
+}
+delete $char2entity{q/'/};    # only one-way decoding
+
+# Fill in missing entities
+# TODO does this only work under latin1 locale?
+for ( 0 .. 255 ) {
+    next if exists $char2entity{ chr($_) };
+    $char2entity{ chr($_) } = "&#$_;";
+}
+
 =head1 METHODS
 
 The following methods may be accessed either as object or class methods.
@@ -350,6 +376,16 @@ The following methods may be accessed either as object or class methods.
 Create a Search::Tools::XML object.
 
 =cut
+
+sub tag_re {qr/<[^>]+>/s}
+
+sub html_whitespace {$whitespace}
+
+sub char2ent_map { \%char2entity }
+
+sub looks_like_html { return $_[1] =~ m/[<>]|&[\#\w]+;/o }
+*looks_like_xml    = \&looks_like_html;
+*looks_like_markup = \&looks_like_html;
 
 =head2 start_tag( I<string> )
 
@@ -433,7 +469,8 @@ sub no_html {
     if ( !defined $text ) {
         croak "text required";
     }
-    $text =~ s,$Search::Tools::RegExp::TagRE,,g;
+    my $re = $class->tag_re;
+    $text =~ s,$re,,g;
     $text = $class->unescape($text);
     return $text;
 }

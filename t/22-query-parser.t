@@ -7,12 +7,12 @@ use_ok('Search::Tools::QueryParser');
 
 ok( my $qparser = Search::Tools::QueryParser->new(), "new qparser" );
 ok( my $query = $qparser->parse('quick brown "foxy fox"'), "parse() query" );
-ok( my $keywords = $query->keywords, "get keywords" );
-is( scalar @$keywords, 3, "3 keywords" );
-ok( my $regex = $query->regex_for( $keywords->[0] ), "regex_for" );
-ok( $regex->isa('Search::Tools::RegExp::Keyword'), "regex isa Keyword" );
-like( $keywords->[0], $regex->plain, "regex matches plain" );
-like( $keywords->[0], $regex->html,  "regex matches html" );
+ok( my $terms = $query->terms, "get terms" );
+is( scalar @$terms, 3, "3 terms" );
+ok( my $regex = $query->regex_for( $terms->[0] ), "regex_for" );
+ok( $regex->isa('Search::Tools::RegEx'), "regex isa RegEx" );
+like( $terms->[0], $regex->plain, "regex matches plain" );
+like( $terms->[0], $regex->html,  "regex matches html" );
 isnt( $query->str, $query->str_clean, "query->str isnt query->str_clean" );
 ok( my $tree = $query->tree, "get tree" );
 ok( $query, "test bool overload");

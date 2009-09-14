@@ -1,12 +1,13 @@
 package Search::Tools::HiLiter;
 use strict;
 use warnings;
-use Carp;
-use Search::Tools::RegExp;
-
 use base qw( Search::Tools::Object );
+use Carp;
+use Search::Tools::XML;
 
 our $VERSION = '0.24';
+
+my $XML = Search::Tools::XML->new;
 
 __PACKAGE__->mk_accessors(
     qw(
@@ -33,10 +34,14 @@ sub init {
         croak "query required.";
     }
     elsif ( ref $self->query eq 'ARRAY' or !ref $self->query ) {
-#        my $re
-#            = Search::Tools::RegExp->new( map { $_ => $self->$_ }
-#                $self->common_methods,
-#            );
+
+        #        my $re
+        #            = Search::Tools::RegExp->new( map { $_ => $self->$_ }
+        #                $self->common_methods,
+        #            );
+
+        #croak "building our own regexp";
+
         my $re = Search::Tools::RegExp->new;
         $self->rekw( $re->build( $self->query ) );
     }
@@ -149,7 +154,7 @@ sub light {
     my $self = shift;
     my $text = shift or return '';
 
-    if ( Search::Tools::RegExp->is_html($text) && !$self->no_html ) {
+    if ( $XML->looks_like_html($text) && !$self->no_html ) {
 
         #warn "running ->html";
         return $self->html($text);
@@ -255,7 +260,8 @@ sub _add_hilite_tags {
 
     # pre-fix nested tags in match
     my $pre_fixed = $html;
-    my $pre_added = $pre_fixed =~ s($Search::Tools::RegExp::TagRE+)$c$1$og;
+    my $tag_re    = $self->rekw->kw->tag_re;
+    my $pre_added = $pre_fixed =~ s(${tag_re}+)$c$1$og;
     my $len_added = length( $c . $o ) * $pre_added;
 
     # should be same as length( $to_hilite) - length( $prefixed );
@@ -358,13 +364,20 @@ Q: for my $query ( $self->_kworder ) {
         my $length_we_add = length( $o . $c ) - 1;
 
         $self->debug > 1
-            and carp "plain hiliter looking for: $re against $query";
+            and carp
+            "plain hiliter looking for: $re against '$query' in '$text'";
 
         # because s// fails to find duplicate instances like 'foo foo'
         # we use a while loop and increment pos()
 
         # this can suck into an infinite loop because increm pos()-- results
         # in repeated match on nonwordchar: > (since we just added a tag)
+
+        if ( $self->debug ) {
+            if ( $text =~ m/$query/i && $text !~ m/$re/ ) {
+                croak "bad regex for '$query': $re";
+            }
+        }
 
         my $found_matches = 0;
         while ( $text =~ m/$re/g ) {
@@ -391,10 +404,11 @@ Q: for my $query ( $self->_kworder ) {
 
         }
 
+        $self->debug and warn "found $found_matches matches";
+
         # sanity check similar to Snipper->_re_snip()
         if ( !$found_matches and $text =~ m/$query/ ) {
-
-            #warn "ERROR: regex failure for '$query'";
+            $self->debug and warn "ERROR: regex failure for '$query'";
             $text = $self->html($text);
         }
 

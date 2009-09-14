@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Data::Dump qw( dump );
 use File::Slurp;
-use Search::Tools::RegExp;
+use Search::Tools::XML;
 use Search::Tools::Snipper;
 use Search::Tools::UTF8;
 
@@ -14,13 +14,13 @@ sub test {
     use_ok('Search::Tools::Snipper');
     use_ok('Search::Tools::HiLiter');
     use_ok('Search::Tools::XML');
+    ok( my $XML   = Search::Tools::XML->new, "new XML object" );
     ok( my $html  = read_file($file),        "read buf" );
-    ok( my $xml   = Search::Tools::XML->new, "new xml object" );
-    ok( my $plain = $xml->strip_html($html), "strip_html" );
+    ok( my $plain = $XML->strip_html($html), "strip_html" );
 
-    if ( Search::Tools::RegExp->is_html($html) ) {
+    if ( $XML->looks_like_html($html) ) {
         cmp_ok( $html, 'ne', $plain, "strip_html ok" );
-        if ( Search::Tools::RegExp->is_html($plain) ) {
+        if ( $XML->looks_like_html($plain) ) {
             fail("plain text has no html");
         }
         else {

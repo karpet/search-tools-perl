@@ -4,7 +4,7 @@ use warnings;
 use Carp;
 use Data::Dump qw( dump );
 use base qw( Rose::Object::MakeMethods::Generic );
-my $Debug = $ENV{PERL_DEBUG};
+my $Debug = 0; #$ENV{PERL_DEBUG};
 
 # extend for mk_ro_accessors support
 sub scalar {

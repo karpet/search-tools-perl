@@ -5,22 +5,31 @@ use base qw( Search::Tools::Object );
 use Carp;
 use Data::Dump qw( dump );
 use Search::QueryParser;
-
-# make sure we get correct ->utf8 encoding
-use POSIX qw(locale_h);
-use locale;
 use Encode;
 use Data::Dump;
 use Search::Tools::Query;
 use Search::Tools::UTF8;
-use Search::Tools::RegExp;
+use Search::Tools::XML;
+use Search::Tools::RegEx;
 
 our $VERSION = '0.24';
 
-my $locale = setlocale(LC_CTYPE);
-my ( $lang, $charset ) = split( m/\./, $locale );
-$charset ||= q/iso-8859-1/;
-$lang = q/en_US/ if $lang =~ m/^(posix|c)$/i;
+my $XML = Search::Tools::XML->new();
+my $C2E = $XML->char2ent_map;
+
+# we turn locale pragma on in a small block
+# because we don't want it to mess up our regex building
+# or taint vars in other areas. We just want to use setlocale()
+# and make sure we get correct ->utf8 encoding
+my ( $locale, $lang, $charset );
+{
+    use POSIX qw(locale_h);
+    use locale;
+    $locale = setlocale(LC_CTYPE);
+    ( $lang, $charset ) = split( m/\./, $locale );
+    $charset ||= q/UTF-8/;    # <v0.24 this was iso-8895-1
+    $lang = q/en_US/ if $lang =~ m/^(posix|c)$/i;
+}
 
 my %Defaults = (
     locale                  => $locale,
@@ -29,9 +38,11 @@ my %Defaults = (
     stopwords               => [],
     wildcard                => q/*/,
     word_re                 => qr/\w+(?:'\w+)*/,
-    word_characters         => q/\w\'\-/,
-    ignore_first_char       => q/\'\-/,
-    ignore_last_char        => q/\'\-/,
+    word_characters         => q/\w/ . quotemeta(q/'-/),
+    ignore_first_char       => quotemeta(q/'-/),
+    ignore_last_char        => quotemeta(q/'-/),
+    tag_re                  => $XML->tag_re,
+    whitespace              => $XML->html_whitespace,
     stemmer                 => undef,
     phrase_delim            => q/"/,
     ignore_case             => 1,
@@ -70,6 +81,8 @@ sub init {
             = { map { $_ => $_ } @{ $self->{ignore_fields} } };
     }
 
+    $self->_setup_regex_builder;
+
     return $self;
 }
 
@@ -79,19 +92,28 @@ sub parse {
     if ( ref $query_str ) {
         croak "query must be a scalar string";
     }
-    my $kw = $self->_extract_keywords($query_str);
-    my $regex = Search::Tools::RegExp->new( kw => $self )->build($kw);
+    my $extracted = $self->_extract_terms($query_str);
+    my %regex;
+    for my $term ( @{ $extracted->{terms} } ) {
+        my ( $plain, $html ) = $self->_build_regex($term);
+        $regex{$term} = Search::Tools::RegEx->new(
+            plain     => $plain,
+            html      => $html,
+            term      => $term,
+            is_phrase => ( $term =~ m/\ / ? 1 : 0 ),
+        );
+    }
     return Search::Tools::Query->new(
-        parser   => $kw->{parser},
-        keywords => $kw->{keywords},
-        str      => $query_str,
-        regex    => $regex,
+        parser => $extracted->{parser},
+        terms  => $extracted->{terms},
+        str    => $query_str,
+        regex  => \%regex,
     );
 }
 
-sub _extract_keywords {
+sub _extract_terms {
     my $self      = shift;
-    my $query     = shift or croak "need query to extract keywords";
+    my $query     = shift or croak "need query to extract terms";
     my $stopwords = $self->stopwords;
     my $and_word  = $self->and_word;
     my $or_word   = $self->or_word;
@@ -275,17 +297,16 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
     # sort keeps query in same order as we entered
     return {
-        keywords => [ sort { $words{$a} <=> $words{$b} } keys %words ],
-        parser   => $parser
+        terms  => [ sort { $words{$a} <=> $words{$b} } keys %words ],
+        parser => $parser
     };
 
 }
 
 # stolen nearly verbatim from Taint::Runtime
-# it's unclear to me why our regexp results in tainted vars.
-# if we untaint $query in initial extract() set up,
-# subsequent matches against word_re still end up tainted.
-# might be a Unicode weirdness?
+# apparently regex can be tainted when running under 'use locale'.
+# as of version 0.24 this should not be needed but until I can find a way
+# to easily test the Taint feature, we just do this. It's low overhead.
 sub _untaint {
     my $str = shift;
     my $ref = ref($str) ? $str : \$str;
@@ -328,6 +349,154 @@ sub _get_value_from_tree {
         }
     }
 
+}
+
+sub _setup_regex_builder {
+    my $self = shift;
+
+    # TODO optional for term_re
+
+    # a search for a '<' or '>' should still highlight,
+    # since &lt; or &gt; can be indexed as literal < and >
+    # but this causes a great deal of hassle
+    # so we just ignore them.
+    my $wordchars = $self->word_characters;
+    $wordchars =~ s,[<>&],,g;
+    $self->{html_safe_wordchars} = $wordchars;    # remember for build
+    my $ignore_first    = $self->ignore_first_char;
+    my $ignore_last     = $self->ignore_last_char;
+    my $html_whitespace = $self->whitespace;
+
+    # what's the boundary between a word and a not-word?
+    # by default:
+    #	the beginning of a string
+    #	the end of a string
+    #	whatever we've defined as WhiteSpace
+    #	any character that is not a WordChar
+    #   any character we explicitly ignore at start or end of word
+    #
+    # the \A and \Z (beginning and end) should help if the word butts up
+    # against the beginning or end of a tagset
+    # like <p>Word or Word</p>
+
+    my @start_bound = (
+        '\A',
+        '[>]',
+        '(?:&[\w\#]+;)',    # because a ; might be a legitimate wordchar
+                            # and we treat a char entity like a single char.
+                            # if &char; resolves to a legit wordchar
+                            # this might give unexpected results.
+                            # NOTE that &nbsp; etc is in $WhiteSpace
+        $html_whitespace,
+        '[^' . $wordchars . ']',
+        qr/[$ignore_first]+/i
+    );
+
+    my @end_bound = (
+        '\Z', '[<&]', $html_whitespace, '[^' . $wordchars . ']',
+        qr/[$ignore_last]+/i
+    );
+
+    $self->{start_bound} ||= join( '|', @start_bound );
+
+    $self->{end_bound} ||= join( '|', @end_bound );
+
+    # the whitespace in a query phrase might be:
+    #	any ignore_last_char, followed by
+    #	one or more nonwordchar or whitespace, followed by
+    #	any ignore_first_char
+    # define for both text and html
+
+    $self->{plain_phrase_bound} = join( '',
+        qr/[$ignore_last]*/i, qr/[\s\x20]|[^$wordchars]/is,
+        qr/[$ignore_first]?/i );
+
+    $self->{html_phrase_bound} = join( '',
+        qr/[$ignore_first]*/i, qr/$html_whitespace|[^$wordchars]/is,
+        qr/[$ignore_last]?/i );
+
+}
+
+sub _build_regex {
+    my $self      = shift;
+    my $q         = shift or croak "need query to build()";
+    my $wild      = $self->{html_safe_wordchars};
+    my $st_bound  = $self->{start_bound};
+    my $end_bound = $self->{end_bound};
+    my $wc        = $self->{html_safe_wordchars};
+    my $ppb       = $self->{plain_phrase_bound};
+    my $hpb       = $self->{html_phrase_bound};
+    my $wildcard  = $self->wildcard;
+    my $wild_esc  = quotemeta($wildcard);
+    my $tag_re    = $self->tag_re;
+
+    # define simple pattern for plain text
+    # and complex pattern for HTML markup
+    my ( $plain, $html );
+    my $escaped = quotemeta($q);
+    $escaped =~ s/\\[$wild_esc]/[$wc]*/g;    # wildcard
+    $escaped =~ s/\\[\s]/$ppb/g;             # whitespace
+
+    $plain = qr/
+(
+\A|$ppb
+)
+(
+${escaped}
+)
+(
+\Z|$ppb
+)
+/xis;
+
+    my (@char) = split( m//, $q );
+
+    my $counter = -1;
+
+CHAR: foreach my $c (@char) {
+        $counter++;
+
+        my $ent = $C2E->{$c} || carp "no entity defined for >$c< !\n";
+        my $num = ord($c);
+
+        # if this is a special regexp char, protect it
+        $c = quotemeta($c);
+
+        # if it's a *, replace it with the Wild class
+        $c = "[$wild]*" if $c eq $wild_esc;
+
+        if ( $c eq '\ ' ) {
+            $c = $hpb . $tag_re . '*';
+            next CHAR;
+        }
+
+        my $aka = $ent eq "&#$num;" ? $ent : "$ent|&#$num;";
+
+        # make $c into a regexp
+        $c = qr/$c|$aka/i unless $c eq "[$wild]*";
+
+  # any char might be followed by zero or more tags, unless it's the last char
+        $c .= $tag_re . '*' unless $counter == $#char;
+
+    }
+
+    # re-join the chars into a single string
+    my $safe = join( "\n", @char );   # use \n to make it legible in debugging
+
+# for debugging legibility we include newlines, so make sure we s//x in matches
+    $html = qr/
+(
+${st_bound}
+)
+(
+${safe}
+)
+(
+${end_bound}
+)
+/xis;
+
+    return ( $plain, $html );
 }
 
 1;
@@ -376,8 +545,8 @@ Search::Tools::QueryParser - convert string queries into objects
     );
     
  my $query    = $qparser->parse(q(the quick color:brown "fox jumped"));
- my $keywords = $query->keywords; # ['quick', 'brown', '"fox jumped"']
- my $regexp   = $query->regexp_for($keywords->[0]); # S::T::R::Keyword
+ my $terms = $query->terms; # ['quick', 'brown', '"fox jumped"']
+ my $regexp   = $query->regexp_for($terms->[0]); # S::T::R::Keyword
  my $tree     = $query->tree; # the Search::QueryParser-parsed struct
  print "$query\n";  # the quick color:brown "fox jumped"
  print $query->str . "\n"; # same thing
@@ -413,7 +582,7 @@ B<NOTE:> All queries are converted to UTF-8. See the C<charset> param.
 
 The stemmer function is used to find the root 'stem' of a word. There are many
 stemming algorithms available, including many on CPAN. The stemmer function
-should expect to receive two parameters: the Keywords object and the word to be
+should expect to receive two parameters: the QueryParser object and the word to be
 stemmed. It should return exactly one value: the stemmed word.
 
 Example stemmer function:
@@ -432,7 +601,7 @@ Example stemmer function:
      
 =head2 stopwords
 
-A list of common words that should be ignored in parsing out keywords. 
+A list of common words that should be ignored in parsing out keyword terms. 
 May be either a string that will be split on whitespace, or an array ref.
 
 B<NOTE:> If a stopword is contained in a phrase, then the phrase 
@@ -461,14 +630,14 @@ Example:
 
 would parse the query:
 
- site:foo.bar AND baz   # keywords = baz
+ site:foo.bar AND baz   # terms = baz
 
 =head2 treat_uris_like_phrases
 
 Boolean (default true (1)).
 
 If set to true, queries like B<foo@bar.com> will be treated like a single
-phrase B<"foo bar com"> instead of being split into three separate keywords.
+phrase B<"foo bar com"> instead of being split into three separate terms.
 
 =head2 and_word
 
@@ -488,9 +657,8 @@ Default: C<*>
 
 =head2 locale
 
-Set a locale explicitly for a Keywords object.If not set, 
-the locale is inherited from the C<LC_CTYPE> environment
-variable.
+Set a locale explicitly. If not set, the locale is inherited from the 
+C<LC_CTYPE> environment variable.
 
 =head2 lang
 
@@ -500,6 +668,12 @@ Base language. If not set, extracted from C<locale> or defaults to C<en_US>.
 
 Base charset used for converting queries to UTF-8. If not set, 
 extracted from C<locale> or defaults to C<iso-8859-1>.
+
+=head1 BUGS and LIMITATIONS
+
+The special HTML chars &, < and > can pose problems in regexps against markup, so they
+are ignored in creating regular expressions if you include them in 
+C<word_characters> in new().
 
 =head1 AUTHOR
 

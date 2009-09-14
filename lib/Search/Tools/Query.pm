@@ -14,7 +14,7 @@ our $VERSION = '0.24';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
-        keywords
+        terms
         parser
         str
         regex
@@ -33,16 +33,19 @@ sub str_clean {
     return $self->parser->unparse($tree);
 }
 
-sub regexp_for {
-    my $self    = shift;
-    my $keyword = shift;
-    unless ( defined $keyword ) {
-        croak "keyword required";
+sub regex_for {
+    my $self = shift;
+    my $term = shift;
+    unless ( defined $term ) {
+        croak "term required";
     }
-    return $self->regex->re($keyword);
+    if ( !exists $self->{regex} or !exists $self->{regex}->{$term} ) {
+        croak "no regex for $term";
+    }
+    return $self->{regex}->{$term};
 }
 
-*regex_for = \&regexp_for;
+*regexp_for = \&regex_for;
 
 1;
 
@@ -55,10 +58,10 @@ Search::Tools::Query - objectified string for highlighting, snipping, etc.
 =head1 SYNOPSIS
 
  use Search::Tools::QueryParser;
- my $qparser = Search::Tools::QueryParser->new;
+ my $qparser  = Search::Tools::QueryParser->new;
  my $query    = $qparser->parse(q(the quick color:brown "fox jumped"));
- my $keywords = $query->keywords; # ['quick', 'brown', '"fox jumped"']
- my $regexp   = $query->regexp_for($keywords->[0]); # S::T::R::Keyword
+ my $terms    = $query->terms; # ['quick', 'brown', '"fox jumped"']
+ my $regex    = $query->regex_for($terms->[0]); # S::T::RegEx
  my $tree     = $query->tree; # the Search::QueryParser-parsed struct
  print "$query\n";  # the quick color:brown "fox jumped"
  print $query->str . "\n"; # same thing
