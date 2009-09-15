@@ -7,30 +7,63 @@ use overload
     'bool'   => sub {1},
     fallback => 1;
 use Carp;
-
-#use Data::Dump qw( dump );
+use Data::Dump qw( dump );
+use Search::Tools::RegEx;
 
 our $VERSION = '0.24';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
         terms
-        parser
+        search_queryparser
         str
         regex
+        qp
         )
 );
+
+# backcompat
+sub from_regexp_keywords {
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
+    my $rekw  = shift or croak "RegExp::Keywords required";
+
+    #dump $rekw;
+
+    my $regex = {};
+    for ( $rekw->keywords ) {
+        my $rek = $rekw->{hash}->{$_} or croak "no Keyword object for $_";
+        $regex->{$_} = Search::Tools::RegEx->new(
+            plain     => $rek->plain,
+            html      => $rek->html,
+            is_phrase => $rek->phrase,
+            term      => $rek->word,
+        );
+    }
+    my $self = $class->new(
+        terms              => $rekw->{array},
+        regex              => $regex,
+        str                => $rekw->{kw}->{query},
+        search_queryparser => $rekw->{kw}->{parser},
+        qp                 => $rekw->{kw},
+    );
+    return $self;
+}
+
+sub num_terms {
+    return scalar @{ shift->{terms} };
+}
 
 sub tree {
     my $self = shift;
     my $q    = $self->str;
-    return $self->parser->parse( $q, 1 );
+    return $self->search_queryparser->parse( $q, 1 );
 }
 
 sub str_clean {
     my $self = shift;
     my $tree = $self->tree;
-    return $self->parser->unparse($tree);
+    return $self->search_queryparser->unparse($tree);
 }
 
 sub regex_for {
@@ -46,6 +79,31 @@ sub regex_for {
 }
 
 *regexp_for = \&regex_for;
+
+sub terms_as_regex {
+    my $self     = shift;
+    my $wildcard = $self->qp->wildcard;
+    my $wild_esc = quotemeta($wildcard);
+    my $wc       = $self->qp->word_characters;
+    my @re;
+    for my $term ( @{ $self->{terms} } ) {
+
+        my $q = quotemeta($term);    # quotemeta speeds up the match, too
+                                     # even though we have to unquote below
+
+        $q =~ s/\\$wild_esc/[$wc]*/; # wildcard match is very approximate
+
+        # treat phrases like OR'd words
+        # since that will just create more matches.
+        # if hiliting later, the phrase will be treated as such.
+        $q =~ s/(\\ )+/\|/g;
+
+        push( @re, $q );
+    }
+
+    my $j = sprintf( '(%s)', join( '|', @re ) );
+    return qr/$j/i;
+}
 
 1;
 

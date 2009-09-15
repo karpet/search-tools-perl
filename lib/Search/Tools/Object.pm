@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp;
 use base qw( Rose::Object );
+use Scalar::Util qw( blessed );
 use Search::Tools::MethodMaker;
 
 our $VERSION = '0.24';
@@ -78,6 +79,36 @@ sub mk_ro_accessors {
     my $class = shift;
     Search::Tools::MethodMaker->make_methods( { target_class => $class },
         'scalar --ro' => \@_ );
+}
+
+sub _normalize_args {
+    my $self = shift;
+    my %args = @_;
+    my $q    = delete $args{query};
+    if ( !defined $q ) {
+        croak "query required";
+    }
+    if ( !ref($q) ) {
+        $args{query} = Search::Tools::QueryParser->new(%args)->parse($q);
+    }
+    elsif ( ref($q) eq 'ARRAY' ) {
+        warn "query ARRAY ref deprecated as of version 0.24";
+        $args{query} = Search::Tools::QueryParser->new(%args)
+            ->parse( join( ' ', @$q ) );
+    }
+    elsif ( blessed($q) and $q->isa('Search::Tools::Query') ) {
+        $args{query} = $q;
+    }
+    elsif ( blessed($q) and $q->isa('Search::Tools::RegExp::Keywords') ) {
+
+        # backcompat
+        $args{query} = Search::Tools::Query->from_regexp_keywords($q);
+    }
+    else {
+        croak
+            "query param required to be a scalar string or Search::Tools::Query object";
+    }
+    return %args;
 }
 
 1;

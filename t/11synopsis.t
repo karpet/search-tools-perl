@@ -10,29 +10,33 @@ use Search::Tools;
 
 {
 
-    package foo;
+    package MyResult;
     sub summary { $_[0]->{summary} }
 }
 
 my @search_results
-    = ( bless( { summary => 'my brown fox is quick' }, 'foo' ) );
+    = ( bless( { summary => 'my brown fox is quick' }, 'MyResult' ) );
 
-my $query = 'the quik brown fox';
+my $string  = 'the quik brown fox';
+my $qparser = Search::Tools->parser();
+my $query   = $qparser->parse($string);
+my $snipper = Search::Tools->snipper( query => $query );
+my $hiliter = Search::Tools->hiliter( query => $query );
 
-my $re      = Search::Tools->regexp( query  => $query );
-my $snipper = Search::Tools->snipper( query => $re );
-my $hiliter = Search::Tools->hiliter( query => $re );
+for my $result (@search_results) {
+    ok( $hiliter->light( $snipper->snip( $result->summary ) ),
+        "hilite snipped summary" );
+}
 
 SKIP: {
 
     eval "require Text::Aspell";
     if ($@) {
-        skip "Text::Aspell required for SpellCheck", 2;
+        skip "Text::Aspell required for SpellCheck", 1;
     }
 
-    my $spellcheck = Search::Tools->spellcheck( query => $re );
-
-    my $suggestions = $spellcheck->suggest($query);
+    my $spellcheck = Search::Tools->spellcheck( query_parser => $qparser );
+    my $suggestions = $spellcheck->suggest($string);
 
     my $ok;
     for my $v (@$suggestions) {
@@ -41,7 +45,7 @@ SKIP: {
 
 SKIP: {
 
-        skip "No valid suggestions found. Missing dictionary?", 2 unless $ok;
+        skip "No valid suggestions found. Missing dictionary?", 1 unless $ok;
 
         for my $s (@$suggestions) {
             if ( !$s->{suggestions} ) {
@@ -49,14 +53,9 @@ SKIP: {
                 # $s->{word} was spelled correctly
             }
             elsif ( @{ $s->{suggestions} } ) {
-                ok(       "Did you mean: "
-                        . join( ' or ', @{ $s->{suggestions} } )
-                        . "\n" );
+                my $str = join( ' or ', @{ $s->{suggestions} } );
+                ok( "Did you mean: $str\n", "suggestion $str" );
             }
-        }
-
-        for my $result (@search_results) {
-            ok( $hiliter->light( $snipper->snip( $result->summary ) ) );
         }
 
     }

@@ -1,6 +1,7 @@
+use strict;
 use Test::More tests => 13;
 
-use_ok('Search::Tools::RegExp');
+use_ok('Search::Tools');
 
 # http://code.google.com/p/test-more/issues/detail?id=46
 binmode Test::More->builder->output,         ":utf8";
@@ -12,46 +13,40 @@ my %q = (
 
 );
 
-ok( my $re = Search::Tools::RegExp->new(
+ok( my $qparser = Search::Tools->parser(
         lang      => 'en_us',
         stopwords => 'the brown'
     ),
 
-    "re object"
+    "new parser"
 );
 
-ok( my $kw = $re->build( [ keys %q ] ), "build re" );
+test_parser($qparser);
 
-for my $w ( $kw->keywords ) {
-    my $r     = $kw->re($w);
-    my $plain = $r->plain;
-    my $html  = $r->html;
-
-    like( $w, qr{^$plain$}, $w );
-    like( $w, qr{^$html$},  $w );
-
-    #diag($plain);
-
-}
-
-ok( $re = Search::Tools::RegExp->new(
+ok( $qparser = Search::Tools->parser(
         lang      => 'en_us',
         stopwords => [qw(the brown)]
     ),
 
-    "re object"
+    "new parser"
 );
 
-ok( $kw = $re->build( [ keys %q ] ), "build re" );
+test_parser($qparser);
 
-for my $w ( $kw->keywords ) {
-    my $r     = $kw->re($w);
-    my $plain = $r->plain;
-    my $html  = $r->html;
+sub test_parser {
 
-    like( $w, qr{^$plain$}, $w );
-    like( $w, qr{^$html$},  $w );
+    ok( my $query = $qparser->parse( join( ' ', keys %q ) ), "parse query" );
 
-    #diag($plain);
+    for my $term ( @{ $query->terms } ) {
+        my $r     = $query->regex_for($term);
+        my $plain = $r->plain;
+        my $html  = $r->html;
+
+        like( $term, qr{^$plain$}, $term );
+        like( $term, qr{^$html$},  $term );
+
+        #diag($plain);
+
+    }
 
 }

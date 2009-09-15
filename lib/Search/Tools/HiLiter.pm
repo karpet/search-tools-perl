@@ -12,7 +12,6 @@ my $XML = Search::Tools::XML->new;
 __PACKAGE__->mk_accessors(
     qw(
         query
-        rekw
         tag
         class
         colors
@@ -24,37 +23,11 @@ __PACKAGE__->mk_accessors(
 
 sub init {
     my $self = shift;
-    $self->SUPER::init(@_);
+    my %args = $self->_normalize_args(@_);
+    $self->SUPER::init(%args);
 
     if ( $self->debug ) {
         carp "debug level set at " . $self->debug;
-    }
-
-    if ( !$self->query ) {
-        croak "query required.";
-    }
-    elsif ( ref $self->query eq 'ARRAY' or !ref $self->query ) {
-
-        #        my $re
-        #            = Search::Tools::RegExp->new( map { $_ => $self->$_ }
-        #                $self->common_methods,
-        #            );
-
-        #croak "building our own regexp";
-
-        my $re = Search::Tools::RegExp->new;
-        $self->rekw( $re->build( $self->query ) );
-    }
-    elsif ( $self->query->isa('Search::Tools::RegExp::Keywords') ) {
-        $self->rekw( $self->query );
-    }
-    else {
-        croak
-            "query must be either a string or Search::Tools::RegExp::Keywords object";
-    }
-
-    unless ( $self->rekw ) {
-        croak "Search:Tools::RegExp::Keywords object required";
     }
 
     $self->{tag} ||= 'span';
@@ -69,19 +42,24 @@ sub init {
     $self->_build_tags;
 }
 
+sub terms {
+    return shift->{query}->terms;
+}
+
 sub keywords {
-    my $self = shift;
-    return $self->rekw->keywords;
+    return @{ shift->terms };
 }
 
 sub _phrases {
     my $self = shift;
-    return grep { $self->rekw->re($_)->phrase } $self->keywords;
+    my $q    = $self->{query};
+    return grep { $q->regex_for($_)->is_phrase } @{ $q->terms };
 }
 
 sub _singles {
     my $self = shift;
-    return grep { !$self->rekw->re($_)->phrase } $self->keywords;
+    my $q    = $self->{query};
+    return grep { !$q->regex_for($_)->is_phrase } @{ $q->terms };
 }
 
 sub _kworder {
@@ -214,7 +192,7 @@ sub html {
     # use our prebuilt regexp
 
 Q: for my $query ( $self->_kworder ) {
-        my $re = $self->rekw->re($query)->html;
+        my $re = $self->query->regex_for($query)->html;
         my $real = $self->_get_real_html( \$text, $re );
 
     R: for my $r ( keys %$real ) {
@@ -250,8 +228,8 @@ sub _add_hilite_tags {
     # $html is the real html that matched our regexp
 
     # we still check boundaries just to be safe
-    my $st_bound  = $self->rekw->start_bound;
-    my $end_bound = $self->rekw->end_bound;
+    my $st_bound  = $self->query->qp->start_bound;
+    my $end_bound = $self->query->qp->end_bound;
 
     my $o = $self->open_tag($query);
     my $c = $self->close_tag($query);
@@ -260,7 +238,7 @@ sub _add_hilite_tags {
 
     # pre-fix nested tags in match
     my $pre_fixed = $html;
-    my $tag_re    = $self->rekw->kw->tag_re;
+    my $tag_re    = $self->query->qp->tag_re;
     my $pre_added = $pre_fixed =~ s(${tag_re}+)$c$1$og;
     my $len_added = length( $c . $o ) * $pre_added;
 
@@ -357,8 +335,10 @@ sub plain {
     my $self = shift;
     my $text = shift or croak "need text to light()";
 
+    my $query_obj = $self->{query};
+
 Q: for my $query ( $self->_kworder ) {
-        my $re            = $self->rekw->re($query)->plain;
+        my $re            = $query_obj->regex_for($query)->plain;
         my $o             = $self->open_tag($query);
         my $c             = $self->close_tag($query);
         my $length_we_add = length( $o . $c ) - 1;

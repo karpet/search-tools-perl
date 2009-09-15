@@ -1,12 +1,12 @@
 use strict;
-use Test::More tests => 16;
+use Test::More tests => 17;
 use lib 't';
-use SnipHelp;    # runs 14 tests
+use SnipHelp;    # runs 15 tests
 
 my $file = 't/docs/dot.com.txt';
-my $query
+my $q
     = q{foobar@foo.com "hello world" google.com bing.co .bashrc foo/bar/index.html};
-my ( $snip, $hilited, $regex, $buf ) = SnipHelp::test( $file, $query );
+my ( $snip, $hilited, $query, $buf ) = SnipHelp::test( $file, $q );
 is( $snip,
     q{foobar@foo.com google.com bing.co.uk .bashrc hello world. http://myfoo.net/foo/bar/index.html this ... },
     "snip"

@@ -19,58 +19,12 @@ Search::Tools::RegExp::Keyword - access regular expressions for a keyword
 
 =head1 SYNOPSIS
 
- my $regexp = Search::Tools::RegExp->new();
- 
- my $kw = $regexp->build('the quick brown fox');
- 
- for my $w ($kw->keywords)
- {
-    my $re = $kw->re( $w ); # $re is S::T::R::Keyword object
-    
-    # each of these are regular expressions ... suitable for framing
-    my $h = $re->html;
-    my $p = $re->plain;
-    unless ( $re->word =~ m/^$h$/ )
-    {
-        die "something terribly wrong with the html regexp: $h";
-    }
-    unless ( $re->word =~ m/^$p$/ )
-    {
-        die "something terribly wrong with the plain regexp: $p";
-    }
- }
- 
+ # deprecated. See Search::Tools::RegEx
  
 =head1 DESCRIPTION
 
-Search::Tools::RegExp::Keyword provides access to the regular expressions
-for a query keyword.
-
-
-=head1 METHODS
-
-=head2 new
-
-Create an object. Used internally.
-
-=head2 word
-
-Returns the original keyword on which the regular expressions are based.
-
-=head2 phrase
-
-Returns true if the keyword was treated as a phrase.
-
-=head2 plain
-
-Returns a regular expression for matching the keyword in a plain text
-(no HTML or XML markup).
-
-=head2 html
-
-Returns a regular expression for matching the keyword in a HTML or XML
-text.
-
+As of version 0.24 this class is deprecated in favor of Search::Tools::RegEx.
+ 
 =head1 AUTHOR
 
 Peter Karman C<perl@peknet.com>

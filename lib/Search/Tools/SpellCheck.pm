@@ -13,36 +13,21 @@ __PACKAGE__->mk_accessors(
         max_suggest
         dict
         aspell
-        kw
-        query
+        query_parser
         )
 );
 
 sub init {
     my $self = shift;
     $self->SUPER::init(@_);
-
-    $self->{max_suggest} ||= 4;
-
-    $self->{kw} ||= Search::Tools::Keywords->new;
-
-    if ( $self->query ) {
-        unless ( $self->query->isa('Search::Tools::RegExp::Keywords') ) {
-            croak "query arg must be a S::T::RegExp::Keywords object";
-        }
-        $self->kw( $self->query->kw );
-    }
-
-    unless ( $self->kw && $self->kw->isa('Search::Tools::Keywords') ) {
-        croak "S::T::Keywords object required";
-    }
-
+    $self->{query_parser} ||= Search::Tools::QueryParser->new();
+    $self->{max_suggest}  ||= 4;
     $self->aspell(
                Text::Aspell->new
             or croak "can't get new() Text::Aspell"
     );
 
-    $self->aspell->set_option( 'lang', $self->kw->lang );
+    $self->aspell->set_option( 'lang', $self->{query_parser}->lang );
     $self->_check_err;
     $self->aspell->set_option( 'sug-mode', 'fast' );
     $self->_check_err;
@@ -57,15 +42,17 @@ sub _check_err {
 }
 
 sub suggest {
-    my $self    = shift;
-    my $query   = shift or croak "query required";
-    my $suggest = [];
-    my $phr_del = $self->kw->phrase_delim;
+    my $self        = shift;
+    my $query_str   = shift or croak "query required";
+    my $suggest     = [];
+    my $phr_del     = $self->query_parser->phrase_delim;
+    my $ignore_case = $self->query_parser->ignore_case;
+    my $query       = $self->query_parser->parse($query_str);
 
-    for my $k ( $self->kw->extract($query) ) {
+    for my $term ( @{ $query->terms } ) {
 
-        $k =~ s/$phr_del//g;
-        my @w = split( m/\ +/, $k );
+        $term =~ s/$phr_del//g;
+        my @w = split( m/\ +/, $term );
 
     WORD: for my $word (@w) {
 
@@ -82,7 +69,7 @@ sub suggest {
                 }
                 else {
 
-                    if ( $self->kw->ignore_case ) {
+                    if ($ignore_case) {
 
                         # make them unique but preserve order
                         my $c = 0;

@@ -19,7 +19,6 @@ our $DefaultSnipper = 'token';
 __PACKAGE__->mk_accessors(
     qw(
         query
-        rekw
         occur
         context
         max_chars
@@ -36,111 +35,40 @@ __PACKAGE__->mk_accessors(
         )
 );
 
+my %Defaults = (
+    type                => $DefaultSnipper,
+    occur               => 5,
+    max_chars           => 300,
+    context             => 8,
+    word_len            => 4,                 # TODO still used?
+    show                => 1,
+    collapse_whitespace => 1,
+    escape              => 0,
+    force               => 0,
+);
+
 sub init {
     my $self = shift;
-    $self->SUPER::init(@_);
-
-    $self->{type}      ||= $DefaultSnipper;
-    $self->{occur}     ||= 5;
-    $self->{max_chars} ||= 300;
-    $self->{context}   ||= 8;
-    $self->{word_len}  ||= 4;
-    $self->{show}      ||= 1;
-    for (qw/collapse_whitespace/) {
-        $self->{$_} = 1 unless defined $self->{$_};
+    my %args = $self->_normalize_args(@_);
+    $self->SUPER::init(%args);
+    for ( keys %Defaults ) {
+        next if defined $self->{$_};
+        $self->{$_} = $Defaults{$_};
     }
-
-    if ( !$self->query ) {
-        croak "query required.";
-    }
-    elsif ( ref $self->query eq 'ARRAY' or !ref $self->query ) {
-        my $re = Search::Tools::RegExp->new;
-        $self->rekw( $re->build( $self->query ) );
-    }
-    elsif ( $self->query->isa('Search::Tools::RegExp::Keywords') ) {
-        $self->rekw( $self->query );
-    }
-    else {
-        croak
-            "query must be either a string or Search::Tools::RegExp::Keywords object";
-    }
-
-    unless ( $self->rekw ) {
-        croak "Search:Tools::RegExp::Keywords object required";
-    }
-
-    #
-    $self->{tokenizer} = Search::Tools::Tokenizer->new();  # TODO construct re
-    $self->_word_regexp;
-    $self->_build_query;
-
-    $self->count(0);
-
-}
-
-sub _word_regexp {
-
-    # this based on SWISH::PhraseHighlight::set_match_regexp()
-
-    my $self = shift;
 
     #dump $self;
 
-    my $wc = $self->rekw->kw->word_characters;
-    $self->{_wc_regexp}
-        = qr/[^$wc]+/io;    # regexp for splitting into swish-words
+    $self->{tokenizer} = Search::Tools::Tokenizer->new(
+        token_re => $self->query->qp->term_re, );
 
-    my $igf = $self->rekw->kw->ignore_first_char;
-    my $igl = $self->rekw->kw->ignore_last_char;
-    for ( $igf, $igl ) {
-        if ($_) {
-            $_ = "[$_]*";
-        }
-        else {
-            $_ = '';
-        }
-    }
+    my $wc = $self->query->qp->word_characters;
 
-    $self->{_ignoreFirst} = $igf;
-    $self->{_ignoreLast}  = $igl;
+    # regexp for splitting into terms in _re()
+    $self->{_wc_regexp} = qr/[^$wc]+/io;
 
-}
+    $self->{_qre} = $self->query->terms_as_regex;
 
-sub _build_query {
-    my $self     = shift;
-    my $wildcard = $self->rekw->kw->wildcard || '*';
-    my $wild_esc = quotemeta($wildcard);
-
-    # create regexp for _loop()
-    # other regexp come from S::H::RegExp
-    my @re;
-    my $wc = $self->rekw->kw->word_characters;
-
-    for ( $self->rekw->keywords ) {
-
-        my $q = quotemeta($_);    # quotemeta speeds up the match, too
-                                  # even though we have to unquote below
-
-        $q =~ s/\\$wild_esc/[$wc]*/;    # wildcard match is very approximate
-
-        # treat phrases like OR'd words
-        # since that will just create more matches.
-        # if hiliting later, the phrase will be treated as such.
-        $q =~ s/(\\ )+/\|/g;
-
-        push( @re, $q );
-
-        my $r = {
-            safe  => $q,
-            plain => $self->rekw->re($_)->plain,
-            html  => $self->rekw->re($_)->html
-        };
-
-        $self->{_re}->{$_} = $r;
-
-    }
-    my $j = sprintf( '(%s)', join( '|', @re ) );
-    $self->{_qre} = qr/$j/i;
+    $self->count(0);
 
 }
 
@@ -479,7 +407,7 @@ sub _re {
 
     my $self  = shift;
     my $text  = shift;
-    my @q     = $self->rekw->keywords;
+    my @q     = @{ $self->query->terms };
     my $occur = $self->occur;
     my $Nchar = $self->context * $self->word_len;
     my $total = 0;
@@ -499,7 +427,7 @@ Q: for my $q (@q) {
 
         # try simple regexp first, then more complex if we don't match
         next Q
-            if $self->_re_match( \$text, $self->{_re}->{$q}->{plain},
+            if $self->_re_match( \$text, $self->query->regex_for($q)->plain,
             \$total, $snips{$q}, \%ranges, $Nchar, $snip_per_q,
             \$snip_starts_with_query );
 
@@ -509,7 +437,7 @@ Q: for my $q (@q) {
 
         unless (
             $self->_re_match(
-                \$text,      $self->{_re}->{$q}->{html},
+                \$text,      $self->query->regex_for($q)->html,
                 \$total,     $snips{$q},
                 \%ranges,    $Nchar,
                 $snip_per_q, \$snip_starts_with_query

@@ -7,7 +7,11 @@ use base qw( Search::Tools::QueryParser );
 # this is backcompat class only.
 
 sub extract {
-    @{ shift->_extract_terms(@_)->{terms} };
+    my $self = shift;
+    my $res  = $self->_extract_terms(@_);
+    $self->{search_queryparser} = $res->{search_queryparser};
+    $self->{query}              = $res->{query};
+    return @{ $res->{terms} };
 }
 
 1;

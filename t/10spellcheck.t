@@ -9,11 +9,11 @@ BEGIN {
 SKIP: {
 
     eval "require Text::Aspell";
-    if ( $@ ) {
+    if ($@) {
         skip "Text::Aspell required for SpellCheck", 10;
     }
 
-    use Data::Dump qw(pp);
+    use Data::Dump qw(dump);
     use_ok('Search::Tools::Keywords');
     use_ok('Search::Tools::SpellCheck');
 
@@ -31,7 +31,7 @@ SKIP: {
 
     my $suggestions = $spellcheck->suggest($query);
 
-    #diag(pp($suggestions));
+    #diag(dump($suggestions));
 
     # if we had no suggestions, then the test is bad due to dictionaries
     # not being installed, locale or other.

@@ -37,7 +37,7 @@ my %Defaults = (
     lang                    => $lang,
     stopwords               => [],
     wildcard                => q/*/,
-    word_re                 => qr/\w+(?:'\w+)*/,
+    term_re                 => qr/\w+(?:'\w+)*/,
     word_characters         => q/\w/ . quotemeta(q/'-/),
     ignore_first_char       => quotemeta(q/'-/),
     ignore_last_char        => quotemeta(q/'-/),
@@ -54,6 +54,14 @@ my %Defaults = (
 );
 
 __PACKAGE__->mk_accessors( keys %Defaults );
+__PACKAGE__->mk_ro_accessors(
+    qw(
+        start_bound
+        end_bound
+        plain_phrase_bound
+        html_phrase_bound
+        )
+);
 
 sub get_defaults {
     return {%Defaults};
@@ -62,6 +70,9 @@ sub get_defaults {
 sub init {
     my $self = shift;
     $self->SUPER::init(@_);
+
+    # TODO handle case where both term_re and word_characters are defined
+
     for ( keys %Defaults ) {
         next if defined $self->{$_};
         $self->{$_} = $Defaults{$_};
@@ -104,10 +115,11 @@ sub parse {
         );
     }
     return Search::Tools::Query->new(
-        parser => $extracted->{parser},
-        terms  => $extracted->{terms},
-        str    => $query_str,
-        regex  => \%regex,
+        search_queryparser => $extracted->{parser},
+        terms              => $extracted->{terms},
+        str                => $query_str,
+        regex              => \%regex,
+        qp                 => $self,
     );
 }
 
@@ -297,8 +309,9 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
     # sort keeps query in same order as we entered
     return {
-        terms  => [ sort { $words{$a} <=> $words{$b} } keys %words ],
-        parser => $parser
+        terms  => [ sort     { $words{$a} <=> $words{$b} } keys %words ],
+        parser => $parser,
+        query  => join( ' ', @query ),
     };
 
 }
@@ -499,6 +512,34 @@ ${end_bound}
     return ( $plain, $html );
 }
 
+sub _build_term_re {
+
+    # this based on SWISH::PhraseHighlight::set_match_regexp()
+
+    my $self = shift;
+
+    #dump $self;
+
+    my $wc = $self->word_characters;
+    $self->{_wc_regexp}
+        = qr/[^$wc]+/io;    # regexp for splitting into swish-words
+
+    my $igf = $self->ignore_first_char;
+    my $igl = $self->ignore_last_char;
+    for ( $igf, $igl ) {
+        if ($_) {
+            $_ = "[$_]*";
+        }
+        else {
+            $_ = '';
+        }
+    }
+
+    $self->{_ignoreFirst} = $igf;
+    $self->{_ignoreLast}  = $igl;
+
+}
+
 1;
 
 __END__
@@ -514,8 +555,8 @@ Search::Tools::QueryParser - convert string queries into objects
  use Search::Tools::QueryParser;
  my $qparser = Search::Tools::QueryParser->new(
         
-        # regex to define a "word"
-            word_re        => qr/\w+(?:'\w+)*/,
+        # regex to define a query term (word)
+            term_re        => qr/\w+(?:'\w+)*/,
         
         # or assemble a definition from the following
             word_characters     => q/\w\'\-/,

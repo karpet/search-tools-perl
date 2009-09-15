@@ -11,9 +11,8 @@ my %q = (
 
 );
 
-ok( my $re = Search::Tools::RegExp->new(
-        lang => 'en_us',
-
+ok( my $qparser = Search::Tools->parser(
+        lang      => 'en_us',
         stopwords => 'the brown',
         stemmer   => sub {
             my $w = $_[1];
@@ -23,25 +22,23 @@ ok( my $re = Search::Tools::RegExp->new(
         }
     ),
 
-    "re object"
+    "new qparser"
 );
 
-ok( my $kw = $re->build( [ keys %q ] ), "build re" );
+ok( my $query = $qparser->parse( join( ' ', keys %q ) ), "parse query" );
 
 #Data::Dump::dump $kw;
 
-is( scalar $kw->keywords, 1, "1 keywords" );
+is( $query->num_terms, 1, "1 term" );
 
-for my $w ( $kw->keywords ) {
-    my $r = $kw->re($w);
-
+for my $term ( @{ $query->terms } ) {
+    my $r     = $query->regex_for($term);
     my $plain = $r->plain;
     my $html  = $r->html;
 
-    like( $w, qr{^$plain$}x, "$w plain" );
-    like( $w, qr{^$html$}x,  "$w html" );
+    like( $term, qr{^$plain$}, $term );
+    like( $term, qr{^$html$},  $term );
 
     #diag($plain);
 
-    #diag($html);
 }

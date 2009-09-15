@@ -1,7 +1,7 @@
 package Search::Tools;
 use 5.008_003;
 use strict;
-use warnings;
+use warnings::register;
 use Carp;
 
 our $VERSION = '0.24';
@@ -17,10 +17,14 @@ sub parser {
 
 sub regexp {
     my $class = shift;
+
+    warnings::warn(
+        "as of version 0.24 you should use parser() instead of regexp()")
+        if warnings::enabled();
+        
     my %extra = @_;
-    my $q     = delete( $extra{query} ) || croak "need query to build regexp";
-    require Search::Tools::RegExp;
-    return Search::Tools::RegExp->new(%extra)->build($q);
+    my $q = delete( $extra{query} ) || croak "query required";
+    return $class->parser(%extra)->parse($q);
 }
 
 sub hiliter {
@@ -66,16 +70,16 @@ Search::Tools - tools for building search applications
  my $query      = $qparser->parse($string);
  my $snipper    = Search::Tools->snipper(query => $query);
  my $hiliter    = Search::Tools->hiliter(query => $query);
- my $spellcheck = Search::Tools->spellcheck(query => $query);
+ my $spellcheck = Search::Tools->spellcheck(query_parser => $qparser);
 
- my $suggestions = $spellcheck->suggest($query);
+ my $suggestions = $spellcheck->suggest($string);
  
  for my $s (@$suggestions) {
     if (! $s->{suggestions}) {
         # $s->{word} was spelled correctly
     }
     elsif (@{ $s->{suggestions} }) {
-        print "Did you mean: " . join(' or ', @{$s->{suggestions}}) . "\n";
+        printf "Did you mean: %s\n", join(' or ', @{$s->{suggestions}}));
     }
  }
 

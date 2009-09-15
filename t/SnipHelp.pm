@@ -31,9 +31,10 @@ sub test {
         pass("strip_html skipped");
         pass("strip_html skipped");
     }
-    ok( my $regex = Search::Tools->regexp( query => $q ), "new regex" );
+    ok( my $qparser = Search::Tools->parser(), "new qparser" );
+    ok( my $query   = $qparser->parse($q),     "new query" );
     ok( my $snipper = Search::Tools::Snipper->new(
-            query     => $regex,
+            query     => $query,
             occur     => 1,
             context   => 25,
             max_chars => 190,
@@ -43,7 +44,7 @@ sub test {
         "new snipper"
     );
     ok( my $hiliter = Search::Tools::HiLiter->new(
-            query => $regex,
+            query => $query,
             tag   => "b",
             class => "x",
             tty   => $snipper->debug,
@@ -54,7 +55,7 @@ sub test {
     ok( my $snip    = $snipper->snip($plain),  "snip plain" );
     ok( my $hilited = $hiliter->hilite($snip), "hilite" );
 
-    return ( $snip, $hilited, $regex, $plain );
+    return ( $snip, $hilited, $query, $plain );
 }
 
 1;

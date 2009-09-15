@@ -1,6 +1,6 @@
 package Search::Tools::RegExp;
 use strict;
-use warnings;
+use warnings::register;
 use base qw( Search::Tools::Object );
 use Carp;
 use Search::Tools::Keywords;
@@ -32,8 +32,9 @@ sub build {
     my $self = shift;
     my $query = shift or croak "need query to build() RegExp object";
 
-    carp
-        "as of version 0.24 you should use Search::Tools::QueryParser instead of RegExp";
+    warnings::warn(
+        "as of version 0.24 you should use Search::Tools::QueryParser instead of RegExp"
+    ) if warnings::enabled();
 
     my $q_array;
     if ( ref $query and ref $query ne 'ARRAY' ) {

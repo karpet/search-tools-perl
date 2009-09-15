@@ -41,41 +41,12 @@ Search::Tools::RegExp::Keywords - access regular expressions for keywords
 
 =head1 SYNOPSIS
 
- my $regexp = Search::Tools::RegExp->new();
- 
- my $kw = $regexp->build('the quick brown fox');
- 
- for my $w ($kw->keywords)
- {
-    my $r = $kw->re( $w );
- }
-
+ # deprecated. See Search::Tools::Query
  
  
 =head1 DESCRIPTION
 
-Search::Tools::RegExp::Keywords provides access to the regular expressions
-for a query keyword.
-
-A Search::Tools::RegExp::Keywords object is returned by the Search::Tools::RegExp
-build() method. This class is typically not used in isolation.
-
-
-=head1 METHODS
-
-Only new or overridden methods are documented here. See Search::Tools::Object.
-
-=head2 keywords
-
-Returns array of keywords in same order as they appeared in the original query.
-
-=head2 re( I<keyword> )
-
-Returns a Search::Tools::RegExp::Keyword object corresponding to I<keyword>.
-
-=head2 kw
-
-Get the original S::T::Keywords object from which the object is derived.
+As of version 0.24 this class is deprecated in favor of Search::Tools::Query.
 
 =head1 AUTHOR
 
