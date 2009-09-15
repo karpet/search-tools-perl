@@ -24,6 +24,9 @@ cmpthese(
         'xs-ascii' => sub {
             my $tokens = $tokenizer->tokenize( $ascii, \&heat_seeker );
         },
+        'xs-ascii-heatseeker-qr' => sub {
+            my $tokens = $tokenizer->tokenize( $ascii, qr/\w/ );
+        },
     }
 );
 

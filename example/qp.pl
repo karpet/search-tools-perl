@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Carp;
-use Data::Dumper;
+use Data::Dump qw( dump );
 
 use Search::QueryParser;
 
@@ -12,12 +12,11 @@ my $qp = Search::QueryParser->new(
     rxOr  => qr{OR|OU|ODER|O}i,
     rxNot => qr{NOT|PAS|NICHT|NON}i,
 
-                                 );
+);
 
-for my $query (@ARGV)
-{
+for my $query (@ARGV) {
     carp "query: $query";
-    my $p = $qp->parse($query, 1);
-    carp Dumper($p);
+    my $p = $qp->parse( $query, 1 );
+    carp dump($p);
     carp "unparsed: " . $qp->unparse($p);
 }

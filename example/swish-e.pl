@@ -6,7 +6,6 @@
 # plus Search::Tools stuff
 #
 
-require 5.8.1;
 use strict;
 use warnings;
 

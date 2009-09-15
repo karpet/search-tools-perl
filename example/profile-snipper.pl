@@ -7,10 +7,9 @@ use Benchmark qw(:all);
 use File::Slurp;
 
 my $ascii = read_file('t/docs/test.txt');
-my $regex
-    = Search::Tools->regexp( query => 'recense "checkerbreast cannon"' );
+my $query = Search::Tools->parser->parse('recense "checkerbreast cannon"');
 my $re_snipper = Search::Tools::Snipper->new(
-    query     => $regex,
+    query     => $query,
     occur     => 1,
     context   => 25,
     max_chars => 190,
@@ -18,7 +17,7 @@ my $re_snipper = Search::Tools::Snipper->new(
 );
 
 my $loop_snipper = Search::Tools::Snipper->new(
-    query     => $regex,
+    query     => $query,
     occur     => 1,
     context   => 25,
     max_chars => 190,
@@ -26,7 +25,7 @@ my $loop_snipper = Search::Tools::Snipper->new(
 );
 
 my $offset_snipper = Search::Tools::Snipper->new(
-    query     => $regex,
+    query     => $query,
     occur     => 1,
     context   => 25,
     max_chars => 190,
@@ -34,7 +33,7 @@ my $offset_snipper = Search::Tools::Snipper->new(
 );
 
 my $token_snipper = Search::Tools::Snipper->new(
-    query     => $regex,
+    query     => $query,
     occur     => 1,
     context   => 25,
     max_chars => 190,
