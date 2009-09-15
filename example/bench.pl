@@ -32,6 +32,7 @@ cmpthese(
 
 sub heat_seeker {
 
-    # trivial case no-op just to measure sub call overhead
+    # trivial case to measure sub call overhead vs qr//
+    $_[0]->set_hot( $_[0] =~ m/\w/ );
 }
 
