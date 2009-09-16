@@ -33,46 +33,25 @@ sub _build {
 
     # build heatmap
 
-    # (1) find all the hot tokens in the list
-    my @hot;
+    # find all the hot tokens in the list
+    #my @hot;
     my $num_tokens = $tokens->len;
     my $tokens_arr = $tokens->as_array;
+    my %heatmap    = ();
+    
+    # the repeated ->is_hot calls are *MUCH* cheaper
+    # than saving out to a $is_hot SV.
     while ( my $tok = $tokens->next ) {
         if ( $tok->is_hot ) {
-            push( @hot, $tok );
+            $heatmap{ $tok->pos } = $tok->is_hot;
         }
     }
 
-    # (2) find all the hot tokens that are within $window
-    #     positions of another hot token.
-    #     i.e. hot clusters.
-    my $i = 0;
-    my %heatmap;
-
-    #warn dump \@hot;
-    for my $tok (@hot) {
-
-        my $pos    = $tok->pos;
-        my $weight = $tok->is_hot;
-        $heatmap{$pos} += $weight;
-
-        # grap window on either side.
-        # this helps identify clusters of matches,
-        # including phrases.
-        # TODO likely don't need entire $window, but
-        # there is likely a statistically minimum sample size.
-        for ( @{ $tokens->get_window( $pos, $window ) } ) {
-            $heatmap{ $_->pos } += $_->is_hot if $_->is_hot;
-        }
-
-        $i++;
-    }
-
-    # (3) make clusters
+    # make clusters
     my $match_distance = int( $num_tokens / $tokens->num_matches );
     my @positions      = sort { $a <=> $b } keys %heatmap;
     my @clusters       = ( [] );
-    $i = 0;
+    my $i              = 0;
     for my $pos (@positions) {
 
         # if we have advanced past the first position
@@ -89,13 +68,12 @@ sub _build {
 
     #warn "match_distance: $match_distance   clusters: " . dump \@clusters;
 
-    # (4) create spans from each cluster, each with a weight.
+    # create spans from each cluster, each with a weight.
     # sort by cluster length, so we get highest density first,
     # followed by heatmap value,
     # followed by lowest position (first in tokenlist).
     my @spans;
     my %seen_pos;
-    $i = 0;
     for my $cluster (
         sort {
                    scalar(@$b) <=> scalar(@$a)
@@ -111,10 +89,10 @@ sub _build {
         my @cluster_tokens;
         for my $pos (@$cluster) {
             $heat += $heatmap{$pos};
-            my $slice = $tokens->get_window( $pos, $window );
-            for my $tok (@$slice) {
-                next if $seen_pos{ $tok->pos }++;
-                push( @cluster_tokens, $tok );
+            my ( $start, $end ) = $tokens->get_window( $pos, $window );
+            for my $pos2 ( $start .. $end ) {
+                next if $seen_pos{$pos2}++;
+                push( @cluster_tokens, $tokens->get_token($pos2) );
             }
         }
 
@@ -127,37 +105,46 @@ sub _build {
             pop @cluster_tokens;
         }
 
+        next unless @cluster_tokens;
+
         # sanity: make sure we still have something hot
         my $has_hot = 0;
+        my @cluster_pos;
+        my @strings;
         for (@cluster_tokens) {
-            $has_hot++ if $_->is_hot;
+            my $pos = $_->pos;
+            $has_hot++ if exists $heatmap{$pos};
+            push @strings,     $_->str;
+            push @cluster_pos, $pos;
         }
         next unless $has_hot;
-        next unless @cluster_tokens;
 
         $span{cluster} = $cluster;
         $span{heat}    = $heat;
-        $span{pos}     = [ map { $_->pos } @cluster_tokens ];
-
-        # TODO is the sort necessary? dump pos above
-        $span{tokens} = [ sort { $a->pos <=> $b->pos } @cluster_tokens ];
-        $span{str} = join( '', map { $_->str } @{ $span{tokens} } );
+        $span{pos}     = \@cluster_pos;
+        $span{tokens}  = \@cluster_tokens;
+        $span{str}     = join( '', @strings );
 
         # just for debug
+        my $i = 0;
         $span{str_w_pos} = join(
             '',
             map {
-                      $_->str
-                    . ( $_->is_hot ? $OPEN : '[' )
-                    . $_->pos
-                    . ( $_->is_hot ? $CLOSE : ']' )
-                } @{ $span{tokens} }
+                      $strings[ $i++ ]
+                    . ( exists $heatmap{$_} ? $OPEN : '[' )
+                    . $_
+                    . ( exists $heatmap{$_} ? $CLOSE : ']' )
+                } @cluster_pos
         );
 
         # spans with more *unique* hot tokens in a single span rank higher
         my %uniq = ();
-        for ( @{ $span{tokens} } ) {
-            $uniq{ $_->str } += $_->is_hot;
+        $i = 0;
+        for (@cluster_pos) {
+            if ( exists $heatmap{$_} ) {
+                $uniq{ $strings[$i] } += $heatmap{$_};
+            }
+            $i++;
         }
         $span{unique} = scalar keys %uniq;
 
@@ -166,7 +153,6 @@ sub _build {
     }
 
     $self->{spans}   = \@spans;
-    $self->{hot}     = \@hot;
     $self->{heatmap} = \%heatmap;
 
     return $self;

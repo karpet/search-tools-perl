@@ -71,11 +71,16 @@ sub get_window {
     #warn "return $start .. $end";
     #warn "$size ~~ " . ( $end - $start );
 
+    return ($start, $end);
+}
+
+sub get_window_tokens {
+    my $self = shift;
+    my ( $start, $end ) = $self->get_window(@_);
     my @slice = ();
     for ( $start .. $end ) {
         push( @slice, $self->get_token($_) );
     }
-
     return \@slice;
 }
 
