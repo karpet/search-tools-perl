@@ -87,8 +87,13 @@ sub _pick_snipper {
     return $func;
 }
 
+# 2 passes, excluding ' ' in the first one,
+# is 60% faster than a single pass including ' '.
+# likely because there are far fewer matches
+# in either of the 2 than the 1.
 sub _normalize_whitespace {
-    $_[0] =~ s,[\s\xa0]+,\ ,go;
+    $_[0] =~ s,[\n\r\t\xa0]+,\ ,go;
+    $_[0] =~ s,\ \ +, ,go;
 }
 
 sub snip {
