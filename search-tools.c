@@ -162,7 +162,8 @@ st_new_token(
 
 static st_token_list*
 st_new_token_list(
-    AV *tokens, 
+    AV *tokens,
+    AV *heat,
     unsigned int num
 ) {
     dTHX;
@@ -170,6 +171,7 @@ st_new_token_list(
     tl = st_malloc(sizeof(st_token_list));
     tl->pos = 0;
     tl->tokens = tokens;
+    tl->heat   = heat;
     tl->num = (IV)num;
     tl->ref_cnt = 1;
     return tl;
@@ -412,8 +414,9 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
     STRLEN           str_len;
     const char      *prev_end, *prev_start;
     AV              *tokens;
+    AV              *heat;
     SV              *tok;
-    boolean          heat_map_is_CV;
+    boolean          heat_seeker_is_CV;
 
 /* initialize */
     num_tokens      = 0;
@@ -424,9 +427,10 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
     prev_start      = str_start;
     prev_end        = prev_start;
     tokens          = newAV();
-    heat_map_is_CV  = 0;
+    heat            = newAV();
+    heat_seeker_is_CV  = 0;
     if (heat_seeker != NULL && (SvTYPE(SvRV(heat_seeker))==SVt_PVCV)) {
-         heat_map_is_CV = 1;
+         heat_seeker_is_CV = 1;
     }
         
     //warn("tokenizing: '%s'\n", buf);
@@ -478,7 +482,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
         
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
         if (heat_seeker != NULL) {
-            if (heat_map_is_CV) {
+            if (heat_seeker_is_CV) {
                 PUSHMARK(SP);
                 XPUSHs(tok);
                 PUTBACK;
@@ -489,6 +493,9 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
             }
         }
         av_push(tokens, SvREFCNT_inc(tok));
+        if (token->is_hot) {
+            av_push(heat, newSViv(token->pos));
+        }
         
         /* remember where we are for next time */
         prev_end = end_ptr;
@@ -512,7 +519,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
         
     return st_bless_ptr(
             ST_CLASS_TOKENLIST, 
-            (IV)st_new_token_list(tokens, num_tokens)
+            (IV)st_new_token_list(tokens, heat, num_tokens)
            );
 }
 

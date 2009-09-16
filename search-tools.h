@@ -33,6 +33,7 @@ struct st_token_list {
     IV              pos;        // current iterator position (array index)
     IV              num;        // number of parsed tokens
     AV             *tokens;     // array of st_token objects
+    AV             *heat;       // array of positions of is_hot tokens
     IV              ref_cnt;    // reference counter
 };
 
@@ -47,7 +48,8 @@ st_new_token(
 );
 
 static st_token_list* st_new_token_list(
-    AV *tokens, 
+    AV *tokens,
+    AV *heat,
     unsigned int num
 );
 static void     st_dump_token_list(st_token_list *tl);

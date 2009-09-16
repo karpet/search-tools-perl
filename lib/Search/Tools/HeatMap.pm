@@ -32,19 +32,13 @@ sub _build {
     my $lhs_window = int( $window / 2 );
 
     # build heatmap
-
-    # find all the hot tokens in the list
-    #my @hot;
-    my $num_tokens = $tokens->len;
-    my $tokens_arr = $tokens->as_array;
-    my %heatmap    = ();
-    
-    # the repeated ->is_hot calls are *MUCH* cheaper
-    # than saving out to a $is_hot SV.
-    while ( my $tok = $tokens->next ) {
-        if ( $tok->is_hot ) {
-            $heatmap{ $tok->pos } = $tok->is_hot;
-        }
+    my $num_tokens      = $tokens->len;
+    my $tokens_arr      = $tokens->as_array;
+    my %heatmap         = ();
+    my $token_list_heat = $tokens->get_heat;
+    for (@$token_list_heat) {
+        my $token = $tokens->get_token($_);
+        $heatmap{ $token->pos } = $token->is_hot;
     }
 
     # make clusters

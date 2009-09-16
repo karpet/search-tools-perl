@@ -395,8 +395,20 @@ as_array(self)
     st_token_list *self;
     
     CODE:
-        self->ref_cnt++;
+        self->ref_cnt++;    // TODO?
         RETVAL = newRV_inc((SV*)self->tokens);
+    
+    OUTPUT:
+        RETVAL
+        
+
+SV*
+get_heat(self)
+    st_token_list *self;
+    
+    CODE:
+        //self->ref_cnt++;  // TODO?
+        RETVAL = newRV_inc((SV*)self->heat);
     
     OUTPUT:
         RETVAL
