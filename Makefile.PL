@@ -27,13 +27,15 @@ WriteMakefile(
     C    => [qw( search-tools.c )],
     dist => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Search-Tools-*' },
-    {   resources => {
-            license  => 'http://dev.perl.org/licenses/',
-            homepage => 'http://perl.peknet.com/',
-            bugtracker =>
-                'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
-            repository => 'http://svn.peknet.com/perl/trunk/Search-Tools',
-        },
-    }
+    (   META_MERGE => {
+            resources => {
+                license  => 'http://dev.perl.org/licenses/',
+                homepage => 'http://perl.peknet.com/',
+                bugtracker =>
+                    'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
+                repository => 'http://svn.peknet.com/perl/trunk/Search-Tools',
+            },
+        }
+    ),
 
 );
