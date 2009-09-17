@@ -102,24 +102,24 @@ Examples include:
 
 =item
 
-Parsing search queries for the meaningful keywords
+Parsing search queries for the meaningful terms
 
 =item
 
-Rich regular expressions for locating keywords in the original
+Rich regular expressions for locating terms in the original
 indexed documents
 
 =item
 
-Contextual snippets showing query keywords
+Contextual snippets showing query terms
 
 =item
 
-Highlighting of keywords in context
+Highlighting of terms in context
 
 =item
 
-Spell check keywords and suggestions of alternate spellings.
+Spell check terms and suggestions of alternate spellings.
 
 =back
 
