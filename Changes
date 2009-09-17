@@ -142,7 +142,7 @@ Revision history for Perl extension Search::HiLiter.
     * added new Tokenizer, Token and TokenList XS code for must faster snipping.
     * added PP versions of tokenizing code, both for benchmarking and comparision. As expected, XS
       is much faster. The extra speed makes it possible to be more accurate in snippet extraction
-      without sacrificing (too much) performance.
+      without sacrificing performance.
 
 
 

@@ -198,6 +198,33 @@ and for performance.
 
 See also the specific module documentation for individual requirements.
 
+=head1 HISTORY
+
+The public API has changed as of version 0.24. The following classes
+are now deprecated:
+
+ Search::Tools::Keywords
+ Search::Tools::RegExp
+ Search::Tools::RegExp::Keywords
+ Search::Tools::RegExp::Keyword
+
+The following Search::Tools method is deprecated:
+
+ regexp()
+
+The following classes are new as of version 0.24:
+
+ Search::Tools::HeatMap
+ Search::Tools::Query
+ Search::Tools::QueryParser
+ Search::Tools::RegEx
+ Search::Tools::Token
+ Search::Tools::TokenList
+ Search::Tools::TokenListPP
+ Search::Tools::TokenListUtils
+ Search::Tools::TokenPP
+ Search::Tools::Tokenizer
+
 =head1 EXAMPLES
 
 See the tests in t/ and the example scripts in example/.
