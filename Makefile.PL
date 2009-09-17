@@ -3,17 +3,22 @@ use warnings;
 use ExtUtils::MakeMaker;
 use 5.008003;
 
+my $MM_Version = $ExtUtils::MakeMaker::VERSION;
+
+if ( $MM_Version =~ /_/ )    # dev version
+{
+    $MM_Version = eval $MM_Version;
+    die $@ if ($@);
+}
+
 WriteMakefile(
     NAME          => 'Search::Tools',
     VERSION_FROM  => 'lib/Search/Tools.pm',
     AUTHOR        => q{Peter Karman <karman@cpan.org>},
     VERSION_FROM  => 'lib/Search/Tools.pm',
     ABSTRACT_FROM => 'lib/Search/Tools.pm',
-    ( $ExtUtils::MakeMaker::VERSION >= 6.3002
-        ? ( 'LICENSE' => 'perl' )
-        : () ),
-    PL_FILES  => {},
-    PREREQ_PM => {
+    PL_FILES      => {},
+    PREREQ_PM     => {
         'Search::QueryParser' => '0',
         'Encode'              => '0',
         'Rose::Object'        => '0',
@@ -27,15 +32,23 @@ WriteMakefile(
     C    => [qw( search-tools.c )],
     dist => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Search-Tools-*' },
-    (   META_MERGE => {
-            resources => {
-                license  => 'http://dev.perl.org/licenses/',
-                homepage => 'http://perl.peknet.com/',
-                bugtracker =>
-                    'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
-                repository => 'http://svn.peknet.com/perl/trunk/Search-Tools',
-            },
-        }
+    ( $MM_Version >= 6.48 ? ( MIN_PERL_VERSION => '5.8.3' ) : () ),
+    ( $MM_Version >= 6.31 ? ( LICENSE          => 'perl' )  : () ),
+    (   $MM_Version <= 6.44 ? ()
+        :
+
+            (
+            META_MERGE => {
+                resources => {
+                    license  => 'http://dev.perl.org/licenses/',
+                    homepage => 'http://perl.peknet.com/',
+                    bugtracker =>
+                        'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
+                    repository =>
+                        'http://svn.peknet.com/perl/trunk/Search-Tools',
+                },
+            }
+            )
     ),
 
 );
