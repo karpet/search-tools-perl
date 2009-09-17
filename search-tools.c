@@ -543,17 +543,19 @@ st_find_bad_utf8( SV* str ) {
     STRLEN len;
     U8 *bytes;
     const U8 *pos;
+    STRLEN *el;
 
     warn("PERL_VERSION = %d %d\n", PERL_VERSION, PERL_SUBVERSION);
     bytes  = (U8*)SvPV(str, len);
+    el = 0;
     if (is_utf8_string(bytes, len)) {
         return &PL_sv_undef;
     }
     else {
 #if ((PERL_VERSION > 9) || (PERL_VERSION == 8 && PERL_SUBVERSION == 9))
-        is_utf8_string_loc(bytes, len, &pos);
+        is_utf8_string_loclen(bytes, len, &pos, el);
 #else
-        is_utf8_string_loc(bytes, len, pos);
+        is_utf8_string_loclen(bytes, len, &pos, el);
 #endif
         return newSVpvn((char*)pos, strlen((char*)pos));
     }
