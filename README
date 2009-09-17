@@ -14,14 +14,14 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  Class::Accessor::Fast
+  Rose::Object
   Search::QueryParser
   Encode
   Carp
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2006 by Peter Karman
+Copyright (C) 2006-2009 by Peter Karman
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

@@ -1,10 +1,20 @@
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-use 5.008_003;
+use 5.008003;
 
 WriteMakefile(
-    NAME         => 'Search::Tools',
-    VERSION_FROM => 'lib/Search/Tools.pm',
-    PREREQ_PM    => {
+    NAME          => 'Search::Tools',
+    VERSION_FROM  => 'lib/Search/Tools.pm',
+    LICENSE       => 'perl',
+    AUTHOR        => q{Peter Karman <karman@cpan.org>},
+    VERSION_FROM  => 'lib/Search/Tools.pm',
+    ABSTRACT_FROM => 'lib/Search/Tools.pm',
+    ( $ExtUtils::MakeMaker::VERSION >= 6.3002
+        ? ( 'LICENSE' => 'perl' )
+        : () ),
+    PL_FILES  => {},
+    PREREQ_PM => {
         'Search::QueryParser' => '0',
         'Encode'              => '0',
         'Rose::Object'        => '0',
@@ -14,10 +24,9 @@ WriteMakefile(
         #'Text::Aspell'          => '0.06',  # optional
 
     },
-    (   $] >= 5.005
-        ? ( ABSTRACT_FROM => 'lib/Search/Tools.pm',
-            AUTHOR        => ' Peter Karman <perl@peknet.com>'
-            )
-        : ()
-    ),
+    H    => [qw( search-tools.h )],
+    C    => [qw( search-tools.c )],
+    dist => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    clean => { FILES => 'Search-Tools-*' },
+
 );

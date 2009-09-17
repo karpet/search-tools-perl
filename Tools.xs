@@ -69,27 +69,14 @@ is_perl_utf8_string(string)
 SV*
 find_bad_utf8(string)
     SV* string;
-    
-    PREINIT:
-        STRLEN len;
-        U8 * bytes;
-        const U8 * pos;  // gives warnings in perl < 5.8.9
-        
+            
     CODE:
-        bytes  = (U8*)SvPV(string, len);
-        if (is_utf8_string(bytes, len))
-        {
-            RETVAL = &PL_sv_undef;
-        }
-        else
-        {
-            is_utf8_string_loc(bytes, len, &pos);
-            RETVAL = newSVpvn((char*)pos, strlen((char*)pos));
-        }
+        RETVAL = st_find_bad_utf8(string);
 
     OUTPUT:
         RETVAL
-        
+
+     
 # benchmarks show these XS versions are 9x faster
 # than their native Perl regex counterparts
 boolean 
@@ -231,13 +218,17 @@ tokenize(self, str, ...)
     OUTPUT:
         RETVAL
 
-void
+SV*
 set_debug(self, val)
     SV* self;
     boolean val;
     
     CODE:
         ST_DEBUG = val;
+        RETVAL = self;
+    
+    OUTPUT:
+        RETVAL
 
 
 

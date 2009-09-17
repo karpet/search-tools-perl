@@ -523,3 +523,27 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
            );
 }
 
+/* we wrap the is_utf8_string_loc() Perl API function with our own
+ * in order to get the signature correct on older (<5.8.9) versions
+ */
+static SV*
+st_find_bad_utf8( SV* str ) {
+    dTHX;
+    
+    STRLEN len;
+    U8 *bytes;
+#if ((PERL_VERSION > 9) || (PERL_VERSION == 8 && PERL_SUBVERSION == 9))
+    const U8 *pos;  // gives warnings in perl < 5.8.9
+#else
+    const U8 **pos; // good for perl < 5.8.9
+#endif
+
+    bytes  = (U8*)SvPV(str, len);
+    if (is_utf8_string(bytes, len)) {
+        return &PL_sv_undef;
+    }
+    else {
+        is_utf8_string_loc(bytes, len, &pos);
+        return newSVpvn((char*)pos, strlen((char*)pos));
+    }
+}
