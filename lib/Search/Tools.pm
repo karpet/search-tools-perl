@@ -59,7 +59,7 @@ __END__
 
 =head1 NAME
 
-Search::Tools - tools for building search applications
+Search::Tools - high-performance tools for building search applications
 
 =head1 SYNOPSIS
 
@@ -91,8 +91,8 @@ Search::Tools - tools for building search applications
 =head1 DESCRIPTION
 
 Search::Tools is a set of utilities for building search applications.
-Rather than adhering to a particular search application, the goal
-of Search::Tools is to provide general-purpose methods for common
+Rather than adhering to a particular search application or framework,
+the goal of Search::Tools is to provide general-purpose methods for common
 search application features. Think of Search::Tools like a toolbox
 rather than a hammer.
 
@@ -187,24 +187,59 @@ See the tests in t/ and the example scripts in example/.
  
 =head1 AUTHOR
 
-Peter Karman C<perl@peknet.com>
+Peter Karman C<< <karman@cpan.org> >>
 
-Based on the HTML::HiLiter regular expression building code, originally by the same author, 
-copyright 2004 by Cray Inc.
+Originally based on the HTML::HiLiter regular expression building code, 
+by the same author, copyright 2004 by Cray Inc.
 
 Thanks to Atomic Learning C<www.atomiclearning.com> 
 for sponsoring the development of these modules.
 
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-search-tools at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Search-Tools>.  
+I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Search::Tools
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Search-Tools>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Search-Tools>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Search-Tools/>
+
+=back
+
 =head1 COPYRIGHT
 
-Copyright 2006 by Peter Karman. 
+Copyright 2006-2009 by Peter Karman.
+
 This package is free software; you can redistribute it and/or modify it under the 
 same terms as Perl itself.
 
 =head1 SEE ALSO
 
-HTML::HiLiter, SWISH::HiLiter, Search::Tools::Keywords,  Search::Tools::RegExp,
-Search::Tools::RegExp::Keywords, Search::Tools::RegExp::Keyword, Search::Tools::Snipper,
-Search::Tools::HiLiter, Search::Tools::SpellCheck
+HTML::HiLiter, SWISH::HiLiter, Rose::Object, Class::XSAccessor, Text::Aspell
 
 =cut

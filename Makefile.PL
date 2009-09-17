@@ -6,7 +6,6 @@ use 5.008003;
 WriteMakefile(
     NAME          => 'Search::Tools',
     VERSION_FROM  => 'lib/Search/Tools.pm',
-    LICENSE       => 'perl',
     AUTHOR        => q{Peter Karman <karman@cpan.org>},
     VERSION_FROM  => 'lib/Search/Tools.pm',
     ABSTRACT_FROM => 'lib/Search/Tools.pm',
@@ -28,5 +27,13 @@ WriteMakefile(
     C    => [qw( search-tools.c )],
     dist => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Search-Tools-*' },
+    {   resources => {
+            license  => 'http://dev.perl.org/licenses/',
+            homepage => 'http://perl.peknet.com/',
+            bugtracker =>
+                'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
+            repository => 'http://svn.peknet.com/perl/trunk/Search-Tools',
+        },
+    }
 
 );
