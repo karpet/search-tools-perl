@@ -542,11 +542,7 @@ st_find_bad_utf8( SV* str ) {
     
     STRLEN len;
     U8 *bytes;
-#if ((PERL_VERSION > 9) || (PERL_VERSION == 8 && PERL_SUBVERSION == 9))
-    const U8 *pos;  // gives warnings in perl < 5.8.9
-#else
-    const U8 **pos; // good for perl < 5.8.9
-#endif
+    const U8 *pos;
 
     warn("PERL_VERSION = %d %d\n", PERL_VERSION, PERL_SUBVERSION);
     bytes  = (U8*)SvPV(str, len);
@@ -554,7 +550,11 @@ st_find_bad_utf8( SV* str ) {
         return &PL_sv_undef;
     }
     else {
+#if ((PERL_VERSION > 9) || (PERL_VERSION == 8 && PERL_SUBVERSION == 9))
         is_utf8_string_loc(bytes, len, &pos);
+#else
+        is_utf8_string_loc(bytes, len, pos);
+#endif
         return newSVpvn((char*)pos, strlen((char*)pos));
     }
 }
