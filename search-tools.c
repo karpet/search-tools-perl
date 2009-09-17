@@ -13,7 +13,7 @@
 /* global debug var */
 static boolean ST_DEBUG;
 
-/* store SV* in a hash, incrementing its refcnt */
+/* UNUSED
 static SV*
 st_hv_store( HV* h, const char* key, SV* val) {
     dTHX;
@@ -24,7 +24,8 @@ st_hv_store( HV* h, const char* key, SV* val) {
     }
     return *ok;
 }
-
+*/
+/* UNUSED
 static SV*
 st_hv_store_char( HV* h, const char *key, char *val) {
     dTHX;
@@ -34,7 +35,8 @@ st_hv_store_char( HV* h, const char *key, char *val) {
     SvREFCNT_dec(value);
     return value;
 }
-
+*/
+/* UNUSED
 static SV*      
 st_hv_store_int( HV* h, const char* key, int i) {
     dTHX;
@@ -44,24 +46,28 @@ st_hv_store_int( HV* h, const char* key, int i) {
     SvREFCNT_dec(value);
     return value;
 }
-
+*/
+/* UNUSED
 static SV*
 st_hvref_store( SV* h, const char* key, SV* val) {
     dTHX;
     return st_hv_store( (HV*)SvRV(h), key, val );
 }
-
+*/
+/* UNUSED
 static SV*
 st_hvref_store_char( SV* h, const char* key, char *val) {
     dTHX;
     return st_hv_store_char( (HV*)SvRV(h), key, val );
 }
-
+*/
+/*  UNUSED
 static SV*
 st_hvref_store_int( SV* h, const char* key, int i) {
     dTHX;
     return st_hv_store_int( (HV*)SvRV(h), key, i );
 }
+*/
 
 static SV*
 st_av_fetch( AV* a, I32 index ) {
@@ -92,7 +98,7 @@ st_hvref_fetch( SV* h, const char* key ) {
     return st_hv_fetch((HV*)SvRV(h), key);
 }
 
-/* fetch SV* from hash */
+/* UNUSED
 static char*
 st_hv_fetch_as_char( HV* h, const char* key ) {
     dTHX;
@@ -101,15 +107,17 @@ st_hv_fetch_as_char( HV* h, const char* key ) {
     if (ok == NULL) {
         ST_CROAK("failed to fetch %s from hash", key);
     }
-    return SvPV((SV*)*ok, PL_na);
+    return SvPV_nolen((SV*)*ok);
 }
-
+*/
+/* UNUSED
 static char*
 st_hvref_fetch_as_char( SV* h, const char* key ) {
     dTHX;
     return st_hv_fetch_as_char( (HV*)SvRV(h), key );
 }
-
+*/
+/* UNUSED
 static IV
 st_hvref_fetch_as_int( SV* h, const char* key ) {
     dTHX;
@@ -119,6 +127,7 @@ st_hvref_fetch_as_int( SV* h, const char* key ) {
     i = SvIV(val);
     return i;
 }
+*/
 
 void *
 st_malloc(size_t size) {
@@ -223,7 +232,7 @@ static void
 st_dump_token(st_token *tok) {
     dTHX;
     warn("Token 0x%x", tok);
-    warn(" str = '%s'\n", SvPV(tok->str, PL_na));
+    warn(" str = '%s'\n", SvPV_nolen(tok->str));
     warn(" pos = %d\n", tok->pos);
     warn(" len = %d\n", tok->len);
     warn(" u8len = %d\n", tok->u8len);
@@ -267,15 +276,17 @@ st_croak(
     va_end(args);
 }
 
+/* UNUSED
 static SV*
 st_new_hash_object(const char *class) {
-    dTHX; /* thread-safe perlism */
+    dTHX;
     HV *hash;
     SV *object;
     hash    = newHV();
     object  = sv_bless( newRV((SV*)hash), gv_stashpv(class,0) );
     return object;
 }
+*/
 
 static void 
 st_dump_sv(SV* ref) {
@@ -297,7 +308,7 @@ st_dump_sv(SV* ref) {
             sv_val      = hv_iterval(hash, hash_entry);
             refcnt      = SvREFCNT(sv_val);
             warn("  %s => %s  [%d]\n", 
-                SvPV(sv_key, PL_na), SvPV(sv_val, PL_na), refcnt);
+                SvPV_nolen(sv_key), SvPV_nolen(sv_val), refcnt);
         }
     }
     else if (SvTYPE(SvRV(ref))==SVt_PVAV) {
@@ -315,7 +326,7 @@ st_describe_object( SV* object ) {
     char* str;
     
     warn("describing object\n");
-    str = SvPV( object, PL_na );
+    str = SvPV_nolen( object );
     if (SvROK(object))
     {
       if (SvTYPE(SvRV(object))==SVt_PVHV)
@@ -436,7 +447,6 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
     //warn("tokenizing: '%s'\n", buf);
     
     while ( pregexec(rx, buf, str_end, buf, 1, str, 1) ) {
-        unsigned int token_len;
         const char *start_ptr, *end_ptr;
         st_token *token;
         
@@ -462,7 +472,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                                 prev_end, 0, 0);
             if (ST_DEBUG) {
                 warn("prev [%d] [%d] [%d] [%s]", 
-                    token->pos, token->len, token->u8len, SvPV(token->str, PL_na));
+                    token->pos, token->len, token->u8len, SvPV_nolen(token->str));
             }
             
             tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
@@ -477,7 +487,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                             0, 1);
         if (ST_DEBUG) {
             warn("[%d] [%d] [%d] [%s]", 
-                token->pos, token->len, token->u8len, SvPV(token->str, PL_na));
+                token->pos, token->len, token->u8len, SvPV_nolen(token->str));
         }
         
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
@@ -511,7 +521,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                                     0, 0);
         if (ST_DEBUG) {
             warn("tail [%d] [%d] [%d] [%s]", 
-                token->pos, token->len, token->u8len, SvPV(token->str, PL_na));
+                token->pos, token->len, token->u8len, SvPV_nolen(token->str));
         }
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
         av_push(tokens, SvREFCNT_inc(tok));

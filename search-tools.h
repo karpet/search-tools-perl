@@ -54,18 +54,22 @@ static st_token_list* st_new_token_list(
 );
 static void     st_dump_token_list(st_token_list *tl);
 static void     st_dump_token(st_token *tok);
+/* UNUSED
 static SV*      st_hv_store( HV* h, const char* key, SV* val );
 static SV*      st_hv_store_char( HV* h, const char* key, char *val );
 static SV*      st_hv_store_int( HV* h, const char* key, int i);
 static SV*      st_hvref_store_int( SV* h, const char* key, int i);
 static SV*      st_hvref_store( SV* h, const char* key, SV* val );
 static SV*      st_hvref_store_char( SV* h, const char* key, char *val );
+*/
 static SV*      st_av_fetch( AV* a, I32 index );
 static SV*      st_hv_fetch( HV* h, const char* key );
 static SV*      st_hvref_fetch( SV* h, const char* key );
+/* UNUSED
 static char*    st_hv_fetch_as_char( HV* h, const char* key );
 static char*    st_hvref_fetch_as_char( SV* h, const char* key );
 static IV       st_hvref_fetch_as_int( SV* h, const char* key );
+*/
 static SV*      st_tokenize( 
     SV* str, 
     SV* token_re, 
@@ -74,7 +78,9 @@ static SV*      st_tokenize(
 );
 static void     st_heat_seeker( st_token *token, SV *re );
 static REGEXP*  st_get_regex_from_sv( SV* regex_sv );
+/* UNUSED
 static SV*      st_new_hash_object(const char *class);
+*/
 static SV*      st_bless_ptr( const char* class, IV c_ptr );
 static IV       st_extract_ptr( SV* object );
 static void*    st_malloc(size_t size);

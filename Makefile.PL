@@ -28,9 +28,10 @@ WriteMakefile(
         #'Text::Aspell'          => '0.06',  # optional
 
     },
-    H    => [qw( search-tools.h )],
-    C    => [qw( search-tools.c )],
-    dist => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    H       => [qw( search-tools.h )],
+    C       => [qw( search-tools.c )],
+    CCFLAGS => '-Wall',
+    dist    => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Search-Tools-*' },
     ( $MM_Version >= 6.48 ? ( MIN_PERL_VERSION => '5.8.3' ) : () ),
     ( $MM_Version >= 6.31 ? ( LICENSE          => 'perl' )  : () ),

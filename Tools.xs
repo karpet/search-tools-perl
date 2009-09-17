@@ -269,10 +269,9 @@ next(self)
             if (!av_exists(self->tokens, self->pos)) {
                 ST_CROAK("no such index at %d", self->pos);
             }
-            else {
-                st_dump_sv( st_av_fetch(self->tokens, self->pos) );
-                RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, self->pos++));
-            }
+            //st_dump_sv( st_av_fetch(self->tokens, self->pos) );
+            RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, self->pos++));
+            
         }
         
             
@@ -298,6 +297,9 @@ prev(self)
             RETVAL = &PL_sv_undef;
         }
         else {
+            if (!av_exists(self->tokens, (self->pos-1))) {
+                ST_CROAK("no such index at %d", (self->pos-1));
+            }
             RETVAL = SvREFCNT_inc(st_av_fetch(self->tokens, --(self->pos)));
         }
         
@@ -476,7 +478,7 @@ DESTROY(self)
         if (ST_DEBUG) {
             warn("............................");
             warn("DESTROY %s [%d] [0x%x]\n", 
-                SvPV(self, PL_na), tl->ref_cnt, tl);
+                SvPV_nolen(self), tl->ref_cnt, tl);
             st_describe_object(self);
             st_dump_sv((SV*)tl->tokens);
         }
@@ -605,7 +607,7 @@ DESTROY(self)
         if (ST_DEBUG) {
             warn("............................");
             warn("DESTROY %s [%d] [0x%x]\n", 
-                SvPV(self, PL_na), tok->ref_cnt, tok);
+                SvPV_nolen(self), tok->ref_cnt, tok);
         }
         if (tok->ref_cnt < 1) {
             st_free_token(tok);
