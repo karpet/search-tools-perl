@@ -548,6 +548,7 @@ st_find_bad_utf8( SV* str ) {
     const U8 **pos; // good for perl < 5.8.9
 #endif
 
+    warn("PERL_VERSION = %d %d\n", PERL_VERSION, PERL_SUBVERSION);
     bytes  = (U8*)SvPV(str, len);
     if (is_utf8_string(bytes, len)) {
         return &PL_sv_undef;
