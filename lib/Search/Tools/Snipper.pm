@@ -883,6 +883,8 @@ Returns the internal Search::Tools::RegExp::Keywords object.
 
 Peter Karman C<perl@peknet.com>
 
+=head1 ACKNOWLEDGEMENTS
+
 Based on the HTML::HiLiter regular expression building code, originally by the same author, 
 copyright 2004 by Cray Inc.
 
@@ -891,7 +893,8 @@ for sponsoring the development of this module.
 
 =head1 COPYRIGHT
 
-Copyright 2006 by Peter Karman. 
+Copyright 2006 by Peter Karman.
+
 This package is free software; you can redistribute it and/or modify it under the 
 same terms as Perl itself.
 

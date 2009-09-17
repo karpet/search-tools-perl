@@ -469,6 +469,14 @@ The following params are also supported. Each is available as a method as well:
 
 =back
 
+=head2 init
+
+Called internally by new().
+
+=head2 terms
+
+Calls through to I<query>->terms().
+
 =head2 open_tag( I<keyword> )
 
 =head2 close_tag( I<keyword> )
@@ -517,22 +525,59 @@ Returns the keywords derived from I<query>.
 
 =head1 AUTHOR
 
-Peter Karman C<perl@peknet.com>
+Peter Karman C<< <karman@cpan.org> >>
 
-Based on the HTML::HiLiter regular expression building code, originally by the same author, 
-copyright 2004 by Cray Inc.
+=head1 ACKNOWLEDGEMENTS
+
+Based on the HTML::HiLiter regular expression building code, 
+originally by the same author, copyright 2004 by Cray Inc.
 
 Thanks to Atomic Learning C<www.atomiclearning.com> 
 for sponsoring the development of this module.
 
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-search-tools at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Search-Tools>.  
+I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Search::Tools
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Search-Tools>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Search-Tools>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Search-Tools/>
+
+=back
+
 =head1 COPYRIGHT
 
-Copyright 2006 by Peter Karman. 
+Copyright 2009 by Peter Karman.
+
 This package is free software; you can redistribute it and/or modify it under the 
 same terms as Perl itself.
 
 =head1 SEE ALSO
 
-HTML::HiLiter, Search::Tools::RegExp::Keywords
-
-=cut
+Search::QueryParser

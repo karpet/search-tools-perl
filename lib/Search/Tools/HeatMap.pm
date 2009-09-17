@@ -5,6 +5,8 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
+our $VERSION = '0.24';
+
 # debuggin only
 my $OPEN  = '[';
 my $CLOSE = ']';
@@ -14,7 +16,60 @@ if ( !$@ ) {
     $CLOSE = Term::ANSIColor::color('reset') . $CLOSE;
 }
 
-__PACKAGE__->mk_accessors(qw( window_size tokens hot spans ));
+__PACKAGE__->mk_accessors(qw( window_size tokens spans ));
+
+=head1 NAME
+
+Search::Tools::HeatMap - locate the best matches in a snippet extract
+
+=head1 SYNOPSIS
+
+ use Search::Tools::Tokenizer;
+ use Search::Tools::HeatMap;
+     
+ my $tokens = $self->tokenizer->tokenize( $my_string, qr/^(interesting)$/ );
+ my $heatmap = Search::Tools::HeatMap->new(
+     tokens      => $tokens,
+     window_size => 20,
+ );
+
+ if ( $heatmap->has_spans ) {
+ 
+     my $tokens_arr = $tokens->as_array;
+
+     # stringify positions
+     my @snips;
+     for my $span ( @{ $heatmap->spans } ) {
+         push( @snips, $span->{str} );
+     }
+     my $occur_index = $self->occur - 1;
+     if ( $#snips > $occur_index ) {
+         @snips = @snips[ 0 .. $occur_index ];
+     }
+     printf("%s\n", join( ' ... ', @snips ));
+     
+ }
+
+=head1 DESCRIPTION
+
+Search::Tools::HeatMap implements a simple algorithm for locating
+the densest clusters of unique, hot terms in a TokenList.
+
+HeatMap is used internally by Snipper but documented here in case
+someone wants to abuse and/or improve it.
+
+=head1 METHODS
+
+=head2 new( tokens => I<TokenList> )
+
+Create a new HeatMap. The I<TokenList> object may be either a
+Search::Tools::TokenList or Search::Tools::TokenListPP object.
+
+=head2 init
+
+Builds the HeatMap object. Called internally by new().
+
+=cut
 
 sub init {
     my $self = shift;
@@ -22,6 +77,37 @@ sub init {
     $self->_build;
     return $self;
 }
+
+=head2 window_size
+
+The max width of a span. Defaults to 20 tokens, including the
+matches.
+
+Set this in new(). Access it later if you need to, but the spans
+will have already been created by new().
+
+=head2 spans
+
+Returns an array ref of matching clusters. Each span in the array
+is a hash ref with the following keys:
+
+=over
+
+=item cluster
+
+=item pos
+
+=item heat
+
+=item str
+
+=item str_w_pos
+
+=item unique
+
+=back
+
+=cut
 
 # TODO this is mostly integer math and might be much
 # faster if rewritten in XS once the algorithm is "final".
@@ -152,8 +238,72 @@ sub _build {
     return $self;
 }
 
+=head2 has_spans
+
+Returns the number of spans found.
+
+=cut
+
 sub has_spans {
     return scalar @{ $_[0]->{spans} };
 }
 
 1;
+
+__END__
+
+=head1 AUTHOR
+
+Peter Karman C<< <karman@cpan.org> >>
+
+=head1 ACKNOWLEDGEMENTS
+
+The idea of the HeatMap comes from KinoSearch, though the implementation
+here is original.
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-search-tools at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Search-Tools>.  
+I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Search::Tools
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Search-Tools>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Search-Tools>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Search-Tools/>
+
+=back
+
+=head1 COPYRIGHT
+
+Copyright 2009 by Peter Karman.
+
+This package is free software; you can redistribute it and/or modify it under the 
+same terms as Perl itself.
+
+=head1 SEE ALSO
+
+KinoSearch

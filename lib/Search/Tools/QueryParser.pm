@@ -610,7 +610,11 @@ backwords compatability is preserved except where noted.
 The new() method instantiates a S::T::K object. With the exception
 of extract(), all the following methods can be passed as key/value
 pairs in new().
- 
+
+=head2 init
+
+Called internally by new().
+
 =head2 parse( I<query> )
 
 The parse() method parses I<query> and returns a Search::Tools::Query object.
@@ -647,6 +651,26 @@ May be either a string that will be split on whitespace, or an array ref.
 
 B<NOTE:> If a stopword is contained in a phrase, then the phrase 
 will be tokenized into words based on whitespace, then the stopwords removed.
+
+=head2 end_bound
+
+=head2 get_defaults
+
+=head2 html_phrase_bound
+
+=head2 phrase_delim
+
+=head2 plain_phrase_bound
+
+=head2 start_bound
+
+=head2 tag_re
+
+=head2 term_re
+
+=head2 whitespace
+
+=head2 word_characters
 
 =head2 ignore_first_char
 
@@ -710,7 +734,7 @@ Base language. If not set, extracted from C<locale> or defaults to C<en_US>.
 Base charset used for converting queries to UTF-8. If not set, 
 extracted from C<locale> or defaults to C<iso-8859-1>.
 
-=head1 BUGS and LIMITATIONS
+=head1 LIMITATIONS
 
 The special HTML chars &, < and > can pose problems in regexps against markup, so they
 are ignored in creating regular expressions if you include them in 
@@ -718,18 +742,51 @@ C<word_characters> in new().
 
 =head1 AUTHOR
 
-Peter Karman C<perl@peknet.com>
+Peter Karman C<< <karman@cpan.org> >>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-search-tools at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Search-Tools>.  
+I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Search::Tools
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Search-Tools>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Search-Tools>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Search-Tools/>
+
+=back
+
+=head1 COPYRIGHT
 
 Copyright 2009 by Peter Karman.
 
-This package is free software; you can redistribute it and/or modify 
-it under the same terms as Perl itself.
+This package is free software; you can redistribute it and/or modify it under the 
+same terms as Perl itself.
 
 =head1 SEE ALSO
 
 Search::QueryParser
-
-=cut
-

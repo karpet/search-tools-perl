@@ -25,7 +25,6 @@ sub init {
 
 }
 
-*is_html = \&isHTML;
 sub isHTML { croak "use XML->looks_like_html instead of RegExp->isHTML" }
 
 sub build {
@@ -84,6 +83,14 @@ Search::Tools::RegExp - build regular expressions from search queries
 =head1 DESCRIPTION
 
 As of version 0.24 this class is deprecated in favor of Search::Tools::QueryParser.
+
+=head1 METHODS
+
+=head2 init
+
+=head2 build
+
+=head2 isHTML
 
 =head1 AUTHOR
 

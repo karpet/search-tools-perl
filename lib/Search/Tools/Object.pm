@@ -55,6 +55,19 @@ sub _init {
     croak "use init() instead";
 }
 
+=head2 init
+
+Overrides base Rose::Object method. Rather than calling
+the method name for each param passed in new(), the value
+is simply set in the object as a hash ref. This assumes
+every Search::Tools::Object is a blessed hash ref.
+
+The reason the hash is preferred over the method call
+is to support read-only accessors, which will croak
+if init() tried to set values with them.
+
+=cut
+
 sub init {
     my $self = shift;
 
@@ -69,11 +82,24 @@ sub init {
 }
 
 # backcompat for CAF
+
+=head2 mk_accessors( I<array_of_accessor_names> )
+
+Works like CAF.
+
+=cut
+
 sub mk_accessors {
     my $class = shift;
     Search::Tools::MethodMaker->make_methods( { target_class => $class },
         scalar => \@_ );
 }
+
+=head2 mk_ro_accessors( I<array_of_accessor_names> )
+
+Works like CAF.
+
+=cut
 
 sub mk_ro_accessors {
     my $class = shift;
@@ -117,7 +143,43 @@ __END__
 
 =head1 AUTHOR
 
-Peter Karman C<perl@peknet.com>
+Peter Karman C<< <karman@cpan.org> >>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-search-tools at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Search-Tools>.  
+I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Search::Tools
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Search-Tools>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Search-Tools>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Search-Tools/>
+
+=back
 
 =head1 COPYRIGHT
 
@@ -128,6 +190,4 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::Tools
-
-=cut
+Search::QueryParser

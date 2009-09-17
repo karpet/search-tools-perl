@@ -127,6 +127,42 @@ Search::Tools is derived from some of the features in HTML::HiLiter
 and SWISH::HiLiter, but has been re-written with an eye to accomodating
 more general purpose features.
 
+=head1 METHODS
+
+=head2 parser( I<args> )
+
+Returns a Search::Tools::Parser object, passing I<args> to new().
+
+=head2 regexp
+
+Deprecated. Use parser() instead.
+
+=head2 hiliter( I<args> )
+
+Returns a Search::Tools::HiLiter object, passing I<args> to new().
+
+=head2 snipper( I<args> )
+
+Returns a Search::Tools::Snipper object, passing I<args> to new().
+
+=head2 transliterate( I<str> )
+
+Same as:
+
+ Search::Tools::Transliterate->new()->convert( $str )
+
+=head2 spellcheck( I<args> )
+
+Returns a Search::Tools::SpellCheck object, passing I<args> to new().
+
+=cut
+
+=head1 FUNCTIONS
+
+=head2 describe( I<object> )
+
+XS debugging help. Same as using Devel::Peek.
+
 =head1 REQUIREMENTS
 
 Perl 5.8.3 or later is required. This is for full UTF-8 support.
@@ -162,25 +198,6 @@ and for performance.
 
 See also the specific module documentation for individual requirements.
 
-
-=head1 METHODS
-
-=head2 transliterate( I<text> )
-
-See Search::Tools::Transliterate convert().
-
-The following convenience methods are simple class methods around the 
-indicated module. Each of them requires a C<query> key/value pair
-parameter.
-
-=head2 regexp
-
-=head2 snipper
-
-=head2 hiliter
-
-=head2 spellcheck
-
 =head1 EXAMPLES
 
 See the tests in t/ and the example scripts in example/.
@@ -189,11 +206,13 @@ See the tests in t/ and the example scripts in example/.
 
 Peter Karman C<< <karman@cpan.org> >>
 
-Originally based on the HTML::HiLiter regular expression building code, 
-by the same author, copyright 2004 by Cray Inc.
+=head1 ACKNOWLEDGMENTS
+
+The original idea and regular expression builder comes from
+HTML::HiLiter by the same author, copyright 2004 by Cray Inc.
 
 Thanks to Atomic Learning C<www.atomiclearning.com> 
-for sponsoring the development of these modules.
+for sponsoring the development of some of these modules.
 
 =head1 BUGS
 
