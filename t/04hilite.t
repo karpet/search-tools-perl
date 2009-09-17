@@ -1,4 +1,4 @@
-use Test::More tests => 16;
+use Test::More tests => 19;
 use strict;
 use File::Slurp;
 use Data::Dump qw( dump );
@@ -69,6 +69,21 @@ ok( $h = Search::Tools::HiLiter->new(
 );
 $text = read_file('t/docs/test.html');
 ok( $l = $h->light($text), "nosnip light" );
+
+# test text_color
+ok( $h = Search::Tools::HiLiter->new(
+        query =>
+            q/o'reilly the quick brown fox* jumped! "jumped over the too lazy"/,
+
+        #tty       => 1,
+        #debug => 1,
+        stopwords  => 'the',
+        text_color => '#fff',
+    ),
+    "nosnip hiliter text_color"
+);
+ok( $l = $h->light($text), "nosnip light text_color" );
+like( $l, qr/color:#fff;/, "text_color used" );
 
 #diag($l);
 

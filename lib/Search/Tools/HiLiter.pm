@@ -14,6 +14,8 @@ __PACKAGE__->mk_accessors(
         query
         tag
         class
+        style
+        text_color
         colors
         tty
         ttycolors
@@ -86,24 +88,34 @@ sub _build_tags {
         # if tty flag is on, use ansicolor instead of html
         # if debug flag is on, use both html and ansicolor
 
-        my ( %tags, $hO );
+        my ( %tags, $opener );
         $tags{open}  = '';
         $tags{close} = '';
         if ( $self->class ) {
-            $hO = qq/<$tag class="/ . $self->class . qq/">/;
+            $opener = qq/<$tag class="/ . $self->class . qq/">/;
+        }
+        elsif ( $self->style ) {
+            $opener = qq/<$tag style="/ . $self->style . qq/">/;
+        }
+        elsif ( $self->text_color ) {
+            $opener
+                = qq/<$tag style="color:/
+                . $self->text_color
+                . qq/;background:/
+                . $colors[$n] . qq/">/;
         }
         else {
-            $hO = qq/<$tag style="background:/ . $colors[$n] . qq/">/;
+            $opener = qq/<$tag style="background:/ . $colors[$n] . qq/">/;
         }
 
         if ( $self->tty ) {
-            $tags{open} .= $hO if $self->debug && !$self->no_html;
+            $tags{open} .= $opener if $self->debug && !$self->no_html;
             $tags{open}  .= Term::ANSIColor::color( $ttycolors[$m] );
             $tags{close} .= Term::ANSIColor::color('reset');
             $tags{close} .= "</$tag>" if $self->debug && !$self->no_html;
         }
         else {
-            $tags{open}  .= $hO;
+            $tags{open}  .= $opener;
             $tags{close} .= "</$tag>";
         }
 
@@ -407,38 +419,36 @@ __END__
 
 =head1 NAME
 
-Search::Tools::HiLiter - extract and highlight search results in original text
+Search::Tools::HiLiter - highlight terms in text
 
 =head1 SYNOPSIS
 
- use Search::Tools::HiLiter;
- 
- my $re = Search::Tools::RegExp->new;
- my $rekw = $re->build('the quick brown fox');
- 
- my $hiliter = Search::Tools::HiLiter->new( rekw => $rekw );
+ use Search::Tools::HiLiter; 
+ my $hiliter = Search::Tools::HiLiter->new( 
+    query => 'the quick brown fox' 
+ );
              
- for my $text (@texts)
- {
+ for my $text (@texts) {
     print $hiliter->light( $text );
  }
 
 =head1 DESCRIPTION
 
-Search::Tools::HiLiter uses HTML tags to highlight text just like a felt-tip HiLiter.
-S::T::H can handle both plain and marked up text (HTML and XML). 
-Nested entities and tags within keywords are supported.
+Search::Tools::HiLiter uses HTML tags to highlight text 
+just like a felt-tip HiLiter. The HiLiter can handle both 
+plain (no HTML markup) and marked up text (HTML and XML). 
+Nested entities and tags within terms are supported.
 
-You create
-a HiLiter object with either a string, an array of strings, or a
-Search::Tools::RegExp::Keywords object, and then feed the HiLiter
+You create a HiLiter object with either a string
+or a Search::Tools::Query object, and then feed the HiLiter
 text to highlight. You can control the style and color of the highlight tags.
 
 Some caveats if you are highlighting HTML or XML:
-Unlike its more powerful cousin HTML::HiLiter, S::T::H knows nothing about context.
-This can give unexpected results when your keywords appear in the HTML C<<head>>
-or across block tag boundaries. Use HTML::HiLiter if you need a real HTML parser.
-It uses the same regular expressions as S::T::H but is designed for full HTML
+Unlike its more powerful cousin HTML::HiLiter, Search::Tools::HiLiter
+knows nothing about context. This can give unexpected results 
+when your keywords appear in the HTML C<<head>> or across block tag boundaries. 
+Use HTML::HiLiter if you need a real HTML parser.
+It uses the same regular expressions as this class but is designed for full HTML
 documents rather than smaller fragments.
 
 
@@ -446,26 +456,29 @@ documents rather than smaller fragments.
 
 =head2 new( query => I<query> )
 
-I<query> must be either a scalar string, an array reference to a list of scalar strings,
-or a Search::Tools::RegExp::Keywords object. You might use the last if you are also
-using Search::Tools::Snipper, since you only need to compile your S::T::R::Keywords
+I<query> must be either a scalar string or a Search::Tools::Query object. 
+You might use the last if you are also using Search::Tools::Snipper, 
+since you only need to compile your Search::Tools::Query
 object once and then pass it to both new() instances.
 
-The following params are also supported. Each is available as a method as well:
+The following params are also supported. Each is available as an
+accessor method as well:
 
 =over
 
 =item class
 
+=item colors
+
+=item no_html
+
 =item tag
 
-=item colors
+=item text_color
 
 =item tty
 
 =item ttycolors
-
-=item no_html
 
 =back
 
@@ -477,11 +490,19 @@ Called internally by new().
 
 Calls through to I<query>->terms().
 
-=head2 open_tag( I<keyword> )
+=head2 open_tag( I<term> )
 
-=head2 close_tag( I<keyword> )
+Get the opening hilite tag for I<term>.
+
+=head2 close_tag( I<term> )
+
+Get the closing hilite tag for I<term>.
 
 =head2 light( I<text> )
+
+Add hiliting tags to I<text>. Calls plain() or html()
+based on whether I<text> contains markup (checked with
+Search::Tools::XML->looks_like_html()).
 
 =head2 hilite( I<text> )
 
@@ -489,8 +510,11 @@ An alias for light().
 
 =head2 plain( I<text> )
 
+Add hiliting tags to plain I<text>.
+
 =head2 html( I<text> )
 
+Add hiliting tags to marked up I<text>.
 
 =head2 class
 
@@ -502,26 +526,38 @@ The name of the highlighting tag. Default is C<span>.
 
 =head2 tty
 
-Pass a true value to use Term::ANSIColor highlighting. This is useful when using
-a terminal for debugging or for displaying results. Default is off.
+Pass a true value to use Term::ANSIColor highlighting. 
+This is useful when using a terminal for debugging or for displaying results. 
+Default is off.
 
 =head2 ttycolors
 
-Set the colors used if tty() is true. See the Term::ANSIColor documentation for options.
+Set the colors used if tty() is true. 
+See the Term::ANSIColor documentation for options.
 
 =head2 debug
 
-Set to a value >= 1 to get debugging output. If used in conjuction with tty(), both
-tty colors and HTML tags are used for highlighting.
+Set to a value >= 1 to get debugging output. 
+If used in conjuction with tty(), both tty colors and HTML tags 
+are used for highlighting.
 
 =head2 no_html
 
 Set to a true value (1) to avoid HTML highlighting tags regardless of test for whether
 I<text> is HTML.
 
-=head2 keywords
+=head2 colors( I<array_ref_of_html_colors> )
 
-Returns the keywords derived from I<query>.
+Get/set the HTML color values to use inside tag(). These are used if
+class() is not set. The defaults are:
+
+ [ '#ffff99', '#99ffff', '#ffccff', '#ccccff' ]
+
+=head2 text_color( I<html_color> )
+
+Get/set the HTML color to set on the style attribute in tag(). This
+setting can be useful if the background color of the page clashes
+with one or more of the colors() (as with a black body color).
 
 =head1 AUTHOR
 
