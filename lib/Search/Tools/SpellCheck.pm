@@ -4,7 +4,7 @@ use warnings;
 use Carp;
 use base qw( Search::Tools::Object );
 use Text::Aspell;
-use Search::Tools::Keywords;
+use Search::Tools::QueryParser;
 
 our $VERSION = '0.24';
 
@@ -140,7 +140,7 @@ Maximum number of suggested spellings to return. Default is C<4>.
 
 =back
 
-=head2 suggest( @I<keywords> )
+=head2 suggest( @I<terms> )
 
 Returns an arrayref of hashrefs. Each hashref is composed of the following
 key/value pairs:
@@ -224,4 +224,4 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::Tools::Keywords, Text::Aspell
+Search::Tools::QueryParser, Text::Aspell

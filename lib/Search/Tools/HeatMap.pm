@@ -254,7 +254,7 @@ __END__
 
 =head1 AUTHOR
 
-Peter Karman C<< <karman@cpan.org> >>
+Peter Karman C<< <karman at cpan dot org> >>
 
 =head1 ACKNOWLEDGEMENTS
 

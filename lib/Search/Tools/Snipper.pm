@@ -723,7 +723,7 @@ __END__
 
 =head1 NAME
 
-Search::Tools::Snipper - extract keywords in context
+Search::Tools::Snipper - extract terms in context
 
 =head1 SYNOPSIS
 
@@ -743,7 +743,7 @@ Search::Tools::Snipper - extract keywords in context
  
 =head1 DESCRIPTION
 
-Search::Tools::Snipper extracts keywords and their context from a larger
+Search::Tools::Snipper extracts terms and their context from a larger
 block of text. The larger block may be plain text or HTML/XML.
 
 
@@ -751,8 +751,8 @@ block of text. The larger block may be plain text or HTML/XML.
 
 =head2 new( query => I<query> )
 
-Instantiate a new object. I<query> must be either a scalar string, an array of strings,
-or a Search::Tools::RegExp::Keywords object.
+Instantiate a new object. I<query> must be either a scalar string
+or a Search::Tools::Query object
 
 Many of the following methods
 are also available as key/value pairs to new().
@@ -773,7 +773,7 @@ Available via new().
 
 The maximum number of characters (not bytes! under Perl >= 5.8) to return
 in a snippet. B<NOTE:> This is only used to test whether I<test> is worth
-snipping at all, or if no keywords are found (see show()).
+snipping at all, or if no terms are found (see show()).
 
 Available via new().
 
@@ -875,13 +875,9 @@ I<query> plus context() words of context. Matches are case insensitive.
 The snippet returned will be in UTF-8 encoding, regardless of the encoding
 of I<text>.
 
-=head2 rekw
-
-Returns the internal Search::Tools::RegExp::Keywords object.
-
 =head1 AUTHOR
 
-Peter Karman C<perl@peknet.com>
+Peter Karman C<< <karman at cpan dot org> >>
 
 =head1 ACKNOWLEDGEMENTS
 

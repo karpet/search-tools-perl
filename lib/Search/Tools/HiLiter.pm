@@ -446,7 +446,7 @@ text to highlight. You can control the style and color of the highlight tags.
 Some caveats if you are highlighting HTML or XML:
 Unlike its more powerful cousin HTML::HiLiter, Search::Tools::HiLiter
 knows nothing about context. This can give unexpected results 
-when your keywords appear in the HTML C<<head>> or across block tag boundaries. 
+when your terms appear in the HTML C<<head>> or across block tag boundaries. 
 Use HTML::HiLiter if you need a real HTML parser.
 It uses the same regular expressions as this class but is designed for full HTML
 documents rather than smaller fragments.
@@ -561,7 +561,7 @@ with one or more of the colors() (as with a black body color).
 
 =head1 AUTHOR
 
-Peter Karman C<< <karman@cpan.org> >>
+Peter Karman C<< <karman at cpan dot org> >>
 
 =head1 ACKNOWLEDGEMENTS
 
