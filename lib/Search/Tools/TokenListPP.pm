@@ -11,10 +11,14 @@ use base qw( Search::Tools::TokenListUtils );
 
 our $VERSION = '0.24';
 
-__PACKAGE__->mk_accessors(qw( pos num tokens ));
+__PACKAGE__->mk_accessors(qw( pos num tokens heat ));
 
 sub len {
     return scalar @{ $_[0]->{tokens} };
+}
+
+sub get_heat {
+    return $_[0]->{heat};
 }
 
 sub next {

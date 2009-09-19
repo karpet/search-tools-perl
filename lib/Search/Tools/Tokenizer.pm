@@ -40,9 +40,13 @@ sub tokenize_pp {
 
     # match_num ($_[2]) not supported in PP
 
+    my @heat   = ();
     my @tokens = ();
     my $i      = 0;
     my $re     = $self->{re};
+    my $heat_seeker_is_coderef
+        = ( defined $heat_seeker and ref($heat_seeker) eq 'CODE' ) ? 1 : 0;
+
     for ( split( m/($re)/, $_[0] ) ) {
         next unless length($_);
         my $tok = bless(
@@ -57,14 +61,21 @@ sub tokenize_pp {
         );
         if ( $_ =~ m/^$re$/ ) {
             $tok->{is_match} = 1;
-            $heat_seeker->($tok) if $heat_seeker;
+            if ($heat_seeker_is_coderef) {
+                $heat_seeker->($tok);
+            }
+            elsif ( defined $heat_seeker ) {
+                $tok->{is_hot} = $_ =~ m/$heat_seeker/;
+            }
         }
+        push( @heat, $tok->{pos} ) if $tok->{is_hot};
         push @tokens, $tok;
     }
     return bless(
         {   tokens => \@tokens,
             num    => $i,
             'pos'  => 0,
+            heat   => \@heat,
         },
         'Search::Tools::TokenListPP'
     );

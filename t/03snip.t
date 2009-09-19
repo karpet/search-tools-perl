@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use Data::Dump qw( dump );
 use File::Slurp;
 
@@ -83,6 +83,12 @@ my $snip_title = Search::Tools::Snipper->new(
     occur   => 1,
     context => 8,
 );
+my $snip_pp = Search::Tools::Snipper->new(
+    query   => $query,
+    occur   => 1,
+    context => 26,
+    use_pp  => 1,
+);
 
 like( $snip_excerpt->snip($text2), qr/$excerpt/, "excerpt context" );
 ok( $snip_excerpt->type('re'), "set re type" );
@@ -95,3 +101,5 @@ is( $snip_title->snip($text2),
     "8 context"
 );
 diag( $snip_title->type_used );
+
+like( $snip_pp->snip($text2), qr/$excerpt/, "excerpt context" );

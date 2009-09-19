@@ -32,6 +32,7 @@ __PACKAGE__->mk_accessors(
         count
         collapse_whitespace
         tokenizer
+        use_pp
         )
 );
 
@@ -147,9 +148,11 @@ sub _token {
     my $qre  = $self->{_qre};
     $self->debug and warn "$qre";
 
+    my $method = ( $self->{use_pp} ) ? 'tokenize_pp' : 'tokenize';
+
     # we don't bother testing for phrases here.
     # instead we rely on HeatMap to find them for us later.
-    my $tokens = $self->tokenizer->tokenize( $_[0], qr/^$qre$/ );
+    my $tokens = $self->tokenizer->$method( $_[0], qr/^$qre$/ );
 
     my $heatmap = Search::Tools::HeatMap->new(
         tokens      => $tokens,
