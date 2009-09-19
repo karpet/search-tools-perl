@@ -5,7 +5,7 @@ use base qw( Search::Tools::Object );
 use Carp;
 use Search::Tools::XML;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 my $XML = Search::Tools::XML->new;
 

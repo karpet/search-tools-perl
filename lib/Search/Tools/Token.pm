@@ -9,7 +9,7 @@ use overload
 
 use Search::Tools;    # XS required
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 sub is_end_of_sentence {
     return $_[0] =~ m/[\.\?\!\;\:]\ /;

@@ -144,5 +144,9 @@ Revision history for Perl extension Search::HiLiter.
       is much faster. The extra speed makes it possible to be more accurate in snippet extraction
       without sacrificing performance.
 
+0.25  19 Sept 2009
+    * add missing $VERSION back to Keywords.pm to satisfy CPAN
 
+0.26  xxx
+    * fix a couple of Perl::Critic warnings (trivial imo)
 

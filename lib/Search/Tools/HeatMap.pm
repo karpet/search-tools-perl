@@ -5,12 +5,14 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 # debuggin only
 my $OPEN  = '[';
 my $CLOSE = ']';
-eval "require Term::ANSIColor";
+eval {
+    require Term::ANSIColor;
+};
 if ( !$@ ) {
     $OPEN .= Term::ANSIColor::color('bold red');
     $CLOSE = Term::ANSIColor::color('reset') . $CLOSE;

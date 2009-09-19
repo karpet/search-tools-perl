@@ -9,7 +9,7 @@ use overload
 use Carp;
 use base qw( Search::Tools::TokenListUtils );
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 __PACKAGE__->mk_accessors(qw( pos num ));
 
@@ -26,10 +26,10 @@ sub next {
     my $tokens = $self->{tokens};
     my $len    = scalar(@$tokens) - 1;
     if ( $len == -1 ) {
-        return undef;
+        return;
     }
     elsif ( $self->{pos} > $len ) {
-        return undef;
+        return; 
     }
     else {
         return $tokens->[ $self->{pos}++ ];
@@ -41,10 +41,10 @@ sub prev {
     my $tokens = $self->{tokens};
     my $len    = scalar(@$tokens) - 1;
     if ( $len == -1 ) {
-        return undef;
+        return;
     }
     elsif ( $self->{pos} < 0 ) {
-        return undef;
+        return;
     }
     else {
         return $tokens->[ --$self->{pos} ];
@@ -67,7 +67,7 @@ sub get_token {
         croak "index position required";
     }
     if ( !defined $self->{tokens}->[$i] ) {
-        return undef;
+        return;
     }
     else {
         return $self->{tokens}->[$i];
