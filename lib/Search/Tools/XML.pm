@@ -4,7 +4,7 @@ use warnings;
 use Carp;
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 =pod
 
