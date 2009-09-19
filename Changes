@@ -124,7 +124,7 @@ Revision history for Perl extension Search::HiLiter.
     * change utf8_safe() XML method to change low non-whitespace ascii chars to single space.
       This makes them XML-spec compliant.
 
-0.24  xxx
+0.24  19 Sept 2009
     * thanks to Henry at zen for prompting the bug fixes and improvements in this release.
     * fix Data::Dump calls from pp() to fully-qualified.
     * Snipper->snip() will always return UTF-8 encoded text.

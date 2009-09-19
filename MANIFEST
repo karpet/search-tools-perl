@@ -62,6 +62,7 @@ t/20transliterate-map.t
 t/21-hiliter-with-hyphen.t
 t/22-query-parser.t
 t/23-regex-builder.t
+t/99-0.24-back-compat.t
 t/docs/ascii.txt
 t/docs/child-adoption.html
 t/docs/chiradtest.htm
