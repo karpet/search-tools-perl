@@ -48,6 +48,28 @@ Search::Tools::RegExp::Keywords - access regular expressions for keywords
 
 As of version 0.24 this class is deprecated in favor of Search::Tools::Query.
 
+=head1 METHODS
+
+=head2 re( I<keyword> )
+
+Return Keyword object for I<keyword>.
+
+=head2 keywords
+
+Returns array of keywords.
+
+=head2 kw
+
+Get/set the Search::Tools::Keywords (deprecated) object.
+
+=head2 start_bound
+
+=head2 end_bound
+
+=head2 hash
+
+=head2 array
+
 =head1 AUTHOR
 
 Peter Karman C<perl@peknet.com>

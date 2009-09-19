@@ -24,7 +24,17 @@ Search::Tools::RegExp::Keyword - access regular expressions for a keyword
 =head1 DESCRIPTION
 
 As of version 0.24 this class is deprecated in favor of Search::Tools::RegEx.
- 
+
+=head1 METHODS
+
+=head2 plain
+
+=head2 html
+
+=head2 word
+
+=head2 phrase
+
 =head1 AUTHOR
 
 Peter Karman C<perl@peknet.com>
