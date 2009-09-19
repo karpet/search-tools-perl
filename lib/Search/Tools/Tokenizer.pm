@@ -85,6 +85,76 @@ sub tokenize_pp {
 
 __END__
 
+=head1 NAME
+
+Search::Tools::Tokenizer - split a string into meaningful tokens
+
+=head1 SYNOPSIS
+
+ use Search::Tools::Tokenizer;
+ my $tokenizer = Search::Tools::Tokenizer->new();
+ my $tokens = $tokenizer->tokenize('quick brown red dog');
+ while ( my $token = $tokens->next ) {
+     # token isa Search::Tools::Token
+     print "token = $token\n";
+     printf("str: %s, len = %d, u8len = %d, pos = %d, is_match = %d, is_hot = %d\n",
+        $token->str,
+        $token->len, 
+        $token->u8len, 
+        $token->pos, 
+        $token->is_match, 
+        $token->is_hot
+     );
+ }
+
+=head1 DESCRIPTION
+
+A Tokenizer object splits a string into Tokens based on a regex.
+Tokenizer is used primarily by the Snipper class.
+
+=head1 METHODS
+
+Most of Search::Tools::Tokenizer is written in C/XS 
+so if you view the source of this class you will not see much code. 
+Look at the source for Tools.xs and search-tools.c if you are 
+interested in the internals.
+
+This class inherits from Search::Tools::Object. Only new or overridden
+methods are documented here.
+
+=head2 init
+
+Called by new().
+
+=head2 re([ I<regex> ])
+
+Get/set the I<regex> used by tokenize() tokenize_pp(). Typically
+you set this once in new(). The default value is:
+
+ qr/\w+(?:'\w+)*/
+
+which will match words and contractions (e.g., "do", "not" and "don't").
+
+=head2 tokenize( I<string> )
+
+Returns a TokenList object representin the Tokens in I<string>.
+I<string> is "split" according to the regex in re().
+
+=head2 tokenize_pp( I<string> )
+
+Returns a TokenListPP object.
+
+A pure-Perl implementation of tokenize(). Mostly written so you can
+see what the XS algorithm does, if you are so inclined, and so the author
+could benchmark the two implementations and thereby feel some satisfaction 
+at having spent the time writing the XS/C version (2-3x faster than Perl).
+
+=head2 set_debug( I<n> )
+
+Sets the XS debugger on. By default, setting debug(1) (which is inherited
+from Search::Tools::Object) is not sufficient to trigger the XS
+debugging. Use set_debug() if you want lots of info on stderr.
+
 =head1 AUTHOR
 
 Peter Karman C<< <karman@cpan.org> >>

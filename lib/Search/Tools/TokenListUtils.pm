@@ -3,6 +3,50 @@ use strict;
 use warnings;
 use Carp;
 
+our $VERSION = '0.24';
+
+=head1 NAME
+
+Search::Tools::TokenListUtils - mixin methods for TokenList and TokenListPP
+
+=head1 SYNOPSIS
+
+ my $tokens = $tokenizer->tokenize( $string );
+ if ( $tokens->str eq $string) {
+    print "string is same, before and after tokenize()\n";
+ }
+ else {
+    warn "I'm filing a bug report against Search::Tools right away!\n";
+ }
+ 
+ my ($start_pos, $end_pos) = $tokens->get_window( 5, 20 );
+ # $start_pos probably == 0
+ # $end_pos probably   == 25
+ 
+ my $slice = $tokens->get_window_pos( 5, 20 );
+ for my $token (@$slice) {
+    print "token = $token\n";
+ }
+
+=head1 DESCRIPTION
+
+Search::Tools::TokenListUtils contains pure-Perl methods inhertited
+by both Search::Tools::TokenList and Search::Tools::TokenListPP.
+
+=head1 METHODS
+
+=head2 str
+
+Returns a serialized version of the TokenList. If you haven't
+altered the TokenList since you got it from tokenize(),
+then str() returns a scalar string identical to (but not the same)
+the string you passed to tokenize().
+
+Both Search::Tools::TokenList and TokenListPP are overloaded
+to stringify to the str() value.
+
+=cut
+
 sub str {
     my $self   = shift;
     my $joiner = shift(@_);
@@ -14,9 +58,9 @@ sub str {
 
 =head2 get_window( I<pos> [, I<size>] )
 
-Returns array ref of Token objects of length I<size>
-on either side of I<pos>. Like taking a slice of the TokenList,
-only getting an array ref of positions rather than tokens.
+Returns array with two values: I<start> and I<end> positions
+for the array of length I<size> on either side of I<pos>. 
+Like taking a slice of the TokenList.
 
 Note that I<size> is the number of B<tokens> not B<matches>.
 So if you're looking for the number of "words", think about
@@ -71,8 +115,15 @@ sub get_window {
     #warn "return $start .. $end";
     #warn "$size ~~ " . ( $end - $start );
 
-    return ($start, $end);
+    return ( $start, $end );
 }
+
+=head2 get_window_tokens( I<pos> [, I<size>] )
+
+Like get_window() but returns an array ref of a slice
+of the TokenList containing Tokens.
+
+=cut
 
 sub get_window_tokens {
     my $self = shift;

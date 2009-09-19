@@ -92,6 +92,8 @@ As of version 0.24 this class is deprecated in favor of Search::Tools::QueryPars
 
 =head2 isHTML
 
+=head2 kw
+
 =head1 AUTHOR
 
 Peter Karman C<perl@peknet.com>

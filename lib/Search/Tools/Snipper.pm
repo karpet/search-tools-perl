@@ -31,7 +31,6 @@ __PACKAGE__->mk_accessors(
         type
         count
         collapse_whitespace
-        tokenizer
         use_pp
         )
 );
@@ -59,7 +58,7 @@ sub init {
 
     #dump $self;
 
-    $self->{tokenizer} = Search::Tools::Tokenizer->new(
+    $self->{_tokenizer} = Search::Tools::Tokenizer->new(
         token_re => $self->query->qp->term_re, );
 
     my $wc = $self->query->qp->word_characters;
@@ -152,7 +151,7 @@ sub _token {
 
     # we don't bother testing for phrases here.
     # instead we rely on HeatMap to find them for us later.
-    my $tokens = $self->tokenizer->$method( $_[0], qr/^$qre$/ );
+    my $tokens = $self->{_tokenizer}->$method( $_[0], qr/^$qre$/ );
 
     my $heatmap = Search::Tools::HeatMap->new(
         tokens      => $tokens,
@@ -760,6 +759,10 @@ or a Search::Tools::Query object
 Many of the following methods
 are also available as key/value pairs to new().
 
+=head2 init
+
+Called internally by new().
+
 =head2 occur
 
 The number of snippets that should be returned by snip().
@@ -834,6 +837,8 @@ Fastest for single-word queries.
 Most accurate, for both single-word and phrase queries, although it relies
 on a HeatMap in order to locate phrases.
 
+See also the B<use_pp> feature.
+
 =item offset
 
 Same as C<re> but optimized slightly to look at a substr of text.
@@ -869,6 +874,12 @@ is defined as anything that Perl's C<\s> pattern matches, plus
 the nobreak space (C<\xa0>). Default is 1 (true).
 
 Available via new().
+
+=head2 use_pp( I<n> )
+
+Set to a true value to use Tokenizer->tokenize_pp() and TokenListPP
+and TokenPP instead of the XS versions of the same. XS is the default
+and is much faster, but harder to modify or subclass.
 
 =head2 snip( I<text> )
 

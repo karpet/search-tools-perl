@@ -56,6 +56,10 @@ after new() will have no effect on map().
 
 =back
 
+=head2 init
+
+Called internally by new().
+
 =head2 map
 
 Access the transliteration character map. Example:

@@ -377,11 +377,47 @@ Create a Search::Tools::XML object.
 
 =cut
 
+=head2 tag_re
+
+Returns a qr// regex for matching a SGML (XML, HTML, etc) tag.
+
+=cut
+
 sub tag_re {qr/<[^>]+>/s}
+
+=head2 html_whitespace
+
+Returns a regex for all whitespace characters and
+HTML whitespace entities.
+
+=cut
 
 sub html_whitespace {$whitespace}
 
+=head2 char2ent_map
+
+Returns a hash reference to the class data mapping chr() values to their
+numerical entity equivalents.
+
+=cut
+
 sub char2ent_map { \%char2entity }
+
+=head2 looks_like_html( I<string> )
+
+Returns true if I<string> appears to have HTML-like markup in it.
+
+Aliases for this method include:
+
+=over
+
+=item looks_like_xml
+
+=item looks_like_markup
+
+=back
+
+=cut
 
 sub looks_like_html { return $_[1] =~ m/[<>]|&[\#\w]+;/o }
 *looks_like_xml    = \&looks_like_html;

@@ -81,6 +81,13 @@ sub init {
     return $self;
 }
 
+=head2 debug( I<n> )
+
+Get/set the debug value for the object. All objects inherit this attribute.
+You can use the C<PERL_DEBUG> env var to set this value as well.
+
+=cut
+
 # backcompat for CAF
 
 =head2 mk_accessors( I<array_of_accessor_names> )

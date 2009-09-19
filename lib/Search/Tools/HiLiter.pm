@@ -472,6 +472,8 @@ accessor method as well:
 
 =item no_html
 
+=item style
+
 =item tag
 
 =item text_color
@@ -488,7 +490,11 @@ Called internally by new().
 
 =head2 terms
 
-Calls through to I<query>->terms().
+Calls through to I<query>->terms(). Returns array ref.
+
+=head2 keywords
+
+Like terms() but returns array not array ref.
 
 =head2 open_tag( I<term> )
 
@@ -519,6 +525,10 @@ Add hiliting tags to marked up I<text>.
 =head2 class
 
 The name of the class attribute to be used on the tag().
+
+=head2 style
+
+The value to use in the C<style> attribute of I<tag>.
 
 =head2 tag
 

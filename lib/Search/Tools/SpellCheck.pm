@@ -138,7 +138,15 @@ Language to use. Default is C<en_US>.
 
 Maximum number of suggested spellings to return. Default is C<4>.
 
+=item query_parser
+
+A Search::Tools::QueryParser object.
+
 =back
+
+=head2 init
+
+Called internally by new().
 
 =head2 suggest( @I<terms> )
 

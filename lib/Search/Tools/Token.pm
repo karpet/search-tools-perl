@@ -19,6 +19,81 @@ sub is_end_of_sentence {
 
 __END__
 
+=head1 NAME
+
+Search::Tools::Token - a token object returned from a TokenList
+
+=head1 SYNOPSIS
+
+ use Search::Tools::Tokenizer;
+ my $tokenizer = Search::Tools::Tokenizer->new();
+ my $tokens = $tokenizer->tokenize('quick brown red dog');
+ while ( my $token = $tokens->next ) {
+     # token isa Search::Tools::Token
+     print "token = $token\n";
+     printf("str: %s, len = %d, u8len = %d, pos = %d, is_match = %d, is_hot = %d\n",
+        $token->str,
+        $token->len, 
+        $token->u8len, 
+        $token->pos, 
+        $token->is_match, 
+        $token->is_hot
+     );
+ }
+
+=head1 DESCRIPTION
+
+A Token represents one or more characters culled from a string by a Tokenizer.
+
+=head1 METHODS
+
+Most of Search::Tools::Token is written in C/XS so if you view the source of
+this class you will not see much code. Look at the source for Tools.xs and
+search-tools.c if you are interested in the internals, or look at
+Search::Tools::TokenPP.
+
+=head2 str
+
+The characters in the token. Stringifies to the str() value with overloading.
+
+=head2 len
+
+The byte length of str().
+
+=head2 u8len
+
+The character length of str(). For ASCII, len() == u8len(). For non-ASCII
+UTF-8, u8len() < len().
+
+=head2 pos
+
+The zero-based position in the original string.
+
+=head2 is_match
+
+Did the token match the re() in the Tokenizer.
+
+=head2 is_hot
+
+Did the token match the heat_seeker in the Tokenizer.
+
+=head2 is_end_of_sentence
+
+Returns true value if the Token matches common sentence-ending
+punctuation.
+
+=head2 dump
+
+Prints the internal XS attributes to stderr.
+
+=head2 set_hot
+
+Set the is_hot() value.
+
+=head2 set_match
+
+Set the is_match() value.
+
 =head1 AUTHOR
 
 Peter Karman C<< <karman@cpan.org> >>

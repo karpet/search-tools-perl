@@ -11,7 +11,7 @@ use base qw( Search::Tools::TokenListUtils );
 
 our $VERSION = '0.24';
 
-__PACKAGE__->mk_accessors(qw( pos num tokens heat ));
+__PACKAGE__->mk_accessors(qw( pos num ));
 
 sub len {
     return scalar @{ $_[0]->{tokens} };
@@ -89,6 +89,129 @@ sub num_matches {
 1;
 
 __END__
+
+=head1 NAME
+
+Search::Tools::TokenListPP - a bunch of tokens from a Tokenizer
+
+=head1 SYNOPSIS
+
+ use Search::Tools::Tokenizer;
+ my $tokenizer = Search::Tools::Tokenizer->new();
+ my $tokens = $tokenizer->tokenize_pp('quick brown red dog');
+ 
+ # use like an iterator
+ while ( my $token = $tokens->next ) {
+    # token isa Search::Tools::Token
+ }
+ # iterate the other way
+ while ( my $token = $tokens->prev ) {
+    # ...
+ }
+ 
+ # fetch a particular token
+ my $token = $tokens->get_token( $position );
+ 
+ # reset the iterator
+ $tokens->reset;
+ 
+ # get the current iterator position
+ my $pos = $tokens->pos;
+ 
+ # set the iterator position
+ $tokens->set_pos( $pos + 1 );
+ 
+ # how many tokens originally?
+ my $num = $tokens->num;
+ 
+ # treat like array
+ push( @{ $tokens->as_array }, $new_token );
+ 
+ # now how many tokens?
+ my $len = $tokens->len;    # $len != $num
+ 
+ # get all the hot tokens
+ my $heat = $tokens->get_heat;
+ 
+ # get all the matches to the regex in Tokenizer
+ my $matches = $tokens->get_matches;
+ 
+ # just the number of matches
+ my $num_matches = $tokens->num_matches;
+ 
+ 
+=head1 DESCRIPTION
+
+A TokenListPP is a pure-Perl version of TokenList.
+See the docs for TokenList for more details.
+
+=head1 METHODS
+
+See Search::Tools::TokenListUtils for other methods available on this class.
+
+This class inherits from Search::Tools::Object. Only new or overridden
+methods are documented here.
+
+=head2 next
+
+Get the next Token.
+
+=head2 prev
+
+Get the previous Token.
+
+=head2 pos
+
+Get the iterator position.
+
+=head2 set_pos
+
+Set the iterator position.
+
+=head2 reset
+
+Same as calling:
+
+ $tokens->set_pos(0);
+
+=head2 len
+
+The number of Tokens in the TokenList.
+
+=head2 num
+
+The number of Tokens initially parsed by the Tokenizer. This is the same
+value as len() unless you alter the TokenList via as_array().
+
+=head2 as_array
+
+Returns an array ref to the internal array of tokens. If you alter
+the array, it will alter the len() value but not the num() value.
+
+=head2 get_heat
+
+Returns an array ref to the internal array of tokens with
+is_hot() set by the original Tokenizer. This method will return an
+empty list unless you have passed a heat_seeker to the tokenize_pp() method.
+See Search::Tools::Tokenizer.
+
+=head2 matches
+
+Returns an array ref of all the Tokens with is_match() set. The
+array is constructed at the time you call the method so if you alter the array
+it will not affect the TokenListPP object, but if you alter a Token
+in the array it will affect the Token in the TokenListPP object.
+
+=head2 num_matches
+
+Like calling:
+
+ my $num = scalar @{ $tokens->matches };
+
+=head2 get_token( I<position> )
+
+Returns the Token at I<position>. If I<position> is invalid returns
+undef.
 
 =head1 AUTHOR
 
