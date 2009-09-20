@@ -46,7 +46,7 @@ WriteMakefile(
                     bugtracker =>
                         'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
                     repository =>
-                        'http://svn.peknet.com/perl/Search-Tools/trunk',
+                        'http://svn.peknet.com/perl/Search-Tools',
                 },
             }
             )
