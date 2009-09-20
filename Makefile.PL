@@ -42,11 +42,11 @@ WriteMakefile(
             META_MERGE => {
                 resources => {
                     license  => 'http://dev.perl.org/licenses/',
-                    homepage => 'http://perl.peknet.com/',
+                    homepage => 'http://perl.peknet.com/wiki/SearchTools',
                     bugtracker =>
                         'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
                     repository =>
-                        'http://svn.peknet.com/perl/trunk/Search-Tools',
+                        'http://svn.peknet.com/perl/Search-Tools/trunk',
                 },
             }
             )

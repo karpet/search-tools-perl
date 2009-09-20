@@ -149,4 +149,5 @@ Revision history for Perl extension Search::HiLiter.
 
 0.26  xxx
     * fix a couple of Perl::Critic warnings (trivial imo)
+    * fix repos and homepage links in Makefile.PL
 
