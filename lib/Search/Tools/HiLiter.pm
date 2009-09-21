@@ -204,9 +204,14 @@ sub html {
     # use our prebuilt regexp
     my @kworder = $self->_kworder;
 
+    # don't consider anything we've marked
+    # with a 'nohiliter' attribute
+    my $text_copy = $text;
+    $text_copy =~ s/\002.*?\003//sgi;
+
 Q: for my $query (@kworder) {
         my $re = $self->query->regex_for($query)->html;
-        my $real = $self->_get_real_html( \$text, $re );
+        my $real = $self->_get_real_html( \$text_copy, $re );
 
     R: for my $r ( keys %$real ) {
             push( @{ $q2real->{$query} }, $r ) while $real->{$r}--;

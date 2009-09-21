@@ -122,12 +122,17 @@ sub _normalize_args {
         croak "query required";
     }
     if ( !ref($q) ) {
-        $args{query} = Search::Tools::QueryParser->new(%args)->parse($q);
+        $args{query} = Search::Tools::QueryParser->new(
+            map { $_ => delete $args{$_} }
+                grep { Search::Tools::QueryParser->can($_) } keys %args
+        )->parse($q);
     }
     elsif ( ref($q) eq 'ARRAY' ) {
         warn "query ARRAY ref deprecated as of version 0.24";
-        $args{query} = Search::Tools::QueryParser->new(%args)
-            ->parse( join( ' ', @$q ) );
+        $args{query} = Search::Tools::QueryParser->new(
+            map { $_ => delete $args{$_} }
+                grep { Search::Tools::QueryParser->can($_) } keys %args
+        )->parse( join( ' ', @$q ) );
     }
     elsif ( blessed($q) and $q->isa('Search::Tools::Query') ) {
         $args{query} = $q;
