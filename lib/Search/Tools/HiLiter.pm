@@ -365,7 +365,7 @@ Q: for my $query ( $self->_kworder ) {
         # in repeated match on nonwordchar: > (since we just added a tag)
 
         if ( $self->debug ) {
-            if ( $text =~ m/$query/i && $text !~ m/$re/ ) {
+            if ( $text =~ m/\Q$query\E/i && $text !~ m/$re/ ) {
                 croak "bad regex for '$query': $re";
             }
         }
@@ -398,7 +398,7 @@ Q: for my $query ( $self->_kworder ) {
         $self->debug and warn "found $found_matches matches";
 
         # sanity check similar to Snipper->_re_snip()
-        if ( !$found_matches and $text =~ m/$query/ ) {
+        if ( !$found_matches and $text =~ m/\Q$query\E/ ) {
             $self->debug and warn "ERROR: regex failure for '$query'";
             $text = $self->html($text);
         }
