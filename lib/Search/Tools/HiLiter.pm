@@ -202,8 +202,9 @@ sub html {
 
     # if the query text matched in the text, then we need to
     # use our prebuilt regexp
+    my @kworder = $self->_kworder;
 
-Q: for my $query ( $self->_kworder ) {
+Q: for my $query (@kworder) {
         my $re = $self->query->regex_for($query)->html;
         my $real = $self->_get_real_html( \$text, $re );
 
@@ -214,7 +215,7 @@ Q: for my $query ( $self->_kworder ) {
 
     ## 2
 
-HILITE: for my $q ( $self->_kworder ) {
+HILITE: for my $q (@kworder) {
 
         my %uniq_reals = ();
         $uniq_reals{$_}++ for @{ $q2real->{$q} };
