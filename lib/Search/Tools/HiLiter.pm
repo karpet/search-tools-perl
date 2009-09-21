@@ -269,8 +269,6 @@ sub _add_hilite_tags {
         my $m = $2;
         my $e = $3;
         if ( $self->debug > 1 ) {
-
-            #print "$OC add_hilite_tags:\n$st_bound\n$safe\n$end_bound\n $CC";
             carp "matched:\n'$s'\n'$m'\n'$e'\n"
                 . "\$1 is "
                 . ord($s)
