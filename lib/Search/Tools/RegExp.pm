@@ -73,7 +73,7 @@ __END__
 
 =head1 NAME
 
-Search::Tools::RegExp - build regular expressions from search queries
+Search::Tools::RegExp - (**DEPRECATED**) build regular expressions from search queries
 
 =head1 SYNOPSIS
 

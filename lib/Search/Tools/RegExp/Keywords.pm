@@ -37,7 +37,7 @@ __END__
 
 =head1 NAME
 
-Search::Tools::RegExp::Keywords - access regular expressions for keywords
+Search::Tools::RegExp::Keywords - (**DEPRECATED**) access regular expressions for keywords
 
 =head1 SYNOPSIS
 
