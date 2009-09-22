@@ -97,4 +97,4 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::Tools::QUery
+Search::Tools::Query
