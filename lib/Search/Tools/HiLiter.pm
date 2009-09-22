@@ -68,8 +68,8 @@ sub _kworder {
     my $self = shift;
 
     # do phrases first so that duplicates privilege phrases
-    $self->{_kworder} ||= [ $self->_phrases, $self->_singles ];
-    return @{ $self->{_kworder} };
+
+    return ( $self->_phrases, $self->_singles );
 }
 
 sub _build_tags {

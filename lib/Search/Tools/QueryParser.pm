@@ -198,8 +198,8 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
                 my $tok = _untaint($1);
 
                 # strip ignorable chars
-                $tok =~ s/^[$igf]+//;
-                $tok =~ s/[$igl]+$//;
+                $tok =~ s/^[$igf]+// if length($igf);
+                $tok =~ s/[$igl]+$// if length($igl);
 
                 unless ($tok) {
                     $self->debug && carp "no token for '$w' $word_re";
@@ -401,14 +401,13 @@ sub _setup_regex_builder {
                             # this might give unexpected results.
                             # NOTE that &nbsp; etc is in $WhiteSpace
         $html_whitespace,
-        '[^' . $wordchars . ']',
-        qr/[$ignore_first]+/i
+        '[^' . $wordchars . ']'
     );
+    push( @start_bound, qr/[$ignore_first]+/i ) if length $ignore_first;
 
-    my @end_bound = (
-        '\Z', '[<&]', $html_whitespace, '[^' . $wordchars . ']',
-        qr/[$ignore_last]+/i
-    );
+    my @end_bound
+        = ( '\Z', '[<&]', $html_whitespace, '[^' . $wordchars . ']' );
+    push( @end_bound, qr/[$ignore_last]+/i ) if length $ignore_last;
 
     $self->{start_bound} ||= join( '|', @start_bound );
 
@@ -420,13 +419,19 @@ sub _setup_regex_builder {
     #	any ignore_first_char
     # define for both text and html
 
-    $self->{plain_phrase_bound} = join( '',
-        qr/[$ignore_last]*/i, qr/[\s\x20]|[^$wordchars]/is,
-        qr/[$ignore_first]?/i );
+    my @plain_phrase_bound = (
+        ( length($ignore_last) ? qr/[$ignore_last]*/i : '' ),
+        qr/[\s\x20]|[^$wordchars]/is,
+        ( length($ignore_first) ? qr/[$ignore_first]?/i : '' ),
+    );
+    $self->{plain_phrase_bound} = join( '', @plain_phrase_bound );
 
-    $self->{html_phrase_bound} = join( '',
-        qr/[$ignore_first]*/i, qr/$html_whitespace|[^$wordchars]/is,
-        qr/[$ignore_last]?/i );
+    my @html_phrase_bound = (
+        ( length($ignore_first) ? qr/[$ignore_first]*/i : '' ),
+        qr/$html_whitespace|[^$wordchars]/is,
+        ( length($ignore_last) ? qr/[$ignore_last]?/i : '' ),
+    );
+    $self->{html_phrase_bound} = join( '', @html_phrase_bound );
 
 }
 
