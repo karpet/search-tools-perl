@@ -153,4 +153,5 @@ Revision history for Perl extension Search::HiLiter.
     * fix a couple of regex escape bugs in HiLiter
     * fix an innocuous bug in Object that passed extra args to QueryParser->new in _normalize_args
     * add \002/\003 no-hiliting marker support in HiLiter (for HTML::HiLiter)
-
+    * HiLiter->light() now returned UTF-8 encoded text like Snipper->snip() does.
+    * fix regex build bug where phrase could be separated by multiple whitespace chars.

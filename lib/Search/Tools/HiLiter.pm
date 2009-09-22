@@ -4,6 +4,7 @@ use warnings;
 use base qw( Search::Tools::Object );
 use Carp;
 use Search::Tools::XML;
+use Search::Tools::UTF8;
 
 our $VERSION = '0.26';
 
@@ -143,6 +144,9 @@ sub close_tag {
 sub light {
     my $self = shift;
     my $text = shift or return '';
+    
+    # force upgrade. this is so regex will match ok.
+    $text = to_utf8($text);
 
     if ( $XML->looks_like_html($text) && !$self->no_html ) {
 
@@ -513,6 +517,8 @@ Get the closing hilite tag for I<term>.
 Add hiliting tags to I<text>. Calls plain() or html()
 based on whether I<text> contains markup (checked with
 Search::Tools::XML->looks_like_html()).
+
+light() will return I<text> as a UTF-8 encoded string.
 
 =head2 hilite( I<text> )
 

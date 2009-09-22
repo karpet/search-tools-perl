@@ -4,13 +4,13 @@ use Test::More tests => 13;
 
 my $foo_re_plain = qr/
 (
-\A|(?i-xsm:[\Q'\E\-]*)(?si-xm:[\s\x20]|[^\w\Q'\E\-])(?i-xsm:[\Q'\E\-]?)
+\A|(?i-xsm:[\Q'\E\-]*)(?si-xm:(?:[\s\x20]|[^\w\Q'\E\-])+)(?i-xsm:[\Q'\E\-]?)
 )
 (
 foo
 )
 (
-\Z|(?i-xsm:[\Q'\E\-]*)(?si-xm:[\s\x20]|[^\w\Q'\E\-])(?i-xsm:[\Q'\E\-]?)
+\Z|(?i-xsm:[\Q'\E\-]*)(?si-xm:(?:[\s\x20]|[^\w\Q'\E\-])+)(?i-xsm:[\Q'\E\-]?)
 )
 /xis;
 
@@ -28,13 +28,13 @@ like( 'foo', $query->regex_for('foo')->html,  "match foo html" );
 
 my $foo_re_plain_no_hyphen = qr/
 (
-\A|(?i-xsm:[\Q'\E\-]*)(?si-xm:[\s\x20]|[^\w\Q'\E\.])(?i-xsm:[\Q'\E\-]?)
+\A|(?i-xsm:[\Q'\E\-]*)(?si-xm:(?:[\s\x20]|[^\w\Q'\E\.])+)(?i-xsm:[\Q'\E\-]?)
 )
 (
 foo
 )
 (
-\Z|(?i-xsm:[\Q'\E\-]*)(?si-xm:[\s\x20]|[^\w\Q'\E\.])(?i-xsm:[\Q'\E\-]?)
+\Z|(?i-xsm:[\Q'\E\-]*)(?si-xm:(?:[\s\x20]|[^\w\Q'\E\.])+)(?i-xsm:[\Q'\E\-]?)
 )
 /xis;
 

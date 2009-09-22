@@ -19,37 +19,37 @@ like( $hiliter->light(q/Martha Kennedy-Smith/),
 
 my $kennedy_re = qr/
 (
-\A|(?i-xsm:[\Q'-\E]*)(?si-xm:[\s\x20]|[^\w\Q'\E\.])(?i-xsm:[\Q'-\E]?)
+\A|(?i-xsm:[\Q'-\E]*)(?si-xm:(?:[\s\x20]|[^\w\Q'\E\.])+)(?i-xsm:[\Q'-\E]?)
 )
 (
 kennedy
 )
 (
-\Z|(?i-xsm:[\Q'-\E]*)(?si-xm:[\s\x20]|[^\w\Q'\E\.])(?i-xsm:[\Q'-\E]?)
+\Z|(?i-xsm:[\Q'-\E]*)(?si-xm:(?:[\s\x20]|[^\w\Q'\E\.])+)(?i-xsm:[\Q'-\E]?)
 )
 /xis;
 
 my $re = qr/
 (
-\A|(?i-xsm:[\'\-]*)(?si-xm:[\s\x20]|[^\w\'\.])(?i-xsm:[\'\-]?)
+\A|(?i-xsm:[\'\-]*)(?si-xm:(?:[\s\x20]|[^\w\'\.])+)(?i-xsm:[\'\-]?)
 )
 (
 kennedy
 )
 (
-\Z|(?i-xsm:[\'\-]*)(?si-xm:[\s\x20]|[^\w\'\.])(?i-xsm:[\'\-]?)
+\Z|(?i-xsm:[\'\-]*)(?si-xm:(?:[\s\x20]|[^\w\'\.])+)(?i-xsm:[\'\-]?)
 )
 /xis;
 
 my $old_re = qr/
 (
-\A|(?i-xsm:[\'\-]*)(?si-xm:[\s\x20]|[^\w\'\.])(?i-xsm:[\'\-]?)
+\A|(?i-xsm:[\'\-]*)(?si-xm:(?:[\s\x20]|[^\w\'\.])+)(?i-xsm:[\'\-]?)
 )
 (
 kennedy
 )
 (
-\Z|(?i-xsm:[\'\-]*)(?si-xm:[\s\x20]|[^\w\'\.])(?i-xsm:[\'\-]?)
+\Z|(?i-xsm:[\'\-]*)(?si-xm:(?:[\s\x20]|[^\w\'\.])+)(?i-xsm:[\'\-]?)
 )
 /xis;
 

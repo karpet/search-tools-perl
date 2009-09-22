@@ -122,6 +122,7 @@ sub _normalize_args {
         croak "query required";
     }
     if ( !ref($q) ) {
+        require Search::Tools::QueryParser;
         $args{query} = Search::Tools::QueryParser->new(
             map { $_ => delete $args{$_} }
                 grep { Search::Tools::QueryParser->can($_) } keys %args

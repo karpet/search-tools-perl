@@ -421,14 +421,14 @@ sub _setup_regex_builder {
 
     my @plain_phrase_bound = (
         ( length($ignore_last) ? qr/[$ignore_last]*/i : '' ),
-        qr/[\s\x20]|[^$wordchars]/is,
+        qr/(?:[\s\x20]|[^$wordchars])+/is,
         ( length($ignore_first) ? qr/[$ignore_first]?/i : '' ),
     );
     $self->{plain_phrase_bound} = join( '', @plain_phrase_bound );
 
     my @html_phrase_bound = (
         ( length($ignore_first) ? qr/[$ignore_first]*/i : '' ),
-        qr/$html_whitespace|[^$wordchars]/is,
+        qr/(?:$html_whitespace|[^$wordchars])+/is,
         ( length($ignore_last) ? qr/[$ignore_last]?/i : '' ),
     );
     $self->{html_phrase_bound} = join( '', @html_phrase_bound );
