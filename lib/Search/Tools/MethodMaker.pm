@@ -6,7 +6,7 @@ use Data::Dump qw( dump );
 use base qw( Rose::Object::MakeMethods::Generic );
 my $Debug = 0;    #$ENV{PERL_DEBUG};
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 =head1 NAME
 
