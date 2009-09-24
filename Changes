@@ -147,7 +147,7 @@ Revision history for Perl extension Search::HiLiter.
 0.25  19 Sept 2009
     * add missing $VERSION back to Keywords.pm to satisfy CPAN
 
-0.26  xxx
+0.26  23 Sept 2009
     * fix a couple of Perl::Critic warnings (trivial imo)
     * fix repos and homepage links in Makefile.PL
     * fix a couple of regex escape bugs in HiLiter

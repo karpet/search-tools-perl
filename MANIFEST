@@ -62,14 +62,17 @@ t/20transliterate-map.t
 t/21-hiliter-with-hyphen.t
 t/22-query-parser.t
 t/23-regex-builder.t
+t/24-child-abuse.t
 t/99-0.24-back-compat.t
 t/docs/ascii.txt
+t/docs/big-C-Child-abuse.html
 t/docs/child-adoption.html
 t/docs/chiradtest.htm
 t/docs/dot.com.txt
 t/docs/findaprofessional.txt
 t/docs/greek_and_ojibwe.txt
 t/docs/linux-user-group.html
+t/docs/little-c-child-abuse.html
 t/docs/quick_brown_babel.dmp
 t/docs/test.html
 t/docs/test.txt
