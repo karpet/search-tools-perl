@@ -144,7 +144,7 @@ sub close_tag {
 sub light {
     my $self = shift;
     my $text = shift or return '';
-    
+
     # force upgrade. this is so regex will match ok.
     $text = to_utf8($text);
 
@@ -163,16 +163,18 @@ sub light {
 *hilite = \&light;
 
 sub _get_real_html {
-    my $self = shift;
-    my $text = shift;
-    my $re   = shift;
-    my $m    = {};
+    my $self  = shift;
+    my $text  = shift;
+    my $re    = shift;
+    my $m     = {};
+    my $debug = $self->debug > 1 ? 1 : 0;
 
     # $1 should be st_bound, $2 should be query, $3 should be end_bound
-
+    # N.B. The XS version of this algorithm is only a hair faster,
+    # since the $re is the bottleneck.
     while ( $$text =~ m/$re/g ) {
 
-        if ( $self->debug > 1 ) {
+        if ($debug) {
             carp "$2 matches $re";
         }
 
