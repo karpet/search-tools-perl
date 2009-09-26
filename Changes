@@ -125,24 +125,30 @@ Revision history for Perl extension Search::HiLiter.
       This makes them XML-spec compliant.
 
 0.24  19 Sept 2009
-    * thanks to Henry at zen for prompting the bug fixes and improvements in this release.
+    * thanks to Henry at zen for prompting the bug fixes and improvements 
+      in this release.
     * fix Data::Dump calls from pp() to fully-qualified.
     * Snipper->snip() will always return UTF-8 encoded text.
-    * rename Snipper methods snipper_name, snipper_force and snipper_type to type_used, force and type.
+    * rename Snipper methods snipper_name, snipper_force and snipper_type 
+      to type_used, force and type.
     * document Snipper->type().
     * fix some off-by-one errors in all the snip() algorithms
     * fix the debugging code in Snipper
-    * add sanity check fallback to plain() hiliter to persevere if plain regex obviously fails.
+    * add sanity check fallback to plain() hiliter to persevere if plain 
+      regex obviously fails.
     * add ignore_fields feature
     * add treat_uris_like_phrases feature
-    * RegExp, RegExp::Keywords, RegExp::Keyword and Keywords are all deprecated in favor of the new,
-      tidier and cleaner QueryParser, Query and RegEx classes. Backwards compatibility is preserved
-      for existing code, but users should move to the new API as documented in Search::Tools.
+    * RegExp, RegExp::Keywords, RegExp::Keyword and Keywords are all 
+      deprecated in favor of the new, tidier and cleaner QueryParser, 
+      Query and RegEx classes. Backwards compatibility is preserved
+      for existing code, but users should move to the new API as 
+      documented in Search::Tools.
       RegExp will carp every time you build() with it.
     * added new Tokenizer, Token and TokenList XS code for must faster snipping.
-    * added PP versions of tokenizing code, both for benchmarking and comparision. As expected, XS
-      is much faster. The extra speed makes it possible to be more accurate in snippet extraction
-      without sacrificing performance.
+    * added PP versions of tokenizing code, both for benchmarking and 
+      comparision.  As expected, XS is much faster. The extra speed makes it 
+      possible to be more accurate in snippet extraction without sacrificing 
+      performance.
 
 0.25  19 Sept 2009
     * add missing $VERSION back to Keywords.pm to satisfy CPAN
@@ -151,7 +157,11 @@ Revision history for Perl extension Search::HiLiter.
     * fix a couple of Perl::Critic warnings (trivial imo)
     * fix repos and homepage links in Makefile.PL
     * fix a couple of regex escape bugs in HiLiter
-    * fix an innocuous bug in Object that passed extra args to QueryParser->new in _normalize_args
-    * add \002/\003 no-hiliting marker support in HiLiter (for HTML::HiLiter)
-    * HiLiter->light() now returned UTF-8 encoded text like Snipper->snip() does.
-    * fix regex build bug where phrase could be separated by multiple whitespace chars.
+    * fix an innocuous bug in Object that passed extra args to 
+      QueryParser->new in _normalize_args
+    * add \002/\003 no-hiliting marker support in HiLiter 
+      (for HTML::HiLiter)
+    * HiLiter->light() now returned UTF-8 encoded text like 
+      Snipper->snip() does.
+    * fix regex build bug where phrase could be separated by multiple 
+      whitespace chars.
