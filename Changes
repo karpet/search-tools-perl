@@ -165,3 +165,7 @@ Revision history for Perl extension Search::HiLiter.
       Snipper->snip() does.
     * fix regex build bug where phrase could be separated by multiple 
       whitespace chars.
+
+0.27  xxx
+    * optimize XML->escape() and remove %XML::Ents as public variable.
+

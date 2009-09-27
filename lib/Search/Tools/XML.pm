@@ -55,31 +55,12 @@ B<NOTE:> To get full UTF-8 character set from chr() you must be using Perl >= 5.
 This affects things like the unescape* methods.
 
 =head1 VARIABLES
-
-=head2 %Ents
-
-Basic HTML/XML characters that must be escaped:
-
- '>' => '&gt;',
- '<' => '&lt;',
- '&' => '&amp;',
- '"' => '&quot;',
- "'" => '&apos;'
  
 =head2 %HTML_ents
 
 Complete map of all named HTML entities to their decimal values.
 
 =cut
-
-our %Ents = (
-    '>' => '&gt;',
-    '<' => '&lt;',
-    '&' => '&amp;',
-    '"' => '&quot;',
-    "'" => '&apos;'
-);
-my $ToEscape = join( '', keys %Ents );
 
 # regexp for what constitutes whitespace in an HTML doc
 # it's not as simple as \s|&nbsp; so we define it separately
@@ -470,7 +451,13 @@ non-ASCII chars converted to numeric entities.
 This is escape() on steroids. B<Do not use them both on the same text>
 unless you know what you're doing. See the SYNOPSIS for an example.
 
+=head2 escape_utf8
+
+Alias for utf8_safe().
+
 =cut
+
+*escape_utf8 = \&utf8_safe;
 
 sub utf8_safe {
     my $class = shift;
@@ -542,8 +529,6 @@ sub escape {
     $text =~ s/>/&gt;/go;
     $text =~ s/'/&apos;/go;
     $text =~ s/"/&quot;/go;
-
-    #$text =~ s/([$ToEscape])/$Ents{$1}/og;
 
     return $text;
 }
