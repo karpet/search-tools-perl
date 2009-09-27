@@ -518,16 +518,14 @@ The escaped I<text> is returned.
 B<IMPORTANT:> The API for this method has changed as of version 0.16. I<text> 
 is no longer modified in-place.
 
-=head2 escape_html
-
-Alias for escape().
+As of version 0.27 escape() is written in C/XS for speed.
 
 =cut
 
 sub escape {
     my ( $self, $text ) = @_;
     return unless defined $text;
-    return escape_html($text);
+    return _escape_html($text);
 }
 
 =head2 unescape( I<text> )

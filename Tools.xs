@@ -621,7 +621,7 @@ MODULE = Search::Tools       PACKAGE = Search::Tools::XML
 PROTOTYPES: enable
 
 SV*
-escape_html(text)
+_escape_html(text)
     char *text;
     
     CODE:
