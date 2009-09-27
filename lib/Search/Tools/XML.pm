@@ -519,16 +519,19 @@ is no longer modified in-place.
 
 =cut
 
+my %ents = (
+    '>' => '&gt;',
+    '<' => '&lt;',
+    '&' => '&amp;',
+    '"' => '&quot;',
+    "'" => '&apos;',
+);
+
 sub escape {
     my ( $self, $text ) = @_;
     return unless defined $text;
 
-    # escape & first so we do not double escape
-    $text =~ s/&/&amp;/go;
-    $text =~ s/</&lt;/go;
-    $text =~ s/>/&gt;/go;
-    $text =~ s/'/&apos;/go;
-    $text =~ s/"/&quot;/go;
+    $text =~ s/([&<>'"])/$ents{$1}/go;
 
     return $text;
 }
