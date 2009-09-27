@@ -621,11 +621,11 @@ MODULE = Search::Tools       PACKAGE = Search::Tools::XML
 PROTOTYPES: enable
 
 SV*
-_escape_html(text)
+_escape_xml(text)
     char *text;
-    
+
     CODE:
-        RETVAL = st_escape_html(text);
+        RETVAL = st_escape_xml(text);
     
     OUTPUT:
         RETVAL

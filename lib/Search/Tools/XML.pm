@@ -525,7 +525,7 @@ As of version 0.27 escape() is written in C/XS for speed.
 sub escape {
     my ( $self, $text ) = @_;
     return unless defined $text;
-    return _escape_html($text);
+    return _escape_xml($text);
 }
 
 =head2 unescape( I<text> )
