@@ -521,21 +521,30 @@ An alias for no_html().
 
 =head2 escape( I<text> )
 
-Similar to escape() functions in more famous CPAN modules, but without the added
-dependency. escape() will convert the special XML chars (><'"&) to their
-entity equivalents. See %Ents.
+Similar to escape() functions in more famous CPAN modules, but without the 
+added dependency. escape() will convert the special XML chars (><'"&) to their
+named entity equivalents.
 
 The escaped I<text> is returned.
 
-B<IMPORTANT:> The API for this method has changed as of version 0.16. I<text> is no longer
-modified in-place.
+B<IMPORTANT:> The API for this method has changed as of version 0.16. I<text> 
+is no longer modified in-place.
 
 =cut
 
 sub escape {
     my ( $self, $text ) = @_;
     return unless defined $text;
-    $text =~ s/([$ToEscape])/$Ents{$1}/og;
+
+    # escape & first so we do not double escape
+    $text =~ s/&/&amp;/go;
+    $text =~ s/</&lt;/go;
+    $text =~ s/>/&gt;/go;
+    $text =~ s/'/&apos;/go;
+    $text =~ s/"/&quot;/go;
+
+    #$text =~ s/([$ToEscape])/$Ents{$1}/og;
+
     return $text;
 }
 
