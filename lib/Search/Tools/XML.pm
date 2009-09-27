@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Carp;
 use base qw( Search::Tools::Object );
-use Search::Tools;  # XS required
+use Search::Tools;    # XS required
 
 our $VERSION = '0.27';
 
@@ -414,8 +414,8 @@ chars using tag_safe().
 
 =cut
 
-sub start_tag { "<" . $_[0]->tag_safe( $_[1] ) . ">" }
-sub end_tag   { "</" . $_[0]->tag_safe( $_[1] ) . ">" }
+sub start_tag { "<" . tag_safe( $_[1] ) . ">" }
+sub end_tag   { "</" . tag_safe( $_[1] ) . ">" }
 
 =pod
 
@@ -431,8 +431,7 @@ Example:
 =cut
 
 sub tag_safe {
-    my $class = shift;
-    my $t     = shift;
+    my $t = pop;
 
     return '_' unless length $t;
 
@@ -461,8 +460,7 @@ Alias for utf8_safe().
 *escape_utf8 = \&utf8_safe;
 
 sub utf8_safe {
-    my $class = shift;
-    my $t     = shift;
+    my $t = pop;
     $t = '' unless defined $t;
 
     # converts all low chars except \t \n and \r
@@ -523,7 +521,7 @@ As of version 0.27 escape() is written in C/XS for speed.
 =cut
 
 sub escape {
-    my ( $self, $text ) = @_;
+    my $text = pop;
     return unless defined $text;
     return _escape_xml($text);
 }
@@ -542,9 +540,9 @@ I<text> is no longer modified in-place.
 =cut
 
 sub unescape {
-    my ( $self, $text ) = @_;
-    $text = $self->unescape_named($text);
-    $text = $self->unescape_decimal($text);
+    my $text = pop;
+    $text = unescape_named($text);
+    $text = unescape_decimal($text);
     return $text;
 }
 
