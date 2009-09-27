@@ -96,3 +96,4 @@ static void     st_dump_sv( SV* hash_ref );
 static void     st_describe_object( SV* object );
 static boolean  st_is_ascii( SV* str );
 static SV*      st_find_bad_utf8( SV* str );
+static SV*      st_escape_html(char *s);

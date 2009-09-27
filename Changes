@@ -168,4 +168,5 @@ Revision history for Perl extension Search::HiLiter.
 
 0.27  xxx
     * optimize XML->escape() and remove %XML::Ents as public variable.
+      escape() is now wrapper around escape_html(), which was borrowed from mod_perl.
 

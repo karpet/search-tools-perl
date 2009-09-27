@@ -552,3 +552,52 @@ st_find_bad_utf8( SV* str ) {
         return newSVpvn((char*)pos, strlen((char*)pos));
     }
 }
+
+/* lifted nearly verbatim from mod_perl */
+static SV *st_escape_html(char *s) {
+    int i, j;
+    SV *x;
+
+    /* first, count the number of extra characters */
+    for (i = 0, j = 0; s[i] != '\0'; i++)
+	if (s[i] == '<' || s[i] == '>')
+	    j += 3;
+	else if (s[i] == '&')
+	    j += 4;
+        else if (s[i] == '"' || s[i] == '\'')
+	    j += 5;
+
+    if (j == 0)
+	return newSVpv(s,i);
+    x = newSV(i + j + 1);
+
+    for (i = 0, j = 0; s[i] != '\0'; i++, j++)
+	if (s[i] == '<') {
+	    memcpy(&SvPVX(x)[j], "&lt;", 4);
+	    j += 3;
+	}
+	else if (s[i] == '>') {
+	    memcpy(&SvPVX(x)[j], "&gt;", 4);
+	    j += 3;
+	}
+	else if (s[i] == '&') {
+	    memcpy(&SvPVX(x)[j], "&amp;", 5);
+	    j += 4;
+	}
+	else if (s[i] == '"') {
+	    memcpy(&SvPVX(x)[j], "&quot;", 6);
+	    j += 5;
+	}
+    else if (s[i] == '\'') {
+	    memcpy(&SvPVX(x)[j], "&apos;", 6);
+	    j += 5;
+	}
+	else
+	    SvPVX(x)[j] = s[i];
+
+    SvPVX(x)[j] = '\0';
+    SvCUR_set(x, j);
+    SvPOK_on(x);
+    return x;
+}
+

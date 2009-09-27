@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp;
 use base qw( Search::Tools::Object );
+use Search::Tools;  # XS required
 
 our $VERSION = '0.27';
 
@@ -517,23 +518,16 @@ The escaped I<text> is returned.
 B<IMPORTANT:> The API for this method has changed as of version 0.16. I<text> 
 is no longer modified in-place.
 
-=cut
+=head2 escape_html
 
-my %ents = (
-    '>' => '&gt;',
-    '<' => '&lt;',
-    '&' => '&amp;',
-    '"' => '&quot;',
-    "'" => '&apos;',
-);
+Alias for escape().
+
+=cut
 
 sub escape {
     my ( $self, $text ) = @_;
     return unless defined $text;
-
-    $text =~ s/([&<>'"])/$ents{$1}/go;
-
-    return $text;
+    return escape_html($text);
 }
 
 =head2 unescape( I<text> )
