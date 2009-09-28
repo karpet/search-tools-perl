@@ -21,7 +21,7 @@ WriteMakefile(
     PREREQ_PM     => {
         'Search::QueryParser' => '0',
         'Encode'              => '0',
-        'Rose::Object'        => '0',
+        'Rose::ObjectX::CAF'  => '0',
         'Data::Dump'          => 0,
         'File::Slurp'         => 0,
 

@@ -2,7 +2,7 @@ package Search::Tools::Object;
 use strict;
 use warnings;
 use Carp;
-use base qw( Rose::Object );
+use base qw( Rose::ObjectX::CAF );
 use Scalar::Util qw( blessed );
 use Search::Tools::MethodMaker;
 
@@ -70,13 +70,7 @@ if init() tried to set values with them.
 
 sub init {
     my $self = shift;
-
-    # assume object is hash and set key
-    # rather than call method, since we have read-only methods.
-    while (@_) {
-        my $method = shift;
-        $self->{$method} = shift;
-    }
+    $self->SUPER::init(@_);
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
     return $self;
 }
@@ -88,32 +82,7 @@ You can use the C<PERL_DEBUG> env var to set this value as well.
 
 =cut
 
-# backcompat for CAF
-
-=head2 mk_accessors( I<array_of_accessor_names> )
-
-Works like CAF.
-
-=cut
-
-sub mk_accessors {
-    my $class = shift;
-    Search::Tools::MethodMaker->make_methods( { target_class => $class, },
-        scalar => \@_ );
-}
-
-=head2 mk_ro_accessors( I<array_of_accessor_names> )
-
-Works like CAF.
-
-=cut
-
-sub mk_ro_accessors {
-    my $class = shift;
-    Search::Tools::MethodMaker->make_methods( { target_class => $class },
-        'scalar --ro' => \@_ );
-}
-
+# called by some subclasses
 sub _normalize_args {
     my $self = shift;
     my %args = @_;

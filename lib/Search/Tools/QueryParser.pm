@@ -141,7 +141,7 @@ sub _extract_terms {
     my $wordchar      = $self->word_characters;
     my $default_field = $self->default_field;
 
-    if ( length($default_field) && $Search::QueryParser::VERSION <= 0.93 ) {
+    if ( length($default_field) && $Search::QueryParser::VERSION le 0.93 ) {
         carp "default_field not yet implemented.";
     }
 
