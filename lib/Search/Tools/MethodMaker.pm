@@ -47,7 +47,7 @@ sub scalar {
             return defined $_[0]->{$key}
                 ? $_[0]->{$key}
                 : ( $_[0]->{$key} = $_[0]->$init_method() );
-            }
+        };
     }
     elsif ( $interface eq 'get_set' ) {
         if ( $Rose::Object::MakeMethods::Generic::Have_CXSA
@@ -73,7 +73,7 @@ sub scalar {
             $methods{$name} = sub {
                 return $_[0]->{$key} = $_[1] if ( @_ > 1 );
                 return $_[0]->{$key};
-                }
+            };
         }
     }
     elsif ( $interface eq 'ro' ) {
@@ -98,9 +98,11 @@ sub scalar {
         }
         else {
             $methods{$name} = sub {
-                return $_[0]->{$key} = $_[1] if ( @_ > 1 );
-                return $_[0]->{$key};
+                if ( @_ > 1 ) {
+                    croak "usage: $name() is read-only (getter not setter)";
                 }
+                return $_[0]->{$key};
+            };
         }
     }
     else { Carp::croak "Unknown interface: $interface" }

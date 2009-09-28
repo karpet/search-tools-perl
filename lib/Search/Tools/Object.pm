@@ -98,7 +98,7 @@ Works like CAF.
 
 sub mk_accessors {
     my $class = shift;
-    Search::Tools::MethodMaker->make_methods( { target_class => $class },
+    Search::Tools::MethodMaker->make_methods( { target_class => $class, },
         scalar => \@_ );
 }
 
@@ -125,14 +125,14 @@ sub _normalize_args {
         require Search::Tools::QueryParser;
         $args{query} = Search::Tools::QueryParser->new(
             map { $_ => delete $args{$_} }
-                grep { Search::Tools::QueryParser->can($_) } keys %args
+            grep { Search::Tools::QueryParser->can($_) } keys %args
         )->parse($q);
     }
     elsif ( ref($q) eq 'ARRAY' ) {
         warn "query ARRAY ref deprecated as of version 0.24";
         $args{query} = Search::Tools::QueryParser->new(
             map { $_ => delete $args{$_} }
-                grep { Search::Tools::QueryParser->can($_) } keys %args
+            grep { Search::Tools::QueryParser->can($_) } keys %args
         )->parse( join( ' ', @$q ) );
     }
     elsif ( blessed($q) and $q->isa('Search::Tools::Query') ) {

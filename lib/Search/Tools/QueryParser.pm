@@ -51,6 +51,8 @@ my %Defaults = (
     not_word                => q/not/,
     ignore_fields           => {},
     treat_uris_like_phrases => 1,
+    query_class             => 'Search::Tools::Query',
+    default_field           => "",
 );
 
 __PACKAGE__->mk_accessors( keys %Defaults );
@@ -103,6 +105,8 @@ sub parse {
     if ( ref $query_str ) {
         croak "query must be a scalar string";
     }
+
+    #$query_str = to_utf8( $query_str, $self->charset );
     my $extracted = $self->_extract_terms($query_str);
     my %regex;
     for my $term ( @{ $extracted->{terms} } ) {
@@ -114,27 +118,32 @@ sub parse {
             is_phrase => ( $term =~ m/\ / ? 1 : 0 ),
         );
     }
-    return Search::Tools::Query->new(
+    return $self->{query_class}->new(
         search_queryparser => $extracted->{parser},
         terms              => $extracted->{terms},
-        str                => $query_str,
+        str                => to_utf8( $query_str, $self->charset ),
         regex              => \%regex,
         qp                 => $self,
     );
 }
 
 sub _extract_terms {
-    my $self      = shift;
-    my $query     = shift or croak "need query to extract terms";
-    my $stopwords = $self->stopwords;
-    my $and_word  = $self->and_word;
-    my $or_word   = $self->or_word;
-    my $not_word  = $self->not_word;
-    my $wildcard  = $self->wildcard;
-    my $phrase    = $self->phrase_delim;
-    my $igf       = $self->ignore_first_char;
-    my $igl       = $self->ignore_last_char;
-    my $wordchar  = $self->word_characters;
+    my $self          = shift;
+    my $query         = shift or croak "need query to extract terms";
+    my $stopwords     = $self->stopwords;
+    my $and_word      = $self->and_word;
+    my $or_word       = $self->or_word;
+    my $not_word      = $self->not_word;
+    my $wildcard      = $self->wildcard;
+    my $phrase        = $self->phrase_delim;
+    my $igf           = $self->ignore_first_char;
+    my $igl           = $self->ignore_last_char;
+    my $wordchar      = $self->word_characters;
+    my $default_field = $self->default_field;
+
+    if ( length($default_field) && $Search::QueryParser::VERSION <= 0.93 ) {
+        carp "default_field not yet implemented.";
+    }
 
     my $esc_wildcard = quotemeta($wildcard);
     my $word_re      = qr/([$wordchar]+($esc_wildcard)?)/;
@@ -147,9 +156,10 @@ sub _extract_terms {
     my %stophash = map { to_utf8( lc($_), $self->charset ) => 1 } @$stopwords;
     my ( %words, %uniq, $c );
     my $parser = Search::QueryParser->new(
-        rxAnd => qr{$and_word}i,
-        rxOr  => qr{$or_word}i,
-        rxNot => qr{$not_word}i,
+        rxAnd    => qr{$and_word}i,
+        rxOr     => qr{$or_word}i,
+        rxNot    => qr{$not_word}i,
+        defField => $default_field,
     );
 
 Q: for my $q (@query) {
@@ -702,6 +712,15 @@ would parse the query:
 
  site:foo.bar AND baz   # terms = baz
 
+=head2 default_field
+
+B<NOTE:> This feature depends upon a not-yet-released patch to
+Search::QueryParser. It's a no-op at present.
+
+Set the default field to be used in parsing the query, if no field
+is specified. The default is the empty string (the Search::QueryParser
+default).
+
 =head2 treat_uris_like_phrases
 
 Boolean (default true (1)).
@@ -738,6 +757,11 @@ Base language. If not set, extracted from C<locale> or defaults to C<en_US>.
 
 Base charset used for converting queries to UTF-8. If not set, 
 extracted from C<locale> or defaults to C<iso-8859-1>.
+
+=head2 query_class
+
+The default is C<Search::Tools::Query> but you can set your own to subclass
+the Query object.
 
 =head1 LIMITATIONS
 
