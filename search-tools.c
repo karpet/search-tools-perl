@@ -555,6 +555,8 @@ st_find_bad_utf8( SV* str ) {
 
 /* lifted nearly verbatim from mod_perl */
 static SV *st_escape_xml(char *s) {
+    dTHX;
+
     int i, j;
     SV *x;
 

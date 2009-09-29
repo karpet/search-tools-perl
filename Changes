@@ -171,3 +171,6 @@ Revision history for Perl extension Search::HiLiter.
       escape() is now in C/XS, borrowed from mod_perl.
     * add query_class() to QueryParser to allow subclassing Query
 
+0.28  29 Sept 2009
+    * add missing dTHX macro for 5.10 build.
+
