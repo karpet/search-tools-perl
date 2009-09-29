@@ -166,7 +166,7 @@ Revision history for Perl extension Search::HiLiter.
     * fix regex build bug where phrase could be separated by multiple 
       whitespace chars.
 
-0.27  xxx
+0.27  29 Sept 2009
     * optimize XML->escape() and remove %XML::Ents as public variable.
       escape() is now in C/XS, borrowed from mod_perl.
     * add query_class() to QueryParser to allow subclassing Query
