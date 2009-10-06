@@ -4,7 +4,7 @@ use warnings;
 use Carp;
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 __PACKAGE__->mk_ro_accessors(qw( plain html word phrase ));
 

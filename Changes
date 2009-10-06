@@ -174,3 +174,7 @@ Revision history for Perl extension Search::HiLiter.
 0.28  29 Sept 2009
     * add missing dTHX macro for 5.10 build.
 
+0.29  xxx
+    * tweek snippet sorting to value higher unique term frequency.
+    * add XML->strip_markup as alias for no_html()
+

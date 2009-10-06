@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base qw( Search::Tools::QueryParser );
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 # this is backcompat class only.
 

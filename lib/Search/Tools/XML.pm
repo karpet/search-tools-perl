@@ -5,7 +5,7 @@ use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 =pod
 
@@ -501,9 +501,14 @@ sub no_html {
 
 An alias for no_html().
 
+=head2 strip_markup
+
+An alias for no_html().
+
 =cut
 
-*strip_html = \&no_html;
+*strip_html   = \&no_html;
+*strip_markup = \&no_html;
 
 =head2 escape( I<text> )
 

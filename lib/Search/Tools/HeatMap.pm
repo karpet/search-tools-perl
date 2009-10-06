@@ -5,14 +5,12 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 # debuggin only
 my $OPEN  = '[';
 my $CLOSE = ']';
-eval {
-    require Term::ANSIColor;
-};
+eval { require Term::ANSIColor; };
 if ( !$@ ) {
     $OPEN .= Term::ANSIColor::color('bold red');
     $CLOSE = Term::ANSIColor::color('reset') . $CLOSE;
@@ -105,6 +103,8 @@ is a hash ref with the following keys:
 
 =item str_w_pos
 
+This item is available only if debug() is true.
+
 =item unique
 
 =back
@@ -118,6 +118,7 @@ sub _build {
     my $tokens     = $self->tokens or croak "tokens required";
     my $window     = $self->window_size || 20;
     my $lhs_window = int( $window / 2 );
+    my $debug      = $self->debug || 0;
 
     # build heatmap
     my $num_tokens      = $tokens->len;
@@ -151,11 +152,11 @@ sub _build {
     #warn "match_distance: $match_distance   clusters: " . dump \@clusters;
 
     # create spans from each cluster, each with a weight.
-    # sort by cluster length, so we get highest density first,
-    # followed by heatmap value,
-    # followed by lowest position (first in tokenlist).
+    # we do the initial sort so that clusters that overlap
+    # other clusters via get_window() are weeded out via %seen_pos.
     my @spans;
     my %seen_pos;
+CLUSTER:
     for my $cluster (
         sort {
                    scalar(@$b) <=> scalar(@$a)
@@ -169,11 +170,11 @@ sub _build {
         my $heat = 0;
         my %span;
         my @cluster_tokens;
-        for my $pos (@$cluster) {
-            $heat += $heatmap{$pos};
+    POS: for my $pos (@$cluster) {
             my ( $start, $end ) = $tokens->get_window( $pos, $window );
-            for my $pos2 ( $start .. $end ) {
+        POS_TWO: for my $pos2 ( $start .. $end ) {
                 next if $seen_pos{$pos2}++;
+                $heat += ( exists $heatmap{$pos2} ? $heatmap{$pos2} : 0 );
                 push( @cluster_tokens, $tokens->get_token($pos2) );
             }
         }
@@ -208,20 +209,22 @@ sub _build {
         $span{str}     = join( '', @strings );
 
         # just for debug
-        my $i = 0;
-        $span{str_w_pos} = join(
-            '',
-            map {
-                      $strings[ $i++ ]
-                    . ( exists $heatmap{$_} ? $OPEN : '[' )
-                    . $_
-                    . ( exists $heatmap{$_} ? $CLOSE : ']' )
-                } @cluster_pos
-        );
+        if ($debug) {
+            my $i = 0;
+            $span{str_w_pos} = join(
+                '',
+                map {
+                          $strings[ $i++ ]
+                        . ( exists $heatmap{$_} ? $OPEN : '[' )
+                        . $_
+                        . ( exists $heatmap{$_} ? $CLOSE : ']' )
+                    } @cluster_pos
+            );
+        }
 
         # spans with more *unique* hot tokens in a single span rank higher
         my %uniq = ();
-        $i = 0;
+        my $i    = 0;
         for (@cluster_pos) {
             if ( exists $heatmap{$_} ) {
                 $uniq{ $strings[$i] } += $heatmap{$_};
@@ -234,7 +237,19 @@ sub _build {
 
     }
 
-    $self->{spans}   = \@spans;
+    $self->{spans} = [
+
+        # sort by unique,
+        # then by heat
+        # then by pos
+
+        sort {
+                   $b->{unique} <=> $a->{unique}
+                || $b->{heat} <=> $a->{heat}
+                || $a->{pos}->[0] <=> $b->{pos}->[0]
+            } @spans
+
+    ];
     $self->{heatmap} = \%heatmap;
 
     return $self;
