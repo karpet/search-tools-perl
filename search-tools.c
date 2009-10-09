@@ -7,7 +7,8 @@
 /*
  * Search::Tools C helpers
  */
-
+ 
+#include <wctype.h>
 #include "search-tools.h"
 
 /* global debug var */
@@ -163,6 +164,8 @@ st_new_token(
     tok->u8len = u8len;
     tok->is_hot = is_hot;
     tok->is_match = is_match;
+    tok->is_sentence_start = 0;
+    tok->is_sentence_end = 0;
     tok->str = newSVpvn(ptr, len); /* newSVpvn_utf8 not available in some perls? */
     SvUTF8_on(tok->str);
     tok->ref_cnt = 1;
@@ -237,6 +240,8 @@ st_dump_token(st_token *tok) {
     warn(" len = %d\n", tok->len);
     warn(" u8len = %d\n", tok->u8len);
     warn(" is_match = %d\n", tok->is_match);
+    warn(" is_sentence_start = %d\n", tok->is_sentence_start);
+    warn(" is_sentence_end   = %d\n", tok->is_sentence_end);
     warn(" is_hot   = %d\n", tok->is_hot);
     warn(" ref_cnt  = %d\n", tok->ref_cnt);
 }
@@ -485,9 +490,17 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                             utf8_distance((U8*)end_ptr, (U8*)start_ptr),
                             start_ptr,
                             0, 1);
+        if (st_looks_like_sentence_start(start_ptr)) {
+            token->is_sentence_start = 1;
+        }
+        else if (st_looks_like_sentence_end(end_ptr)) {
+            token->is_sentence_end = 1;
+        }
         if (ST_DEBUG) {
-            warn("[%d] [%d] [%d] [%s]", 
-                token->pos, token->len, token->u8len, SvPV_nolen(token->str));
+            warn("[%d] [%d] [%d] [%s] [%d] [%d]", 
+                token->pos, token->len, token->u8len, SvPV_nolen(token->str),
+                token->is_sentence_start, token->is_sentence_end
+            );
         }
         
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
@@ -519,10 +532,19 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                                     utf8_distance((U8*)str_end, (U8*)prev_end),
                                     prev_end, 
                                     0, 0);
-        if (ST_DEBUG) {
-            warn("tail [%d] [%d] [%d] [%s]", 
-                token->pos, token->len, token->u8len, SvPV_nolen(token->str));
+        if (st_looks_like_sentence_start(prev_end)) {
+            token->is_sentence_start = 1;
         }
+        else if (st_looks_like_sentence_end(str_end)) {
+            token->is_sentence_end = 1;
+        }
+        if (ST_DEBUG) {
+            warn("[%d] [%d] [%d] [%s] [%d] [%d]", 
+                token->pos, token->len, token->u8len, SvPV_nolen(token->str),
+                token->is_sentence_start, token->is_sentence_end
+            );
+        }
+
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
         av_push(tokens, SvREFCNT_inc(tok));
     }
@@ -604,3 +626,65 @@ static SV *st_escape_xml(char *s) {
     return x;
 }
 
+/* returns the UCS32 value for a UTF8 string -- the character's Unicode value.
+   see http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=IWS-AppendixA
+*/
+static IV
+st_utf8_codepoint(
+    const char *utf8,
+    IV len
+)
+{
+    switch (len) {
+
+    case 1:
+        return utf8[0];
+
+    case 2:
+        return (utf8[0] - 192) * 64 + utf8[1] - 128;
+
+    case 3:
+        return (utf8[0] - 224) * 4096 + (utf8[1] - 128) * 64 + utf8[2] - 128;
+
+    case 4:
+    default:
+        return (utf8[0] - 240) * 262144 + (utf8[1] - 128) * 4096 + (utf8[2] - 128) * 64 +
+            utf8[3] - 128;
+
+    }
+}
+
+static IV
+st_looks_like_sentence_start(const char *ptr) {
+    IV len;
+    
+    /* optimized for ASCII */
+    if (isUPPER(ptr[0])) {
+        return 1;
+    }
+    /* get first full UTF-8 char */
+    len = (IV)is_utf8_char((U8*)ptr);
+    if (len) {
+        return iswupper((wint_t)st_utf8_codepoint(ptr, len));
+    }
+    return 0;
+}
+
+static IV
+st_looks_like_sentence_end(const char *ptr) {
+    if (ptr[0] == '.') {
+        return 1;
+    }
+    else if (ptr[0] == '?') {
+        return 1;
+    }
+    else if (ptr[0] == '!') {
+        return 1;
+    }
+    else if (ptr[0] == ';') {   /* TODO ? */
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}

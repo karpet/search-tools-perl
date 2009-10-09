@@ -26,6 +26,8 @@ struct st_token {
     IV              u8len;      // token length (utf8 chars)
     SV             *str;        // SV* for the string
     IV              is_hot;     // interesting token flag
+    IV              is_sentence_start;  // looks like the start of a sentence
+    IV              is_sentence_end;    // looks like the end of a sentence
     boolean         is_match;   // matched regex
     IV              ref_cnt;    // reference counter
 };
@@ -97,3 +99,6 @@ static void     st_describe_object( SV* object );
 static boolean  st_is_ascii( SV* str );
 static SV*      st_find_bad_utf8( SV* str );
 static SV*      st_escape_xml(char *s);
+static IV       st_looks_like_sentence_start(const char *ptr);
+static IV       st_looks_like_sentence_end(const char *ptr);
+static IV       st_utf8_codepoint(const char *utf8, IV len);

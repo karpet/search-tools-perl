@@ -561,6 +561,28 @@ is_match(self)
 
 
 IV
+is_sentence_start(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->is_sentence_start;
+    
+    OUTPUT:
+        RETVAL
+
+
+IV
+is_sentence_end(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->is_sentence_end;
+    
+    OUTPUT:
+        RETVAL
+
+
+IV
 set_match(self, val)
     st_token *self;
     IV val;
