@@ -475,9 +475,16 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                                 (start_ptr - prev_end),
                                 utf8_distance((U8*)start_ptr, (U8*)prev_end),
                                 prev_end, 0, 0);
+            if (st_looks_like_sentence_start(prev_end)) {
+                token->is_sentence_start = 1;
+            }
+            else if (st_looks_like_sentence_end(start_ptr-token->len)) {
+                token->is_sentence_end = 1;
+            }
             if (ST_DEBUG) {
-                warn("prev [%d] [%d] [%d] [%s]", 
-                    token->pos, token->len, token->u8len, SvPV_nolen(token->str));
+                warn("prev [%d] [%d] [%d] [%s] [%d] [%d]", 
+                    token->pos, token->len, token->u8len, SvPV_nolen(token->str),
+                    token->is_sentence_start, token->is_sentence_end);
             }
             
             tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
@@ -493,11 +500,11 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
         if (st_looks_like_sentence_start(start_ptr)) {
             token->is_sentence_start = 1;
         }
-        else if (st_looks_like_sentence_end(end_ptr)) {
+        else if (st_looks_like_sentence_end(end_ptr-1)) {
             token->is_sentence_end = 1;
         }
         if (ST_DEBUG) {
-            warn("[%d] [%d] [%d] [%s] [%d] [%d]", 
+            warn("main [%d] [%d] [%d] [%s] [%d] [%d]", 
                 token->pos, token->len, token->u8len, SvPV_nolen(token->str),
                 token->is_sentence_start, token->is_sentence_end
             );
@@ -535,11 +542,11 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
         if (st_looks_like_sentence_start(prev_end)) {
             token->is_sentence_start = 1;
         }
-        else if (st_looks_like_sentence_end(str_end)) {
+        else if (st_looks_like_sentence_end(str_end-1)) {
             token->is_sentence_end = 1;
         }
         if (ST_DEBUG) {
-            warn("[%d] [%d] [%d] [%s] [%d] [%d]", 
+            warn("tail: [%d] [%d] [%d] [%s] [%d] [%d]", 
                 token->pos, token->len, token->u8len, SvPV_nolen(token->str),
                 token->is_sentence_start, token->is_sentence_end
             );
@@ -631,10 +638,12 @@ static SV *st_escape_xml(char *s) {
 */
 static IV
 st_utf8_codepoint(
-    const char *utf8,
+    const unsigned char *utf8,
     IV len
 )
 {
+    dTHX;
+    
     switch (len) {
 
     case 1:
@@ -655,23 +664,53 @@ st_utf8_codepoint(
 }
 
 static IV
-st_looks_like_sentence_start(const char *ptr) {
-    IV len;
+st_looks_like_sentence_start(const unsigned char *ptr) {
+    dTHX;
+    
+    IV len, u32pt;
+    
+    if (ST_DEBUG)
+        warn("%s: %c\n", __func__, ptr[0]); 
     
     /* optimized for ASCII */
     if (isUPPER(ptr[0])) {
         return 1;
     }
+    
+    /* TODO if any char is UPPER in the string, consider it a start? */
+    
     /* get first full UTF-8 char */
     len = (IV)is_utf8_char((U8*)ptr);
+    if (ST_DEBUG)
+        warn("%s: %s is utf8 wide len %d\n", __func__, ptr, len);
+    
     if (len) {
-        return iswupper((wint_t)st_utf8_codepoint(ptr, len));
+        u32pt = st_utf8_codepoint(ptr, len);
+        
+        if (ST_DEBUG)
+            warn("%s: u32 code point %d\n", __func__, u32pt);
+        
+        if (iswupper((wint_t)u32pt)) {
+            return 1;
+        }
+        if (u32pt == 191) { /* INVERTED QUESTION MARK */
+            return 1;
+        }
+        
+        /* TODO more here? */
+        
+        return 0;
     }
     return 0;
 }
 
 static IV
-st_looks_like_sentence_end(const char *ptr) {
+st_looks_like_sentence_end(const unsigned char *ptr) {
+    dTHX;
+    
+    if (ST_DEBUG)
+        warn("%s: %c\n", __func__, ptr[0]); 
+    
     if (ptr[0] == '.') {
         return 1;
     }
