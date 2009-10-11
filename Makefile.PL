@@ -24,6 +24,7 @@ WriteMakefile(
         'Rose::ObjectX::CAF'  => '0',
         'Data::Dump'          => 0,
         'File::Slurp'         => 0,
+        'Test::More'          => 0.94,
 
         #'Text::Aspell'          => '0.06',  # optional
 
