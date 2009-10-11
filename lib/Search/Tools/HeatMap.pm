@@ -139,16 +139,24 @@ sub _build {
     }
 
     # make clusters
-    my $match_distance = int( $num_tokens / $tokens->num_matches );
-    my @positions      = sort { $a <=> $b } keys %heatmap;
-    my @clusters       = ( [] );
-    my $i              = 0;
+
+    # $proximity == (1/4 of $window)+1 is somewhat arbitrary,
+    # but since we want to err in having too much context,
+    # we aim high. Worst case scenario is where there are
+    # multiple hot spots in a cluster and each is a full
+    # $proximity length apart, which will grow the
+    # eventual span far beyond $window size. We rely
+    # on max_chars in Snipper to catch that worst case.
+    my $proximity = int( $lhs_window / 2 ) + 1;
+    my @positions = sort { $a <=> $b } keys %heatmap;
+    my @clusters  = ( [] );
+    my $i         = 0;
     for my $pos (@positions) {
 
         # if we have advanced past the first position
-        # and the previous position is not adjacent to this one,
+        # and the previous position is not "close" to this one,
         # start a new cluster
-        if ( $i && $positions[ $i - 1 ] != ( $pos - $match_distance ) ) {
+        if ( $i && ( $pos - $positions[ $i - 1 ] ) > $proximity ) {
             push( @clusters, [$pos] );
         }
         else {
@@ -157,7 +165,7 @@ sub _build {
         $i++;
     }
 
-    #warn "match_distance: $match_distance   clusters: " . dump \@clusters;
+    $debug and warn "proximity: $proximity   clusters: " . dump \@clusters;
 
     # create spans from each cluster, each with a weight.
     # we do the initial sort so that clusters that overlap

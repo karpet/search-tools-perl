@@ -8,6 +8,8 @@ use Search::Tools::XML;
 use Search::Tools::Snipper;
 use Search::Tools::UTF8;
 
+my $num_tests = 18;
+
 sub test {
     my ( $file, $q, $snipper_type ) = @_;
     use_ok('Search::Tools');
@@ -54,8 +56,28 @@ sub test {
 
     ok( my $snip    = $snipper->snip($plain),  "snip plain" );
     ok( my $hilited = $hiliter->hilite($snip), "hilite" );
+    ok( my @snip_words  = split( m/\W+/, $snip ),  "split snipped words" );
+    ok( my @plain_words = split( m/\W+/, $plain ), "split plain words" );
+    if ( scalar(@plain_words) > $snipper->context ) {
 
-    return ( $snip, $hilited, $query, $plain );
+        # the -5 fuzziness is to allow for edge cases with lots
+        # of treat_like_phrase matches, like email address, urls, etc.
+        # these generate a lot of tokens in tokenizer,
+        # so the context is fairly high
+        # but our QueryParser regex (and the one above) doesn't catch them.
+        cmp_ok(
+            scalar(@snip_words), '>=',
+            ( $snipper->context - 5 ),
+            "context length >="
+        );
+        diag( "context == " . scalar(@snip_words) );
+    }
+    else {
+        cmp_ok( scalar(@snip_words), '==', scalar(@plain_words),
+            "context length ==" );
+    }
+
+    return ( $snip, $hilited, $query, $plain, $num_tests );
 }
 
 1;
