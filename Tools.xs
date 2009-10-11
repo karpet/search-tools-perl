@@ -408,6 +408,18 @@ get_heat(self)
 
 
 SV*
+get_sentence_starts(self)
+    st_token_list *self;
+    
+    CODE:
+        //self->ref_cnt++;  // TODO?
+        RETVAL = newRV_inc((SV*)self->sentence_starts);
+    
+    OUTPUT:
+        RETVAL
+
+
+SV*
 matches(self)
     st_token_list *self;
     

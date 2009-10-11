@@ -32,6 +32,7 @@ __PACKAGE__->mk_accessors(
         count
         collapse_whitespace
         use_pp
+        as_sentences
         )
 );
 
@@ -45,6 +46,7 @@ my %Defaults = (
     collapse_whitespace => 1,
     escape              => 0,
     force               => 0,
+    as_sentences        => 0,
 );
 
 sub init {
@@ -154,8 +156,9 @@ sub _token {
     my $tokens = $self->{_tokenizer}->$method( $_[0], qr/^$qre$/ );
 
     my $heatmap = Search::Tools::HeatMap->new(
-        tokens      => $tokens,
-        window_size => $self->{context},
+        tokens       => $tokens,
+        window_size  => $self->{context},
+        as_sentences => $self->{as_sentences},
     );
 
     $self->debug and dump $heatmap;
@@ -762,6 +765,10 @@ are also available as key/value pairs to new().
 =head2 init
 
 Called internally by new().
+
+=head2 as_sentences B<Experimental feature>
+
+Attempt to extract a snippet that starts at a sentence boundary.
 
 =head2 occur
 

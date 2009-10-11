@@ -36,6 +36,7 @@ struct st_token_list {
     IV              num;        // number of parsed tokens
     AV             *tokens;     // array of st_token objects
     AV             *heat;       // array of positions of is_hot tokens
+    AV             *sentence_starts;  // array of sentence start positions
     IV              ref_cnt;    // reference counter
 };
 
@@ -52,6 +53,7 @@ st_new_token(
 static st_token_list* st_new_token_list(
     AV *tokens,
     AV *heat,
+    AV *sentence_starts,
     unsigned int num
 );
 static void     st_dump_token_list(st_token_list *tl);
@@ -99,6 +101,6 @@ static void     st_describe_object( SV* object );
 static boolean  st_is_ascii( SV* str );
 static SV*      st_find_bad_utf8( SV* str );
 static SV*      st_escape_xml(char *s);
-static IV       st_looks_like_sentence_start(const unsigned char *ptr);
-static IV       st_looks_like_sentence_end(const unsigned char *ptr);
+static IV       st_looks_like_sentence_start(const unsigned char *ptr, IV len);
+static IV       st_looks_like_sentence_end(const unsigned char *ptr, IV len);
 static IV       st_utf8_codepoint(const unsigned char *utf8, IV len);

@@ -5,10 +5,11 @@ use File::Slurp;
 use Data::Dump qw( dump );
 
 ok( my $snipper = Search::Tools->snipper(
-        query     => q(+domestic +accounts),
-        occur     => 1,
-        context   => 25,
-        max_chars => 190,
+        query        => q(+domestic +accounts),
+        occur        => 1,
+        context      => 25,
+        max_chars    => 190,
+        as_sentences => 1,
     ),
     "create new snipper"
 );
@@ -21,6 +22,6 @@ ok( my $snip = $snipper->snip($buf),                       'snip buf' );
 
 #diag($snip);
 is( $snip,
-    q( ... of years, municipal accounts ol some domestic consumers that do not qualify for free basic services ... ),
+    q( ... Over a number of years, municipal accounts ol some domestic consumers that do not qualify for free basic services in terms of Council's Assistance to the ... ),
     "got snip"
 );

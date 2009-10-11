@@ -10,14 +10,12 @@ use overload
 
 our $VERSION = '0.29';
 
-__PACKAGE__->mk_accessors(qw( is_match is_hot pos str len u8len ));
+__PACKAGE__->mk_accessors(
+    qw( is_match is_hot pos str len u8len is_sentence_start is_sentence_end )
+);
 
 sub set_hot   { $_[0]->is_hot( $_[1] ); }
 sub set_match { $_[0]->is_match( $_[1] ); }
-
-sub is_end_of_sentence {
-    return $_[0] =~ m/[\.\?\!\;\:]\ /;
-}
 
 1;
 
@@ -81,7 +79,9 @@ Did the token match the re() in the Tokenizer.
 
 Did the token match the heat_seeker in the Tokenizer.
 
-=head2 is_end_of_sentence
+=head2 is_sentence_start
+
+=head2 is_sentence_end
 
 Returns true value if the Token matches common sentence-ending
 punctuation.

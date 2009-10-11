@@ -125,10 +125,15 @@ Prints internal XS attributes to stderr.
 
 =head2 get_heat
 
-Returns an array ref to the internal AV (array) of tokens with
+Returns an array ref to the internal AV (array) of positions with
 is_hot() set by the original Tokenizer. This method will return an
 empty list unless you have passed a heat_seeker to the tokenize() method.
 See Search::Tools::Tokenizer.
+
+=head2 get_sentence_starts
+
+Returns an array ref to the internal AV (array) of sentence start
+positions for each position in get_heat().
 
 =head2 matches
 

@@ -56,7 +56,7 @@ sub str {
     return join( $joiner, map {"$_"} @{ $self->as_array } );
 }
 
-=head2 get_window( I<pos> [, I<size>] )
+=head2 get_window( I<pos> [, I<size>, I<as_sentence>] )
 
 Returns array with two values: I<start> and I<end> positions
 for the array of length I<size> on either side of I<pos>. 
@@ -71,6 +71,9 @@ side of I<pos>. So the entire window width (length of the returned
 slice) is I<size>*2 +/-1. The window is guaranteed to be bounded
 by B<matches>.
 
+If I<as_sentence> is true, the window is shifted to try and match
+the first token prior to I<pos> that returns true for is_sentence_start().
+
 =cut
 
 sub get_window {
@@ -80,8 +83,9 @@ sub get_window {
         croak "pos required";
     }
 
-    my $size = int(shift) || 20;
-    my $max_index = $self->len - 1;
+    my $size        = int(shift) || 20;
+    my $as_sentence = shift      || 0;
+    my $max_index   = $self->len - 1;
 
     if ( $pos > $max_index or $pos < 0 ) {
         croak "illegal pos value: no such index in TokenList";
@@ -104,12 +108,46 @@ sub get_window {
     $start ||= 0;
     $end   ||= $max_index;
 
-    # make sure window starts and ends with is_match
-    while ( !$self->get_token($start)->is_match ) {
-        $start++;
+    if ($as_sentence) {
+        my $sentence_starts = $self->get_sentence_starts;
+
+        # default to what we have.
+        my $start_for_pos = $start;
+        my $i             = 0;
+
+        #warn "looking for sentence_start for start = $start end = $end\n";
+        for (@$sentence_starts) {
+
+            #warn " $_ [$i]\n";
+            if ( $_ >= $pos ) {
+                $start_for_pos = $sentence_starts->[$i];
+                last;
+            }
+            $i++;
+        }
+
+        #warn "found $start_for_pos (start = $start end = $end)\n";
+        if ( $start_for_pos != $start ) {
+            if ( $start_for_pos < $start ) {
+                $end -= ( $start - $start_for_pos );
+            }
+            else {
+                $end += ( $start_for_pos - $start );
+            }
+            $start = $start_for_pos;
+        }
+
+        #warn "now $start_for_pos (start = $start end = $end)\n";
     }
-    while ( !$self->get_token($end)->is_match ) {
-        $end--;
+    else {
+
+        # make sure window starts and ends with is_match
+        while ( !$self->get_token($start)->is_match ) {
+            $start++;
+        }
+        while ( !$self->get_token($end)->is_match ) {
+            $end--;
+        }
     }
 
     #warn "return $start .. $end";

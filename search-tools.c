@@ -176,6 +176,7 @@ static st_token_list*
 st_new_token_list(
     AV *tokens,
     AV *heat,
+    AV *sentence_starts,
     unsigned int num
 ) {
     dTHX;
@@ -184,6 +185,7 @@ st_new_token_list(
     tl->pos = 0;
     tl->tokens = tokens;
     tl->heat   = heat;
+    tl->sentence_starts = sentence_starts;
     tl->num = (IV)num;
     tl->ref_cnt = 1;
     return tl;
@@ -424,13 +426,14 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
     dSP;    /* callback macro */
     
 /* declare */
-    IV               num_tokens;
+    IV               num_tokens, prev_sentence_start;
     REGEXP          *rx;
-    char            *buf, *str_start, *str_end;
+    char            *buf, *str_start, *str_end, *token_str;
     STRLEN           str_len;
     const char      *prev_end, *prev_start;
     AV              *tokens;
     AV              *heat;
+    AV              *sentence_starts;
     SV              *tok;
     boolean          heat_seeker_is_CV;
 
@@ -444,6 +447,8 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
     prev_end        = prev_start;
     tokens          = newAV();
     heat            = newAV();
+    sentence_starts = newAV();
+    prev_sentence_start = 0;
     heat_seeker_is_CV  = 0;
     if (heat_seeker != NULL && (SvTYPE(SvRV(heat_seeker))==SVt_PVCV)) {
          heat_seeker_is_CV = 1;
@@ -475,20 +480,25 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                                 (start_ptr - prev_end),
                                 utf8_distance((U8*)start_ptr, (U8*)prev_end),
                                 prev_end, 0, 0);
-            if (st_looks_like_sentence_start(prev_end)) {
+            token_str = SvPV_nolen(token->str);
+            if (st_looks_like_sentence_start(token_str, token->len)) {
                 token->is_sentence_start = 1;
             }
-            else if (st_looks_like_sentence_end(start_ptr-token->len)) {
+            else if (st_looks_like_sentence_end(token_str, token->len)) {
                 token->is_sentence_end = 1;
             }
             if (ST_DEBUG) {
                 warn("prev [%d] [%d] [%d] [%s] [%d] [%d]", 
-                    token->pos, token->len, token->u8len, SvPV_nolen(token->str),
+                    token->pos, token->len, token->u8len, token_str,
                     token->is_sentence_start, token->is_sentence_end);
             }
             
             tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
             av_push(tokens, SvREFCNT_inc(tok));
+            if (token->is_sentence_start) {
+                //av_push(sentence_starts, newSViv(token->pos));
+                prev_sentence_start = token->pos;
+            }
         }
         
         /* create token object for the current match */            
@@ -497,15 +507,16 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                             utf8_distance((U8*)end_ptr, (U8*)start_ptr),
                             start_ptr,
                             0, 1);
-        if (st_looks_like_sentence_start(start_ptr)) {
+        token_str = SvPV_nolen(token->str);
+        if (st_looks_like_sentence_start(token_str, token->len)) {
             token->is_sentence_start = 1;
         }
-        else if (st_looks_like_sentence_end(end_ptr-1)) {
+        else if (st_looks_like_sentence_end(token_str, token->len)) {
             token->is_sentence_end = 1;
         }
         if (ST_DEBUG) {
             warn("main [%d] [%d] [%d] [%s] [%d] [%d]", 
-                token->pos, token->len, token->u8len, SvPV_nolen(token->str),
+                token->pos, token->len, token->u8len, token_str,
                 token->is_sentence_start, token->is_sentence_end
             );
         }
@@ -523,8 +534,17 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
             }
         }
         av_push(tokens, SvREFCNT_inc(tok));
+        if (token->is_sentence_start) {
+            //av_push(sentence_starts, newSViv(token->pos));
+            prev_sentence_start = token->pos;
+        }
         if (token->is_hot) {
             av_push(heat, newSViv(token->pos));
+            if (ST_DEBUG)
+                warn("%s: sentence_start = %d for hot token at pos %d\n",
+                    __func__, prev_sentence_start, token->pos);
+                    
+            av_push(sentence_starts, newSViv(prev_sentence_start));
         }
         
         /* remember where we are for next time */
@@ -539,26 +559,30 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
                                     utf8_distance((U8*)str_end, (U8*)prev_end),
                                     prev_end, 
                                     0, 0);
-        if (st_looks_like_sentence_start(prev_end)) {
+        token_str = SvPV_nolen(token->str);
+        if (st_looks_like_sentence_start(token_str, token->len)) {
             token->is_sentence_start = 1;
         }
-        else if (st_looks_like_sentence_end(str_end-1)) {
+        else if (st_looks_like_sentence_end(token_str, token->len)) {
             token->is_sentence_end = 1;
         }
         if (ST_DEBUG) {
             warn("tail: [%d] [%d] [%d] [%s] [%d] [%d]", 
-                token->pos, token->len, token->u8len, SvPV_nolen(token->str),
+                token->pos, token->len, token->u8len, token_str,
                 token->is_sentence_start, token->is_sentence_end
             );
         }
 
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
         av_push(tokens, SvREFCNT_inc(tok));
+        if (token->is_sentence_start) {
+            //av_push(sentence_starts, newSViv(token->pos));
+        }
     }
         
     return st_bless_ptr(
             ST_CLASS_TOKENLIST, 
-            (IV)st_new_token_list(tokens, heat, num_tokens)
+            (IV)st_new_token_list(tokens, heat, sentence_starts, num_tokens)
            );
 }
 
@@ -664,28 +688,28 @@ st_utf8_codepoint(
 }
 
 static IV
-st_looks_like_sentence_start(const unsigned char *ptr) {
+st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
     dTHX;
     
-    IV len, u32pt;
+    IV u8len, u32pt;
     
     if (ST_DEBUG)
         warn("%s: %c\n", __func__, ptr[0]); 
     
     /* optimized for ASCII */
-    if (isUPPER(ptr[0])) {
-        return 1;
+    if (ptr[0] < 128) {
+        return isUPPER(ptr[0]);
     }
     
     /* TODO if any char is UPPER in the string, consider it a start? */
     
     /* get first full UTF-8 char */
-    len = (IV)is_utf8_char((U8*)ptr);
+    u8len = (IV)is_utf8_char((U8*)ptr);
     if (ST_DEBUG)
-        warn("%s: %s is utf8 wide len %d\n", __func__, ptr, len);
+        warn("%s: %s is utf8 u8len %d\n", __func__, ptr, u8len);
     
     if (len) {
-        u32pt = st_utf8_codepoint(ptr, len);
+        u32pt = st_utf8_codepoint(ptr, u8len);
         
         if (ST_DEBUG)
             warn("%s: u32 code point %d\n", __func__, u32pt);
@@ -704,26 +728,43 @@ st_looks_like_sentence_start(const unsigned char *ptr) {
     return 0;
 }
 
+/* does any char in the string look like a sentence ending? */
 static IV
-st_looks_like_sentence_end(const unsigned char *ptr) {
+st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
     dTHX;
     
-    if (ST_DEBUG)
-        warn("%s: %c\n", __func__, ptr[0]); 
+    IV i;
     
-    if (ptr[0] == '.') {
-        return 1;
+    /* right now this assumes ASCII sentence punctuation.
+     * if we ever wanted utf8 support we'd need to iterate
+     * per-character instead of per byte.
+     */
+    
+    if (ST_DEBUG)
+        warn("%s: %c\n", __func__, ptr[0]);
+    
+    for (i=0; i<len; i++) {
+        switch (ptr[i]) {
+            case '.':
+                return 1;
+                break;
+            
+            case '?':
+                return 1;
+                break;
+            
+            case '!':
+                return 1;
+                break;
+                
+            case ';':   /* TODO ? */
+                return 1;
+                break;
+                
+            default:
+                continue;
+                
+        }
     }
-    else if (ptr[0] == '?') {
-        return 1;
-    }
-    else if (ptr[0] == '!') {
-        return 1;
-    }
-    else if (ptr[0] == ';') {   /* TODO ? */
-        return 1;
-    }
-    else {
-        return 0;
-    }
+    return 0;
 }

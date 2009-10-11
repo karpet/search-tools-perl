@@ -47,6 +47,7 @@ sub tokenize_pp {
     my $heat_seeker_is_coderef
         = ( defined $heat_seeker and ref($heat_seeker) eq 'CODE' ) ? 1 : 0;
 
+    # TODO is_sentence_* logic
     for ( split( m/($re)/, $_[0] ) ) {
         next unless length($_);
         my $tok = bless(
@@ -135,10 +136,16 @@ you set this once in new(). The default value is:
 
 which will match words and contractions (e.g., "do", "not" and "don't").
 
-=head2 tokenize( I<string> )
+=head2 tokenize( I<string> [, I<heat_seeker>, I<match_num>] )
 
 Returns a TokenList object representin the Tokens in I<string>.
 I<string> is "split" according to the regex in re().
+
+I<heat_seeker> can be either a CODE reference or a regex object (qr//)
+to use for testing is_hot per token.
+
+I<match_num> is the parentheses number to consider the matching token
+in the re() value. The default is 0 (the entire matching pattern).
 
 =head2 tokenize_pp( I<string> )
 

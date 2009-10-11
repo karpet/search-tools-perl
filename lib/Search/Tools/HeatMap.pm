@@ -16,7 +16,7 @@ if ( !$@ ) {
     $CLOSE = Term::ANSIColor::color('reset') . $CLOSE;
 }
 
-__PACKAGE__->mk_accessors(qw( window_size tokens spans ));
+__PACKAGE__->mk_accessors(qw( window_size tokens spans as_sentences ));
 
 =head1 NAME
 
@@ -29,8 +29,9 @@ Search::Tools::HeatMap - locate the best matches in a snippet extract
      
  my $tokens = $self->tokenizer->tokenize( $my_string, qr/^(interesting)$/ );
  my $heatmap = Search::Tools::HeatMap->new(
-     tokens      => $tokens,
-     window_size => 20,
+     tokens         => $tokens,
+     window_size    => 20,  # default
+     as_sentences   => 0,   # default
  );
 
  if ( $heatmap->has_spans ) {
@@ -86,6 +87,12 @@ matches.
 Set this in new(). Access it later if you need to, but the spans
 will have already been created by new().
 
+=head2 as_sentences
+
+Try to match clusters at sentence boundaries. Default is false.
+
+Set this in new().
+
 =head2 spans
 
 Returns an array ref of matching clusters. Each span in the array
@@ -114,11 +121,12 @@ This item is available only if debug() is true.
 # TODO this is mostly integer math and might be much
 # faster if rewritten in XS once the algorithm is "final".
 sub _build {
-    my $self       = shift;
-    my $tokens     = $self->tokens or croak "tokens required";
-    my $window     = $self->window_size || 20;
-    my $lhs_window = int( $window / 2 );
-    my $debug      = $self->debug || 0;
+    my $self         = shift;
+    my $tokens       = $self->tokens or croak "tokens required";
+    my $window       = $self->window_size || 20;
+    my $as_sentences = $self->as_sentences || 0;
+    my $lhs_window   = int( $window / 2 );
+    my $debug        = $self->debug || 0;
 
     # build heatmap
     my $num_tokens      = $tokens->len;
@@ -171,7 +179,8 @@ CLUSTER:
         my %span;
         my @cluster_tokens;
     POS: for my $pos (@$cluster) {
-            my ( $start, $end ) = $tokens->get_window( $pos, $window );
+            my ( $start, $end )
+                = $tokens->get_window( $pos, $window, $as_sentences );
         POS_TWO: for my $pos2 ( $start .. $end ) {
                 next if $seen_pos{$pos2}++;
                 $heat += ( exists $heatmap{$pos2} ? $heatmap{$pos2} : 0 );
