@@ -177,4 +177,4 @@ Revision history for Perl extension Search::HiLiter.
 0.29  xxx
     * tweek snippet sorting to value higher unique term frequency.
     * add XML->strip_markup as alias for no_html()
-
+    * added as_sentences experimental feature to Snipper and supporting classes.
