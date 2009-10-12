@@ -63,11 +63,14 @@ t/21-hiliter-with-hyphen.t
 t/22-query-parser.t
 t/23-regex-builder.t
 t/24-child-abuse.t
+t/25-domestic-accounts.t
+t/26-is-sentence.t
 t/99-0.24-back-compat.t
 t/docs/ascii.txt
 t/docs/big-C-Child-abuse.html
 t/docs/child-adoption.html
 t/docs/chiradtest.htm
+t/docs/domestic-accounts.html
 t/docs/dot.com.txt
 t/docs/findaprofessional.txt
 t/docs/greek_and_ojibwe.txt
