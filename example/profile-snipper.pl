@@ -3,59 +3,37 @@ use strict;
 use warnings;
 use Search::Tools;
 use Search::Tools::Snipper;
+use Search::Tools::XML;
 use Benchmark qw(:all);
 use File::Slurp;
 
-my $ascii = read_file('t/docs/test.txt');
-my $query = Search::Tools->parser->parse('recense "checkerbreast cannon"');
-my $re_snipper = Search::Tools::Snipper->new(
+my $html  = read_file('t/docs/big-C-Child-abuse.html');
+my $buf   = Search::Tools::XML->strip_markup($html);
+my $query = Search::Tools->parser->parse('child abuse');
+
+my $snipper = Search::Tools::Snipper->new(
     query     => $query,
     occur     => 1,
     context   => 25,
     max_chars => 190,
-    type      => 're',
 );
 
-my $loop_snipper = Search::Tools::Snipper->new(
-    query     => $query,
-    occur     => 1,
-    context   => 25,
-    max_chars => 190,
-    type      => 'loop',
-);
-
-my $offset_snipper = Search::Tools::Snipper->new(
-    query     => $query,
-    occur     => 1,
-    context   => 25,
-    max_chars => 190,
-    type      => 'offset',
-);
-
-my $token_snipper = Search::Tools::Snipper->new(
-    query     => $query,
-    occur     => 1,
-    context   => 25,
-    max_chars => 190,
-    type      => 'token',
+my $sentence_snipper = Search::Tools::Snipper->new(
+    query        => $query,
+    occur        => 1,
+    context      => 25,
+    max_chars    => 190,
+    as_sentences => 1,
 );
 
 cmpthese(
-    1000,
-    {
+    100,
+    {   'no-sentences' => sub {
+            my $snip = $snipper->snip($buf);
+        },
 
-        #'re' => sub {
-        #            my $snip = $re_snipper->snip($ascii);
-        #        },
-        #        'loop' => sub {
-        #            my $snip = $loop_snipper->snip($ascii);
-        #        },
-        #'offset' => sub {
-        #    my $snip = $offset_snipper->snip($ascii);
-        #},
-
-        'token' => sub {
-            my $snip = $token_snipper->snip($ascii);
+        'sentences' => sub {
+            my $snip = $sentence_snipper->snip($buf);
         },
     }
 );
