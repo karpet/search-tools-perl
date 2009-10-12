@@ -489,8 +489,8 @@ DESTROY(self)
         tl->ref_cnt--;
         if (ST_DEBUG) {
             warn("............................");
-            warn("DESTROY %s [%d] [0x%x]\n", 
-                SvPV_nolen(self), tl->ref_cnt, tl);
+            warn("DESTROY %s [%ld] [0x%lx]\n", 
+                SvPV_nolen(self), (unsigned long)tl->ref_cnt, (unsigned long)tl);
             st_describe_object(self);
             st_dump_sv((SV*)tl->tokens);
         }
@@ -640,8 +640,8 @@ DESTROY(self)
         tok->ref_cnt--;
         if (ST_DEBUG) {
             warn("............................");
-            warn("DESTROY %s [%d] [0x%x]\n", 
-                SvPV_nolen(self), tok->ref_cnt, tok);
+            warn("DESTROY %s [%ld] [0x%lx]\n", 
+                SvPV_nolen(self), (unsigned long)tok->ref_cnt, (unsigned long)tok);
         }
         if (tok->ref_cnt < 1) {
             st_free_token(tok);

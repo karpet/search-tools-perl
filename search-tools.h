@@ -21,19 +21,19 @@ typedef char    boolean;
 typedef struct  st_token st_token;
 typedef struct  st_token_list st_token_list;
 struct st_token {
-    IV              pos;        // position in buffer
-    IV              len;        // token length (bytes)
-    IV              u8len;      // token length (utf8 chars)
+    I32             pos;        // position in buffer
+    I32             len;        // token length (bytes)
+    I32             u8len;      // token length (utf8 chars)
     SV             *str;        // SV* for the string
-    IV              is_hot;     // interesting token flag
-    IV              is_sentence_start;  // looks like the start of a sentence
-    IV              is_sentence_end;    // looks like the end of a sentence
+    I32             is_hot;     // interesting token flag
+    boolean         is_sentence_start;  // looks like the start of a sentence
+    boolean         is_sentence_end;    // looks like the end of a sentence
     boolean         is_match;   // matched regex
     IV              ref_cnt;    // reference counter
 };
 struct st_token_list {
-    IV              pos;        // current iterator position (array index)
-    IV              num;        // number of parsed tokens
+    I32             pos;        // current iterator position (array index)
+    I32             num;        // number of parsed tokens
     AV             *tokens;     // array of st_token objects
     AV             *heat;       // array of positions of is_hot tokens
     AV             *sentence_starts;  // array of sentence start positions
@@ -42,11 +42,11 @@ struct st_token_list {
 
 static st_token*    
 st_new_token(
-    IV pos, 
-    IV len,
-    IV u8len,
+    I32 pos, 
+    I32 len,
+    I32 u8len,
     const char *ptr,
-    IV is_hot,
+    I32 is_hot,
     boolean is_match
 );
 
@@ -78,7 +78,7 @@ static SV*      st_tokenize(
     SV* str, 
     SV* token_re, 
     SV* heat_seeker, 
-    IV match_num 
+    I32 match_num 
 );
 static void     st_heat_seeker( st_token *token, SV *re );
 static REGEXP*  st_get_regex_from_sv( SV* regex_sv );

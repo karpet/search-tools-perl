@@ -144,11 +144,11 @@ st_malloc(size_t size) {
 
 static st_token*    
 st_new_token(
-    IV pos, 
-    IV len,
-    IV u8len,
+    I32 pos, 
+    I32 len,
+    I32 u8len,
     const char *ptr,
-    IV is_hot,
+    I32 is_hot,
     boolean is_match
 ) {
     dTHX;
@@ -211,8 +211,8 @@ st_free_token_list(st_token_list *token_list) {
     }
     SvREFCNT_dec(token_list->tokens);
     if (SvREFCNT(token_list->tokens)) {
-        warn("Warning: possible memory leak for token_list 0x%x with REFCNT %d\n", 
-            token_list->tokens, SvREFCNT(token_list->tokens));
+        warn("Warning: possible memory leak for token_list 0x%lx with REFCNT %d\n", 
+            (unsigned long)token_list->tokens, SvREFCNT(token_list->tokens));
     }
     free(token_list);
 }
@@ -223,11 +223,11 @@ st_dump_token_list(st_token_list *tl) {
     IV len, pos;
     len = av_len(tl->tokens);
     pos = 0;
-    warn("TokenList 0x%x", tl);
-    warn(" pos = %d\n", tl->pos);
-    warn(" len = %d\n", len + 1);
-    warn(" num = %d\n", tl->num);
-    warn(" ref_cnt = %d\n", tl->ref_cnt);
+    warn("TokenList 0x%lx", (unsigned long)tl);
+    warn(" pos = %ld\n", (unsigned long)tl->pos);
+    warn(" len = %ld\n", (unsigned long)len + 1);
+    warn(" num = %ld\n", (unsigned long)tl->num);
+    warn(" ref_cnt = %ld\n", (unsigned long)tl->ref_cnt);
     while (pos < len) {
         st_dump_token((st_token*)st_extract_ptr(st_av_fetch(tl->tokens, pos++)));
     }
@@ -236,16 +236,16 @@ st_dump_token_list(st_token_list *tl) {
 static void
 st_dump_token(st_token *tok) {
     dTHX;
-    warn("Token 0x%x", tok);
+    warn("Token 0x%lx", (unsigned long)tok);
     warn(" str = '%s'\n", SvPV_nolen(tok->str));
-    warn(" pos = %d\n", tok->pos);
-    warn(" len = %d\n", tok->len);
-    warn(" u8len = %d\n", tok->u8len);
+    warn(" pos = %ld\n", (unsigned long)tok->pos);
+    warn(" len = %ld\n", (unsigned long)tok->len);
+    warn(" u8len = %ld\n", (unsigned long)tok->u8len);
     warn(" is_match = %d\n", tok->is_match);
     warn(" is_sentence_start = %d\n", tok->is_sentence_start);
     warn(" is_sentence_end   = %d\n", tok->is_sentence_end);
     warn(" is_hot   = %d\n", tok->is_hot);
-    warn(" ref_cnt  = %d\n", tok->ref_cnt);
+    warn(" ref_cnt  = %ld\n", (unsigned long)tok->ref_cnt);
 }
 
 /* make a Perl blessed object from a C pointer */
@@ -421,7 +421,7 @@ st_heat_seeker( st_token *token, SV *re ) {
 */
 
 static SV*
-st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
+st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
     dTHX;   /* thread-safe perlism */
     dSP;    /* callback macro */
     
@@ -541,8 +541,8 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, IV match_num ) {
         if (token->is_hot) {
             av_push(heat, newSViv(token->pos));
             if (ST_DEBUG)
-                warn("%s: sentence_start = %d for hot token at pos %d\n",
-                    __func__, prev_sentence_start, token->pos);
+                warn("%s: sentence_start = %ld for hot token at pos %ld\n",
+                    __func__, (unsigned long)prev_sentence_start, (unsigned long)token->pos);
                     
             av_push(sentence_starts, newSViv(prev_sentence_start));
         }
@@ -691,7 +691,7 @@ static IV
 st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
     dTHX;
     
-    IV u8len, u32pt;
+    I32 u8len, u32pt;
     
     if (ST_DEBUG)
         warn("%s: %c\n", __func__, ptr[0]); 
@@ -704,7 +704,7 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
     /* TODO if any char is UPPER in the string, consider it a start? */
     
     /* get first full UTF-8 char */
-    u8len = (IV)is_utf8_char((U8*)ptr);
+    u8len = is_utf8_char((U8*)ptr);
     if (ST_DEBUG)
         warn("%s: %s is utf8 u8len %d\n", __func__, ptr, u8len);
     
