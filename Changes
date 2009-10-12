@@ -178,3 +178,7 @@ Revision history for Perl extension Search::HiLiter.
     * tweek snippet sorting to value higher unique term frequency.
     * add XML->strip_markup as alias for no_html()
     * added as_sentences experimental feature to Snipper and supporting classes.
+
+0.30  xxx
+    * do not prefix ellipse to snippets in Snipper when as_sentences is true.
+

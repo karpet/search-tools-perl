@@ -24,7 +24,7 @@ ok( my $snip = $snipper->snip($buf), 'snip buf' );
 
 #diag($snip);
 is( $snip,
-    q( ... Over a number of years, municipal accounts ol some domestic consumers that do not qualify for free basic services in terms of Council's Assistance to the ... ),
+    q(Over a number of years, municipal accounts ol some domestic consumers that do not qualify for free basic services in terms of Council's Assistance to the ... ),
     "got snip"
 );
 
