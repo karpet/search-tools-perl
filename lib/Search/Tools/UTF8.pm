@@ -49,7 +49,7 @@ sub to_utf8 {
     my $c = Encode::decode( $charset, $str );
     $Debug and carp "converted $c";
 
-    unless ( is_sane_utf8($c) ) {
+    unless ( is_sane_utf8($c, 1) ) {
         carp "not sane: $c";
     }
 
