@@ -405,16 +405,18 @@ sub looks_like_html { return $_[1] =~ m/[<>]|&[\#\w]+;/o }
 *looks_like_xml    = \&looks_like_html;
 *looks_like_markup = \&looks_like_html;
 
-=head2 start_tag( I<string> )
+=head2 start_tag( I<string> [, I<\%attr> ] )
 
 =head2 end_tag( I<string> )
 
 Returns I<string> as a tag, either start or end. I<string> will be escaped for any non-valid
 chars using tag_safe().
 
+If I<\%attr> is passed, XML-safe attributes are generated using attr_safe().
+
 =cut
 
-sub start_tag { "<" . tag_safe( $_[1] ) . ">" }
+sub start_tag { "<" . tag_safe( $_[1] ) . $_[0]->attr_safe( $_[2] ) . ">" }
 sub end_tag   { "</" . tag_safe( $_[1] ) . ">" }
 
 =pod
@@ -425,7 +427,7 @@ Create a valid XML tag name, escaping/omitting invalid characters.
 
 Example:
 
-	my $tag = Search::Tools::XML->tag_safe( '1 * ! tag foo' );
+    my $tag = Search::Tools::XML->tag_safe( '1 * ! tag foo' );
     # $tag == '______tag_foo'
 
 =cut
@@ -441,6 +443,26 @@ sub tag_safe {
     return $t;
 }
 
+=head2 attr_safe( I<\%attr> ) 
+
+Returns stringified I<\%attr> as XML attributes.
+
+=cut
+
+sub attr_safe {
+    my $self = shift;
+    my $attr = shift;
+    return '' unless defined $attr;
+    if (ref $attr ne "HASH") {
+        croak "attributes must be a hash ref";
+    }
+    my @xml = (''); # force space at start in return
+    for my $name (sort keys %$attr) {
+        my $val = _escape_xml( $attr->{$name} );
+        push @xml, tag_safe($name) . qq{="$val"};
+    }
+    return join(' ', @xml);
+}
 =pod
 
 =head2 utf8_safe( I<string> )

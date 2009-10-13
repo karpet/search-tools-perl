@@ -181,4 +181,5 @@ Revision history for Perl extension Search::HiLiter.
 
 0.30  xxx
     * do not prefix ellipse to snippets in Snipper when as_sentences is true.
+    * add attribute support to XML->start_tag().
 

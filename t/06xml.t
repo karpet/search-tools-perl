@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 8;
 use Data::Dump;
 
 BEGIN
@@ -38,3 +38,8 @@ is($utf8_safe, $lowesc, "utf8_safe with low chars");
 #Data::Dump::dump($utf8_safe);
 #Data::Dump::dump($lowesc);
 
+# attributes
+ok( my $xml_w_attr = $class->start_tag('foo', { bar => '"><& chars' }),
+    "xml with attr");
+is( $xml_w_attr, '<foo bar="&quot;&gt;&lt;&amp; chars">', "start tag with attr");
+ 
