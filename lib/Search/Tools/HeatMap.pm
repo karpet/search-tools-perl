@@ -154,13 +154,18 @@ sub _as_sentences {
         my $token_pos = $token->pos;
         my $start     = $sentence_starts->[ $i++ ];
         $heatmap{$token_pos} = $token->is_hot;
-        my $end = $start;
-        while ( $end <= ( $start + $sentence_length ) ) {
-            my $tok = $tokens->get_token( $end++ );
+        my $end     = $start;
+        my $max_end = $start + $sentence_length;
+        $max_end = $num_tokens if $num_tokens < $max_end;
+        while ( $end < $max_end ) {
+            my $tok = $tokens->get_token( $end++ ) or last;
             if ( $tok->is_sentence_end ) {
                 last;
             }
         }
+
+        # back up one if we've exceeded the 0-based tokens array.
+        $end-- if $end >= $num_tokens;
 
         # if we didn't yet set the actual hot token,
         # include everything up to it.

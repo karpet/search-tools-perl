@@ -1,7 +1,8 @@
 use strict;
-use Test::More tests => 10;
+use Test::More tests => 13;
 use Search::Tools::Tokenizer;
 use Search::Tools::UTF8;
+use Search::Tools::Snipper;
 use Data::Dump qw( dump );
 
 # http://code.google.com/p/test-more/issues/detail?id=46
@@ -37,3 +38,14 @@ ok( $tokens->get_token( $tokens->len - 1 )->is_sentence_end,
     "last ? ends sentence" );
 
 #dump( $tokens->get_sentence_starts );
+
+ok( my $snipper = Search::Tools::Snipper->new(
+        query        => 'foo',
+        as_sentences => 1,
+        max_chars    => 5,
+    ),
+    "new snipper"
+);
+
+ok( my $snip = $snipper->snip('Text with match near the foo'), "snip foo" );
+is( $snip, 'Text ... ', "got snip" );
