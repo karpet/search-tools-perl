@@ -20,11 +20,8 @@ SKIP: {
     my $query
         = 'asdfasdf the quik foo=foxx color:browwn and "lazay dogg" not jumped';
 
-    my $kw = Search::Tools::Keywords->new;
-
     ok( my $spellcheck = Search::Tools::SpellCheck->new(
             max_suggest => 4,
-            kw          => $kw
         ),
         "spellcheck object"
     );
