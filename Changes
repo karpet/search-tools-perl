@@ -182,4 +182,7 @@ Revision history for Perl extension Search::HiLiter.
 0.30  xxx
     * do not prefix ellipse to snippets in Snipper when as_sentences is true.
     * add attribute support to XML->start_tag().
+    * bump Rose::ObjectX::CAF req version to catch bad param names and fix a couple.
+    * fix as_sentences feature in HeatMap where $end offset was overrunning the tokens
+      array length.
 
