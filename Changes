@@ -186,3 +186,6 @@ Revision history for Perl extension Search::HiLiter.
     * fix as_sentences feature in HeatMap where $end offset was overrunning the tokens
       array length.
 
+0.31  14 Oct 2009
+    * add missing dTHX; macro to st_malloc per RT #50509
+

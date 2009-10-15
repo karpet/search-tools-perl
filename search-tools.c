@@ -132,6 +132,7 @@ st_hvref_fetch_as_int( SV* h, const char* key ) {
 
 void *
 st_malloc(size_t size) {
+    dTHX;
     void *ptr;
     ptr = malloc(size);
     if (ptr == NULL) {
