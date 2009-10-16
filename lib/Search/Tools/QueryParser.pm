@@ -142,7 +142,7 @@ sub _extract_terms {
     my $default_field = $self->default_field;
 
     if ( length($default_field) && $Search::QueryParser::VERSION le 0.93 ) {
-        carp "default_field not yet implemented.";
+        carp "upgrade Search::QueryParser to 0.94 or later to use default_field.";
     }
 
     my $esc_wildcard = quotemeta($wildcard);
