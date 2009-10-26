@@ -769,3 +769,49 @@ st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
     }
     return 0;
 }
+
+
+/* perl versions < 5.8.8 do not have this */
+#ifndef is_utf8_string_loclen
+bool
+Perl_is_utf8_string(pTHX_ U8 *s, STRLEN len)
+{
+    const U8* const send = s + (len ? len : strlen((const char *)s));
+    const U8* x = s;
+
+    PERL_UNUSED_CONTEXT;
+
+    while (x < send) {
+        STRLEN c;
+         /* Inline the easy bits of is_utf8_char() here for speed... */
+         if (UTF8_IS_INVARIANT(*x))
+              c = 1;
+         else if (!UTF8_IS_START(*x))
+             goto out;
+         else {
+              /* ... and call is_utf8_char() only if really needed. */
+#ifdef IS_UTF8_CHAR
+             c = UTF8SKIP(x);
+             if (IS_UTF8_CHAR_FAST(c)) {
+                 if (!IS_UTF8_CHAR(x, c))
+                     c = 0;
+             }
+             else
+                c = is_utf8_char_slow(x, c);
+#else
+             c = is_utf8_char(x);
+#endif /* #ifdef IS_UTF8_CHAR */
+              if (!c)
+                  goto out;
+         }
+        x += c;
+    }
+
+ out:
+    if (x != send)
+        return FALSE;
+
+    return TRUE;
+}
+
+#endif
