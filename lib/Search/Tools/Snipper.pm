@@ -63,7 +63,9 @@ sub init {
     #dump $self;
 
     $self->{_tokenizer}
-        = Search::Tools::Tokenizer->new( re => $self->query->qp->term_re, );
+        = Search::Tools::Tokenizer->new( re => $self->query->qp->term_re,
+              debug => $self->debug,
+    );
 
     my $wc = $self->query->qp->word_characters;
 
