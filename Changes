@@ -191,4 +191,4 @@ Revision history for Perl extension Search::HiLiter.
 
 0.32  xxx
     * fix mem leaks
-
+    * optimize normalize_whitespace regex 
