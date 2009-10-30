@@ -135,6 +135,20 @@ st_av_fetch( AV* a, I32 index ) {
     return *ok;
 }
 
+static IV
+st_av_fetch_ptr( AV* a, I32 index ) {
+    dTHX;
+    SV** ok;
+    IV ptr;
+    ok = av_fetch(a, index, 0);
+    if (ok == NULL) {
+        ST_CROAK("failed to fetch index %d", index);
+    }
+    ptr = st_extract_ptr(*ok);
+    //warn("%s refcnt == %d", SvPV_nolen(*ok), SvREFCNT(*ok));
+    return ptr;
+}
+
 /* fetch SV* from hash */
 static SV*
 st_hv_fetch( HV* h, const char* key ) {
@@ -264,11 +278,28 @@ st_free_token_list(st_token_list *token_list) {
         ST_CROAK("Won't free token_list 0x%x with ref_cnt > 0 [%d]", 
             token_list, token_list->ref_cnt);
     }
+    
+    //warn("about to free st_token_list C struct\n");
+    //st_dump_token_list(token_list);
+
     SvREFCNT_dec(token_list->tokens);
     if (SvREFCNT(token_list->tokens)) {
-        warn("Warning: possible memory leak for token_list 0x%lx with REFCNT %d\n", 
+        warn("Warning: possible memory leak for token_list->tokens 0x%lx with REFCNT %d\n", 
             (unsigned long)token_list->tokens, SvREFCNT(token_list->tokens));
     }
+    
+    SvREFCNT_dec(token_list->heat);
+    if (SvREFCNT(token_list->heat)) {
+        warn("Warning: possible memory leak for token_list->heat 0x%lx with REFCNT %d\n", 
+            (unsigned long)token_list->heat, SvREFCNT(token_list->heat));
+    }
+
+    SvREFCNT_dec(token_list->sentence_starts);
+    if (SvREFCNT(token_list->sentence_starts)) {
+        warn("Warning: possible memory leak for token_list->sentence_starts 0x%lx with REFCNT %d\n", 
+            (unsigned long)token_list->sentence_starts, SvREFCNT(token_list->sentence_starts));
+    }
+
     free(token_list);
 }
 
@@ -276,6 +307,7 @@ static void
 st_dump_token_list(st_token_list *tl) {
     dTHX;
     IV len, pos;
+    SV* tok;
     len = av_len(tl->tokens);
     pos = 0;
     warn("TokenList 0x%lx", (unsigned long)tl);
@@ -283,8 +315,13 @@ st_dump_token_list(st_token_list *tl) {
     warn(" len = %ld\n", (unsigned long)len + 1);
     warn(" num = %ld\n", (unsigned long)tl->num);
     warn(" ref_cnt = %ld\n", (unsigned long)tl->ref_cnt);
+    warn(" tokens REFCNT = %ld\n", (unsigned long)SvREFCNT(tl->tokens));
+    warn(" heat REFCNT = %ld\n", (unsigned long)SvREFCNT(tl->heat));
+    warn(" sen_starts REFCNT = %ld\n", (unsigned long)SvREFCNT(tl->sentence_starts));
     while (pos < len) {
-        st_dump_token((st_token*)st_extract_ptr(st_av_fetch(tl->tokens, pos++)));
+        tok = st_av_fetch(tl->tokens, pos++);
+        warn("  Token REFCNT = %ld\n", (unsigned long)SvREFCNT(tok));
+        st_dump_token((st_token*)st_extract_ptr(tok));
     }
 }
 
@@ -307,7 +344,7 @@ st_dump_token(st_token *tok) {
 static SV* 
 st_bless_ptr( const char *class, IV c_ptr ) {
     dTHX;
-    SV* obj = sv_newmortal();
+    SV* obj = newSViv(c_ptr);
     sv_setref_pv(obj, class, (void*)c_ptr);
     return obj;
 }
@@ -551,7 +588,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
             }
             
             tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
-            av_push(tokens, SvREFCNT_inc(tok));
+            av_push(tokens, tok);
             if (token->is_sentence_start) {
                 //av_push(sentence_starts, newSViv(token->pos));
                 prev_sentence_start = token->pos;
@@ -590,7 +627,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                 st_heat_seeker(token, heat_seeker);
             }
         }
-        av_push(tokens, SvREFCNT_inc(tok));
+        av_push(tokens, tok);
         if (token->is_sentence_start) {
             //av_push(sentence_starts, newSViv(token->pos));
             prev_sentence_start = token->pos;
@@ -631,10 +668,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
         }
 
         tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
-        av_push(tokens, SvREFCNT_inc(tok));
-        if (token->is_sentence_start) {
-            //av_push(sentence_starts, newSViv(token->pos));
-        }
+        av_push(tokens, tok);
     }
         
     return st_bless_ptr(

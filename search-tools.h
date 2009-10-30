@@ -67,6 +67,7 @@ static SV*      st_hvref_store( SV* h, const char* key, SV* val );
 static SV*      st_hvref_store_char( SV* h, const char* key, char *val );
 */
 static SV*      st_av_fetch( AV* a, I32 index );
+static IV       st_av_fetch_ptr( AV* a, I32 index );
 static SV*      st_hv_fetch( HV* h, const char* key );
 static SV*      st_hvref_fetch( SV* h, const char* key );
 /* UNUSED

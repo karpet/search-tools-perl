@@ -213,7 +213,7 @@ tokenize(self, str, ...)
 
         token_re = st_hvref_fetch(self, "re");
         token_list_sv = st_tokenize(str, token_re, heat_seeker, match_num);
-        RETVAL = SvREFCNT_inc(token_list_sv);
+        RETVAL = token_list_sv;
     
     OUTPUT:
         RETVAL
@@ -225,6 +225,7 @@ set_debug(self, val)
     
     CODE:
         ST_DEBUG = val;
+        //warn("ST_DEBUG set to %d", ST_DEBUG);
         RETVAL = self;
     
     OUTPUT:
@@ -388,7 +389,6 @@ as_array(self)
     st_token_list *self;
     
     CODE:
-        self->ref_cnt++;    // TODO?
         RETVAL = newRV_inc((SV*)self->tokens);
     
     OUTPUT:
@@ -400,7 +400,6 @@ get_heat(self)
     st_token_list *self;
     
     CODE:
-        //self->ref_cnt++;  // TODO?
         RETVAL = newRV_inc((SV*)self->heat);
     
     OUTPUT:
@@ -412,7 +411,6 @@ get_sentence_starts(self)
     st_token_list *self;
     
     CODE:
-        //self->ref_cnt++;  // TODO?
         RETVAL = newRV_inc((SV*)self->sentence_starts);
     
     OUTPUT:
@@ -438,7 +436,7 @@ matches(self)
             tok = st_av_fetch(self->tokens, pos++);
             token = (st_token*)st_extract_ptr(tok);
             if (token->is_match) {
-                av_push(matches, SvREFCNT_inc(tok));
+                av_push(matches, tok);
             }
         }
         RETVAL = newRV((SV*)matches); /* no _inc -- this is only copy */
@@ -455,7 +453,6 @@ num_matches(self)
         IV pos;
         IV len;
         IV num_matches;
-        SV* tok;
         st_token *token;
     
     CODE:
@@ -463,8 +460,7 @@ num_matches(self)
         pos = 0;
         len = av_len(self->tokens);
         while (pos < len) {
-            tok = st_av_fetch(self->tokens, pos++);
-            token = (st_token*)st_extract_ptr(tok);
+            token = (st_token*)st_av_fetch_ptr(self->tokens, pos++);
             if (token->is_match) {
                 num_matches++;
             }
