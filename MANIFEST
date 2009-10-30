@@ -65,6 +65,8 @@ t/23-regex-builder.t
 t/24-child-abuse.t
 t/25-domestic-accounts.t
 t/26-is-sentence.t
+t/90-leaktrace.t
+t/91-valgrind.t
 t/99-0.24-back-compat.t
 t/docs/ascii.txt
 t/docs/big-C-Child-abuse.html
