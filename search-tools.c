@@ -12,7 +12,7 @@
 #include "search-tools.h"
 
 /* global debug var */
-static boolean ST_DEBUG;
+static boolean ST_DEBUG = 0;
 
 /* perl versions < 5.8.8 do not have this */
 #ifndef is_utf8_string_loclen
@@ -461,7 +461,7 @@ st_heat_seeker( st_token *token, SV *re ) {
     str_end = buf + token->len;
 
     if ( pregexec(rx, buf, str_end, buf, 1, token->str, 1) ) {
-        if (ST_DEBUG) {
+        if (ST_DEBUG > 1) {
             warn("st_heat_seeker: token is hot: %s", buf);
         }
         token->is_hot = 1;
@@ -508,8 +508,10 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
     if (heat_seeker != NULL && (SvTYPE(SvRV(heat_seeker))==SVt_PVCV)) {
          heat_seeker_is_CV = 1;
     }
-        
-    //warn("tokenizing: '%s'\n", buf);
+    
+    if (ST_DEBUG) {    
+        warn("tokenizing string %ld bytes long\n", str_len);
+    }
     
     while ( pregexec(rx, buf, str_end, buf, 1, str, 1) ) {
         const char *start_ptr, *end_ptr;
@@ -542,7 +544,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
             else if (st_looks_like_sentence_end(token_str, token->len)) {
                 token->is_sentence_end = 1;
             }
-            if (ST_DEBUG) {
+            if (ST_DEBUG > 1) {
                 warn("prev [%d] [%d] [%d] [%s] [%d] [%d]", 
                     token->pos, token->len, token->u8len, token_str,
                     token->is_sentence_start, token->is_sentence_end);
@@ -569,7 +571,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
         else if (st_looks_like_sentence_end(token_str, token->len)) {
             token->is_sentence_end = 1;
         }
-        if (ST_DEBUG) {
+        if (ST_DEBUG > 1) {
             warn("main [%d] [%d] [%d] [%s] [%d] [%d]", 
                 token->pos, token->len, token->u8len, token_str,
                 token->is_sentence_start, token->is_sentence_end
@@ -621,7 +623,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
         else if (st_looks_like_sentence_end(token_str, token->len)) {
             token->is_sentence_end = 1;
         }
-        if (ST_DEBUG) {
+        if (ST_DEBUG > 1) {
             warn("tail: [%d] [%d] [%d] [%s] [%d] [%d]", 
                 token->pos, token->len, token->u8len, token_str,
                 token->is_sentence_start, token->is_sentence_end
@@ -748,7 +750,7 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
     
     I32 u8len, u32pt;
     
-    if (ST_DEBUG)
+    if (ST_DEBUG > 1)
         warn("%s: %c\n", __func__, ptr[0]); 
     
     /* optimized for ASCII */
@@ -760,13 +762,13 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
     
     /* get first full UTF-8 char */
     u8len = is_utf8_char((U8*)ptr);
-    if (ST_DEBUG)
+    if (ST_DEBUG > 1)
         warn("%s: %s is utf8 u8len %d\n", __func__, ptr, u8len);
     
     if (len) {
         u32pt = st_utf8_codepoint(ptr, u8len);
         
-        if (ST_DEBUG)
+        if (ST_DEBUG > 1)
             warn("%s: u32 code point %d\n", __func__, u32pt);
         
         if (iswupper((wint_t)u32pt)) {
@@ -795,7 +797,7 @@ st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
      * per-character instead of per byte.
      */
     
-    if (ST_DEBUG)
+    if (ST_DEBUG > 1)
         warn("%s: %c\n", __func__, ptr[0]);
     
     for (i=0; i<len; i++) {
