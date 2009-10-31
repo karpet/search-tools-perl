@@ -99,7 +99,7 @@ sub _pick_snipper {
 # in either of the 2 than the 1.
 sub _normalize_whitespace {
     $_[0] =~ s,[\n\r\t\xa0]+,\ ,go;
-    $_[0] =~ s,\ +, ,go; # \ \ + was 1000x slower on bigfile!!
+    $_[0] =~ s,\ +, ,go; # \ \ + was 16x slower on bigfile!!
 }
 
 sub snip {
