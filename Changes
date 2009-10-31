@@ -189,6 +189,6 @@ Revision history for Perl extension Search::HiLiter.
 0.31  14 Oct 2009
     * add missing dTHX; macro to st_malloc per RT #50509
 
-0.32  xxx
+0.32  31 Oct 2009
     * fix mem leaks
     * optimize normalize_whitespace regex 

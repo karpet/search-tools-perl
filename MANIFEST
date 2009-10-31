@@ -66,7 +66,6 @@ t/24-child-abuse.t
 t/25-domestic-accounts.t
 t/26-is-sentence.t
 t/27-bigfile.t
-t/28-metroweb.t
 t/90-leaktrace.t
 t/91-valgrind.t
 t/99-0.24-back-compat.t
@@ -81,7 +80,6 @@ t/docs/findaprofessional.txt
 t/docs/greek_and_ojibwe.txt
 t/docs/linux-user-group.html
 t/docs/little-c-child-abuse.html
-t/docs/metroweb.html
 t/docs/quick_brown_babel.dmp
 t/docs/test.html
 t/docs/test.txt
