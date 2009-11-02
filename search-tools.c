@@ -575,10 +575,10 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                                 utf8_distance((U8*)start_ptr, (U8*)prev_end),
                                 prev_end, 0, 0);
             token_str = SvPV_nolen(token->str);
-            if (st_looks_like_sentence_start(token_str, token->len)) {
+            if (st_looks_like_sentence_start((unsigned char*)token_str, token->len)) {
                 token->is_sentence_start = 1;
             }
-            else if (st_looks_like_sentence_end(token_str, token->len)) {
+            else if (st_looks_like_sentence_end((unsigned char*)token_str, token->len)) {
                 token->is_sentence_end = 1;
             }
             if (ST_DEBUG > 1) {
@@ -602,10 +602,10 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                             start_ptr,
                             0, 1);
         token_str = SvPV_nolen(token->str);
-        if (st_looks_like_sentence_start(token_str, token->len)) {
+        if (st_looks_like_sentence_start((unsigned char*)token_str, token->len)) {
             token->is_sentence_start = 1;
         }
-        else if (st_looks_like_sentence_end(token_str, token->len)) {
+        else if (st_looks_like_sentence_end((unsigned char*)token_str, token->len)) {
             token->is_sentence_end = 1;
         }
         if (ST_DEBUG > 1) {
@@ -654,10 +654,10 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                                     prev_end, 
                                     0, 0);
         token_str = SvPV_nolen(token->str);
-        if (st_looks_like_sentence_start(token_str, token->len)) {
+        if (st_looks_like_sentence_start((unsigned char*)token_str, token->len)) {
             token->is_sentence_start = 1;
         }
-        else if (st_looks_like_sentence_end(token_str, token->len)) {
+        else if (st_looks_like_sentence_end((unsigned char*)token_str, token->len)) {
             token->is_sentence_end = 1;
         }
         if (ST_DEBUG > 1) {
