@@ -15,7 +15,7 @@ my $buf;
 {
     local $/;
     $buf = <$fh>;
-    $buf = "$buf $buf $buf";    # 3x for big fun
+    $buf = $buf x 20;    # 20x for big fun
 }
 diag( "working on " . length($buf) . " html bytes" );
 my $plain = Search::Tools::XML->strip_html($buf);
