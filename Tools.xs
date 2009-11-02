@@ -42,7 +42,7 @@ describe(thing)
     CODE:
         st_describe_object(thing);
         st_dump_sv(thing);
-
+        
 
 ######################################################################
 MODULE = Search::Tools       PACKAGE = Search::Tools::UTF8
@@ -227,6 +227,19 @@ set_debug(self, val)
         ST_DEBUG = val;
         //warn("ST_DEBUG set to %d", ST_DEBUG);
         RETVAL = self;
+    
+    OUTPUT:
+        RETVAL
+
+
+SV*
+get_offsets(self, str, regex)
+    SV* self;
+    SV* str;
+    SV* regex;
+    
+    CODE:
+        RETVAL = newRV_noinc((SV*)st_heat_seeker_offsets(str, regex));
     
     OUTPUT:
         RETVAL
@@ -431,7 +444,7 @@ matches(self)
     CODE:
         matches = newAV();
         pos = 0;
-        len = av_len(self->tokens);
+        len = av_len(self->tokens)+1;
         while (pos < len) {
             tok = st_av_fetch(self->tokens, pos++);
             token = (st_token*)st_extract_ptr(tok);
@@ -458,7 +471,7 @@ num_matches(self)
     CODE:
         num_matches = 0;
         pos = 0;
-        len = av_len(self->tokens);
+        len = av_len(self->tokens)+1;
         while (pos < len) {
             token = (st_token*)st_av_fetch_ptr(self->tokens, pos++);
             if (token->is_match) {

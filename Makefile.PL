@@ -31,7 +31,7 @@ WriteMakefile(
     },
     H       => [qw( search-tools.h )],
     C       => [qw( search-tools.c )],
-    #CCFLAGS => '-Wall', # gcc opt only
+    #CCFLAGS => '-Wall -pg', # gcc opt only
     dist    => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Search-Tools-*' },
     ( $MM_Version >= 6.48 ? ( MIN_PERL_VERSION => '5.8.3' ) : () ),

@@ -82,6 +82,7 @@ static SV*      st_tokenize(
     I32 match_num 
 );
 static void     st_heat_seeker( st_token *token, SV *re );
+static AV*      st_heat_seeker_offsets( SV *str, SV *re );
 static REGEXP*  st_get_regex_from_sv( SV* regex_sv );
 /* UNUSED
 static SV*      st_new_hash_object(const char *class);

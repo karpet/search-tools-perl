@@ -392,10 +392,15 @@ st_dump_sv(SV* ref) {
     dTHX;
     HV* hash;
     HE* hash_entry;
-    int num_keys, i;
+    AV* array;
+    int num_keys, i, pos, len;
     SV* sv_key;
     SV* sv_val;
     int refcnt;
+    
+    pos = 0;
+    i   = 0;
+    len = 0;
     
     if (SvTYPE(SvRV(ref))==SVt_PVHV) {
         warn("SV is a hash reference");
@@ -412,7 +417,13 @@ st_dump_sv(SV* ref) {
     }
     else if (SvTYPE(SvRV(ref))==SVt_PVAV) {
         warn("SV is an array reference");
-        warn("SV has %d items\n", av_len((AV*)SvRV(ref)));
+        array = (AV*)SvRV(ref);
+        len = av_len(array)+1;
+        warn("SV has %d items\n", len);
+        pos = 0;
+        while (pos < len) {
+            st_describe_object( st_av_fetch(array, pos++) );
+        }
         
     }
 
@@ -504,6 +515,42 @@ st_heat_seeker( st_token *token, SV *re ) {
         token->is_hot = 1;
     }
 
+}
+
+static AV*
+st_heat_seeker_offsets( SV *str, SV *re ) {
+    dTHX;
+    
+    REGEXP *rx;
+    char *buf, *str_end, *str_start;
+    STRLEN str_len;
+    AV *offsets;
+    
+    rx = st_get_regex_from_sv(re);
+    buf = SvPV(str, str_len);
+    str_start = buf;
+    str_end = buf + str_len;
+    offsets = newAV();
+    
+    while ( pregexec(rx, buf, str_end, buf, 1, str, 1) ) {
+        const char *start_ptr, *end_ptr;
+        
+#if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
+        start_ptr = buf + rx->offs[0].start;
+        end_ptr   = buf + rx->offs[0].end;
+#else
+        start_ptr = buf + rx->startp[0];
+        end_ptr   = buf + rx->endp[0];
+#endif
+        /* advance the pointer */
+        buf = (char*)end_ptr;
+        
+        //warn("got heat match at %ld", start_ptr - str_start);
+        av_push(offsets, newSViv(start_ptr - str_start));
+        
+    }
+            
+    return offsets;
 }
 
 /*

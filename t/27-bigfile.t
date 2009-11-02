@@ -5,8 +5,10 @@ eval 'use IO::Uncompress::Gunzip ()';
 plan skip_all => 'IO::Uncompress::Gunzip is required to test bigfile'
     if $@;
 
+use Data::Dump qw( dump );
 use Search::Tools::XML;
 use Search::Tools::Snipper;
+use Search::Tools::Tokenizer;
 
 my $file = 't/docs/bigfile.html.gz';
 my $q    = qq/child adoption/;
@@ -28,6 +30,13 @@ my $snipper = Search::Tools::Snipper->new(
     as_sentences        => 1,
     type                => 'token',    # because we want to profile
 );
+
+#my $tokenizer = Search::Tools::Tokenizer->new();
+#diag("get_offsets");
+#my $offsets = $tokenizer->get_offsets($plain, qr/child/i);
+#diag("get_offsets done");
+#diag(dump $offsets);
+
 my $snip = $snipper->snip($plain);
 
 like( $snip, qr/child .+ child/, "match snip" );

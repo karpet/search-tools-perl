@@ -69,9 +69,13 @@ if init() tried to set values with them.
 =cut
 
 sub init {
+    #Carp::cluck();
     my $self = shift;
+    #Carp::carp("self shifted");
     $self->SUPER::init(@_);
+    #Carp::carp("self inited");
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+    #Carp::carp("debug set");
     return $self;
 }
 

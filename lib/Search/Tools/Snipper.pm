@@ -16,7 +16,7 @@ our $VERSION = '0.32';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';
-our $DefaultSnipper = 'token';
+our $DefaultSnipper = 'offset';
 
 __PACKAGE__->mk_accessors(
     qw(
@@ -99,7 +99,7 @@ sub _pick_snipper {
 # in either of the 2 than the 1.
 sub _normalize_whitespace {
     $_[0] =~ s,[\n\r\t\xa0]+,\ ,go;
-    $_[0] =~ s,\ +, ,go; # \ \ + was 16x slower on bigfile!!
+    $_[0] =~ s,\ +, ,go;              # \ \ + was 16x slower on bigfile!!
 }
 
 sub snip {
@@ -202,17 +202,7 @@ sub _token {
 
 sub _get_offsets {
     my $self = shift;
-    my $txt  = shift;
-    my $re   = $self->{_qre};
-
-    # get rough idea of the offsets of all the matches.
-    # benchmarks show this kind of loop is fast,
-    # so we use it to reduce the size of the target text.
-    my @offsets;
-    while ( $txt =~ m/$re/g ) {
-        push @offsets, pos($txt);
-    }
-    return \@offsets;
+    return $self->{_tokenizer}->get_offsets( @_, $self->{_qre} );
 }
 
 sub _offset {
@@ -220,7 +210,7 @@ sub _offset {
     my $txt     = shift;
     my $offsets = $self->_get_offsets($txt);
     my $snips   = $self->_get_offset_snips( $txt, $offsets );
-    return $self->_re( join( '', @$snips ) );
+    return $self->_token( join( '', @$snips ) );
 }
 
 sub _get_offset_snips {
@@ -231,7 +221,7 @@ sub _get_offset_snips {
     # grab $size chars on either side of each offset
     # and tokenize each.
     # $size should be nice and wide to minimize the substr() calls.
-    my $size = $self->max_chars * 2;
+    my $size = $self->max_chars * 10;
 
     #warn "window size $size";
 
@@ -240,7 +230,7 @@ sub _get_offset_snips {
     if ( $size > $len ) {
 
         #warn "window bigger than document";
-        return $self->_token($txt);
+        return [ $self->_token($txt) ];
     }
 
     my ( $seen_start, $seen_end );
@@ -249,8 +239,8 @@ sub _get_offset_snips {
 
         my $tmp;
 
-        my $start = $pos - ( $size / 2 );
-        my $end   = $pos + ( $size / 2 );
+        my $start = $pos - int( $size / 2 );
+        my $end   = $pos + int( $size / 2 );
 
         # avoid overlaps
         if ( $last_ending && $start < $last_ending ) {
@@ -290,9 +280,6 @@ sub _get_offset_snips {
             #warn "middle";
             $tmp = substr( $txt, $start, $size );
         }
-
-        #_no_start_partial($tmp);
-        #_no_end_partial($tmp);
 
         push @buf, $tmp;
     }
@@ -741,7 +728,7 @@ Search::Tools::Snipper - extract terms in context
 
  my $query = [ qw/ quick dog / ];
  my $text  = 'the quick brown fox jumped over the lazy dog';
- 
+
  my $s = Search::Tools::Snipper->new(
             occur       => 3,
             context     => 8,
@@ -749,10 +736,10 @@ Search::Tools::Snipper - extract terms in context
             max_chars   => 300,
             query       => $query
             );
-            
+
  print $s->snip( $text );
- 
- 
+
+
 =head1 DESCRIPTION
 
 Search::Tools::Snipper extracts terms and their context from a larger
@@ -909,17 +896,17 @@ Peter Karman C<< <karman at cpan dot org> >>
 
 =head1 ACKNOWLEDGEMENTS
 
-Based on the HTML::HiLiter regular expression building code, originally by the same author, 
+Based on the HTML::HiLiter regular expression building code, originally by the same author,
 copyright 2004 by Cray Inc.
 
-Thanks to Atomic Learning C<www.atomiclearning.com> 
+Thanks to Atomic Learning C<www.atomiclearning.com>
 for sponsoring the development of this module.
 
 =head1 COPYRIGHT
 
 Copyright 2006 by Peter Karman.
 
-This package is free software; you can redistribute it and/or modify it under the 
+This package is free software; you can redistribute it and/or modify it under the
 same terms as Perl itself.
 
 =head1 SEE ALSO
@@ -927,4 +914,3 @@ same terms as Perl itself.
 SWISH::HiLiter
 
 =cut
-
