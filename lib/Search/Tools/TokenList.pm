@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use overload
     '""'     => sub { $_[0]->str; },
-    'bool'   => sub { $_[0]->len; },
+    'bool'   => sub { 1 }, # always true
     fallback => 1;
 
 use Search::Tools;    # XS required
