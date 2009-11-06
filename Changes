@@ -196,5 +196,7 @@ Revision history for Perl extension Search::HiLiter.
 0.33  xxx
     * switch default Snipper type to 'offset' to optimize for large target texts.
     * add Tokenizer->get_offsets() method in C/XS.
+    * fix Snipper->show feature to work as the author expected it to. Do not return
+      anything if no match.
 
 
