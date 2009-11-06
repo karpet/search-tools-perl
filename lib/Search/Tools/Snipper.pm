@@ -113,7 +113,10 @@ sub snip {
     $text = to_utf8($text);
 
     # don't snip if we're less than the threshold
-    return $text if length($text) < $self->max_chars;
+    if (length($text) < $self->max_chars) {
+        return $text if $self->show;
+        return '';
+    }
 
     if ( $self->collapse_whitespace ) {
         _normalize_whitespace($text);
@@ -169,7 +172,7 @@ sub _token {
 
     my $tokens_arr = $tokens->as_array;
 
-    #warn "snips: " . dump \@snips;
+    #warn "snips: " . dump $heatmap->spans;
     if ( $heatmap->has_spans ) {
 
         # stringify positions
@@ -195,6 +198,7 @@ sub _token {
         return $extract;
     }
     else {
+        #warn "no spans. using dumb snip";
         return $self->_dumb( $_[0] );
     }
 
