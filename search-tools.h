@@ -101,6 +101,7 @@ static void     st_croak(
 static void     st_dump_sv( SV* hash_ref );
 static void     st_describe_object( SV* object );
 static boolean  st_is_ascii( SV* str );
+static boolean  st_char_is_ascii( unsigned char* str, STRLEN len );
 static SV*      st_find_bad_utf8( SV* str );
 static SV*      st_escape_xml(char *s);
 static IV       st_looks_like_sentence_start(const unsigned char *ptr, IV len);

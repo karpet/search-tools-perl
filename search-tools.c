@@ -467,12 +467,20 @@ static boolean
 st_is_ascii( SV* str ) {
     dTHX;
     STRLEN len;
-    U8 *bytes;
+    char *bytes;
     IV i;
     
-    bytes = (U8*)SvPV(str, len);
+    bytes = SvPV(str, len);
+    return st_char_is_ascii((unsigned char*)bytes, len);
+}
+
+static boolean
+st_char_is_ascii( unsigned char* str, STRLEN len ) {
+    dTHX;
+    IV i;
+    
     for(i=0; i<len; i++) {
-        if (bytes[i] >= 0x80) {
+        if (str[i] >= 0x80) {
             return 0;
         }  
     }
@@ -835,8 +843,23 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
         warn("%s: %c\n", __func__, ptr[0]); 
     
     /* optimized for ASCII */
-    if (ptr[0] < 128) {
-        return isUPPER(ptr[0]);
+    if (st_char_is_ascii((char*)ptr, len)) {
+        
+        /* if the string is more than one byte long,
+           make sure the second char is NOT UPPER
+           since that is likely a false positive.
+        */
+        if (len > 1) {
+            if (isUPPER(ptr[0]) && !isUPPER(ptr[1])) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            return isUPPER(ptr[0]);
+        }
     }
     
     /* TODO if any char is UPPER in the string, consider it a start? */

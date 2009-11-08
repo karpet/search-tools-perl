@@ -198,5 +198,7 @@ Revision history for Perl extension Search::HiLiter.
     * add Tokenizer->get_offsets() method in C/XS.
     * fix Snipper->show feature to work as the author expected it to. Do not return
       anything if no match.
+    * refactor is_ascii C code and is_sentence_start() to return false if match on UPPER
+      as opposed to Upper.
 
 
