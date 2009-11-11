@@ -29,8 +29,7 @@ WriteMakefile(
         #'Text::Aspell'          => '0.06',  # optional
 
     },
-    H       => [qw( search-tools.h )],
-    C       => [qw( search-tools.c )],
+    H       => [qw( search-tools.c search-tools.h )],
     #CCFLAGS => '-Wall -pg', # gcc opt only
     dist    => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Search-Tools-*' },
