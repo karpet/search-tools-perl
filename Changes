@@ -201,4 +201,6 @@ Revision history for Perl extension Search::HiLiter.
     * refactor is_ascii C code and is_sentence_start() to return false if match on UPPER
       as opposed to Upper.
 
+0.34  22 Nov 2009
+    * make the bigfile test optional and make it use the 'offset' snipper to reduce mem use by 60%.
 
