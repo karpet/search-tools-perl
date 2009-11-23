@@ -17,12 +17,12 @@ our @EXPORT = qw(
     find_bad_ascii
     find_bad_latin1
     find_bad_latin1_report
-
+    byte_length
 );
 
 our $Debug = ( $ENV{PERL_DEBUG} && $ENV{PERL_DEBUG} > 2 ) ? 1 : 0;
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 sub to_utf8 {
     my $str = shift;
@@ -160,6 +160,9 @@ Search::Tools::UTF8 supplies common UTF8-related functions.
 
 =head1 FUNCTIONS
 
+=head2 byte_length( I<text> )
+
+Returns the number of bytes in I<text> regardless of encoding.
 
 =head2 is_valid_utf8( I<text> )
 

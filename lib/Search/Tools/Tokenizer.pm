@@ -8,7 +8,7 @@ use Search::Tools::TokenList;
 use Search::Tools::UTF8;
 use Carp;
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 __PACKAGE__->mk_accessors(qw( re ));
 
@@ -55,7 +55,7 @@ sub tokenize_pp {
                 str      => $_,
                 is_hot   => 0,
                 is_match => 0,
-                len      => bytes::length($_),
+                len      => byte_length($_),
                 u8len    => length($_),
             },
             'Search::Tools::TokenPP'

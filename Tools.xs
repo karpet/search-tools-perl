@@ -50,6 +50,22 @@ MODULE = Search::Tools       PACKAGE = Search::Tools::UTF8
 PROTOTYPES: enable
 
 int
+byte_length(string)
+    SV* string;
+    
+    PREINIT:
+        STRLEN len;
+        U8 * bytes;
+        
+    CODE:
+        bytes  = (U8*)SvPV(string, len);
+        RETVAL = len;
+    
+    OUTPUT:
+        RETVAL
+
+
+int
 is_perl_utf8_string(string)
     SV* string;
     
