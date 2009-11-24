@@ -8,8 +8,7 @@
  * Search::Tools C helpers
  */
  
-#define ST_CROAK(args...) \
-    st_croak(__FILE__, __LINE__, __func__, args)
+#define ST_CROAK(args...) st_croak(__FILE__, __LINE__, __func__, args)
 
 #define ST_CLASS_TOKEN      "Search::Tools::Token"
 #define ST_CLASS_TOKENLIST  "Search::Tools::TokenList"
@@ -21,23 +20,23 @@ typedef char    boolean;
 typedef struct  st_token st_token;
 typedef struct  st_token_list st_token_list;
 struct st_token {
-    I32             pos;        // position in buffer
-    I32             len;        // token length (bytes)
-    I32             u8len;      // token length (utf8 chars)
-    SV             *str;        // SV* for the string
-    I32             is_hot;     // interesting token flag
-    boolean         is_sentence_start;  // looks like the start of a sentence
-    boolean         is_sentence_end;    // looks like the end of a sentence
-    boolean         is_match;   // matched regex
-    IV              ref_cnt;    // reference counter
+    I32             pos;        /* position in buffer */
+    I32             len;        /* token length (bytes) */
+    I32             u8len;      /* token length (utf8 chars) */
+    SV             *str;        /* SV* for the string */
+    I32             is_hot;     /* interesting token flag */
+    boolean         is_sentence_start;  /* looks like the start of a sentence */
+    boolean         is_sentence_end;    /* looks like the end of a sentence */
+    boolean         is_match;   /* matched regex */
+    IV              ref_cnt;    /* reference counter */
 };
 struct st_token_list {
-    I32             pos;        // current iterator position (array index)
-    I32             num;        // number of parsed tokens
-    AV             *tokens;     // array of st_token objects
-    AV             *heat;       // array of positions of is_hot tokens
-    AV             *sentence_starts;  // array of sentence start positions
-    IV              ref_cnt;    // reference counter
+    I32             pos;        /* current iterator position (array index) */
+    I32             num;        /* number of parsed tokens */
+    AV             *tokens;     /* array of st_token objects */
+    AV             *heat;       /* array of positions of is_hot tokens */
+    AV             *sentence_starts;  /* array of sentence start positions */
+    IV              ref_cnt;    /* reference counter */
 };
 
 static st_token*    
