@@ -66,6 +66,7 @@ t/24-child-abuse.t
 t/25-domestic-accounts.t
 t/26-is-sentence.t
 t/27-bigfile.t
+t/28-byte-length.t
 t/90-leaktrace.t
 t/91-valgrind.t
 t/99-0.24-back-compat.t
