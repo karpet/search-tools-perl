@@ -204,6 +204,7 @@ Revision history for Perl extension Search::HiLiter.
 0.34  22 Nov 2009
     * make the bigfile test optional and make it use the 'offset' snipper to reduce mem use by 60%.
 
-0.35  xxx
+0.35  30 Nov 2009
     * add UTF::byte_length() function just like bytes::length()
+    * some attempts to compile under Win32 (programming a bit blind with nothing to test on...)
 

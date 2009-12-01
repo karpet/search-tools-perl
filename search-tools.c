@@ -691,7 +691,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
             av_push(heat, newSViv(token->pos));
             if (ST_DEBUG)
                 warn("%s: sentence_start = %ld for hot token at pos %ld\n",
-                    __func__, (unsigned long)prev_sentence_start, (unsigned long)token->pos);
+                    FUNCTION__, (unsigned long)prev_sentence_start, (unsigned long)token->pos);
                     
             av_push(sentence_starts, newSViv(prev_sentence_start));
         }
@@ -840,7 +840,7 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
     I32 u8len, u32pt;
     
     if (ST_DEBUG > 1)
-        warn("%s: %c\n", __func__, ptr[0]); 
+        warn("%s: %c\n", FUNCTION__, ptr[0]); 
     
     /* optimized for ASCII */
     if (st_char_is_ascii((char*)ptr, len)) {
@@ -867,13 +867,13 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
     /* get first full UTF-8 char */
     u8len = is_utf8_char((U8*)ptr);
     if (ST_DEBUG > 1)
-        warn("%s: %s is utf8 u8len %d\n", __func__, ptr, u8len);
+        warn("%s: %s is utf8 u8len %d\n", FUNCTION__, ptr, u8len);
     
     if (len) {
         u32pt = st_utf8_codepoint(ptr, u8len);
         
         if (ST_DEBUG > 1)
-            warn("%s: u32 code point %d\n", __func__, u32pt);
+            warn("%s: u32 code point %d\n", FUNCTION__, u32pt);
         
         if (iswupper((wint_t)u32pt)) {
             return 1;
@@ -902,7 +902,7 @@ st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
      */
     
     if (ST_DEBUG > 1)
-        warn("%s: %c\n", __func__, ptr[0]);
+        warn("%s: %c\n", FUNCTION__, ptr[0]);
     
     for (i=0; i<len; i++) {
         switch (ptr[i]) {
