@@ -208,3 +208,7 @@ Revision history for Perl extension Search::HiLiter.
     * add UTF::byte_length() function just like bytes::length()
     * some attempts to compile under Win32 (programming a bit blind with nothing to test on...)
 
+0.36   3 Dec 2009
+    * add FUNCTION__ definition for those Perls (<5.8.8) that lack it.
+
+
