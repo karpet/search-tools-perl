@@ -487,12 +487,18 @@ st_char_is_ascii( unsigned char* str, STRLEN len ) {
     return 1;
 }
 
+/* SvRX does this in Perl >= 5.10 */
 static REGEXP*
 st_get_regex_from_sv( SV *regex_sv ) {
     dTHX;   /* thread-safe perlism */
+    
+    REGEXP *rx;
     MAGIC *mg;
     mg = NULL;
 
+#if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
+    rx = SvRX(regex_sv);
+#else
     /* extract regexp struct from qr// entity */
     if (SvROK(regex_sv)) {
         SV *sv = SvRV(regex_sv);
@@ -502,7 +508,15 @@ st_get_regex_from_sv( SV *regex_sv ) {
     if (!mg)
         ST_CROAK("regex is not a qr// entity");
         
-    return (REGEXP*)mg->mg_obj;
+    rx = (REGEXP*)mg->mg_obj;
+#endif
+
+    if (rx == NULL) {
+        ST_CROAK("Failed to extract REGEXP from regex_sv %s", 
+            SvPV_nolen( regex_sv ));
+    }
+    
+    return rx;
 }
 
 static void
@@ -533,8 +547,14 @@ st_heat_seeker_offsets( SV *str, SV *re ) {
     char *buf, *str_end, *str_start;
     STRLEN str_len;
     AV *offsets;
+#if (PERL_VERSION > 10)
+    regexp *r;
+#endif
     
     rx = st_get_regex_from_sv(re);
+#if (PERL_VERSION > 10)
+    r  = (regexp*)SvANY(rx);
+#endif
     buf = SvPV(str, str_len);
     str_start = buf;
     str_end = buf + str_len;
@@ -543,9 +563,12 @@ st_heat_seeker_offsets( SV *str, SV *re ) {
     while ( pregexec(rx, buf, str_end, buf, 1, str, 1) ) {
         const char *start_ptr, *end_ptr;
         
-#if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
+#if ((PERL_VERSION == 10) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
         start_ptr = buf + rx->offs[0].start;
         end_ptr   = buf + rx->offs[0].end;
+#elif (PERL_VERSION > 10)
+        start_ptr = buf + r->offs[0].start;
+        end_ptr   = buf + r->offs[0].end;
 #else
         start_ptr = buf + rx->startp[0];
         end_ptr   = buf + rx->endp[0];
@@ -575,6 +598,9 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
 /* declare */
     IV               num_tokens, prev_sentence_start;
     REGEXP          *rx;
+#if (PERL_VERSION > 10)
+    regexp          *r;
+#endif
     char            *buf, *str_start, *str_end, *token_str;
     STRLEN           str_len;
     const char      *prev_end, *prev_start;
@@ -587,6 +613,9 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
 /* initialize */
     num_tokens      = 0;
     rx              = st_get_regex_from_sv(token_re);
+#if (PERL_VERSION > 10)
+    r               = (regexp*)SvANY(rx);
+#endif
     buf             = SvPV(str, str_len);
     str_start       = buf;
     str_end         = str_start + str_len;
@@ -609,9 +638,12 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
         const char *start_ptr, *end_ptr;
         st_token *token;
         
-#if ((PERL_VERSION > 9) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
+#if ((PERL_VERSION == 10) || (PERL_VERSION == 9 && PERL_SUBVERSION >= 5))
         start_ptr = buf + rx->offs[match_num].start;
         end_ptr   = buf + rx->offs[match_num].end;
+#elif (PERL_VERSION > 10)
+        start_ptr = buf + r->offs[match_num].start;
+        end_ptr   = buf + r->offs[match_num].end;
 #else
         start_ptr = buf + rx->startp[match_num];
         end_ptr   = buf + rx->endp[match_num];
