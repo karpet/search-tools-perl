@@ -211,7 +211,7 @@ Revision history for Perl extension Search::HiLiter.
 0.36   3 Dec 2009
     * add FUNCTION__ definition for those Perls (<5.8.8) that lack it.
 
-0.37   xxx
+0.37   06 Dec 2009
     * fix blead perl REGEXP change for Perls >= 5.11. [r2330]
 
 
