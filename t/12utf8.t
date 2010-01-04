@@ -1,4 +1,4 @@
-use Test::More tests => 23;
+use Test::More tests => 24;
 
 BEGIN { use_ok('Search::Tools::UTF8') }
 
@@ -53,3 +53,8 @@ my %testhash   = ( $five10 => 1 );
 my $five10utf8 = to_utf8($five10);
 is( $five10, $five10utf8, "5.10 utf8 upgrade" );
 ok( exists $testhash{$five10utf8}, "5.10 utf8 upgrade hash key" );
+
+# now reverse it
+my $five10utf8v2 = to_utf8("bar");
+my %test2hash = ( $five10utf8v2 => 1 );
+ok( exists $test2hash{"bar"}, "utf8 downgrade hash key" );
