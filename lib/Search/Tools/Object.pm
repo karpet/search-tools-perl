@@ -69,12 +69,16 @@ if init() tried to set values with them.
 =cut
 
 sub init {
+
     #Carp::cluck();
     my $self = shift;
+
     #Carp::carp("self shifted");
     $self->SUPER::init(@_);
+
     #Carp::carp("self inited");
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
+
     #Carp::carp("debug set");
     return $self;
 }
@@ -88,24 +92,27 @@ You can use the C<PERL_DEBUG> env var to set this value as well.
 
 # called by some subclasses
 sub _normalize_args {
-    my $self = shift;
-    my %args = @_;
-    my $q    = delete $args{query};
+    my $self  = shift;
+    my %args  = @_;
+    my $q     = delete $args{query};
+    my $debug = delete $args{debug};
     if ( !defined $q ) {
         croak "query required";
     }
     if ( !ref($q) ) {
         require Search::Tools::QueryParser;
         $args{query} = Search::Tools::QueryParser->new(
+            debug => $debug,
             map { $_ => delete $args{$_} }
-            grep { Search::Tools::QueryParser->can($_) } keys %args
+                grep { Search::Tools::QueryParser->can($_) } keys %args
         )->parse($q);
     }
     elsif ( ref($q) eq 'ARRAY' ) {
         warn "query ARRAY ref deprecated as of version 0.24";
         $args{query} = Search::Tools::QueryParser->new(
+            debug => $debug,
             map { $_ => delete $args{$_} }
-            grep { Search::Tools::QueryParser->can($_) } keys %args
+                grep { Search::Tools::QueryParser->can($_) } keys %args
         )->parse( join( ' ', @$q ) );
     }
     elsif ( blessed($q) and $q->isa('Search::Tools::Query') ) {
@@ -120,6 +127,7 @@ sub _normalize_args {
         croak
             "query param required to be a scalar string or Search::Tools::Query object";
     }
+    $args{debug} = $debug;  # restore so it can be passed on
     return %args;
 }
 
