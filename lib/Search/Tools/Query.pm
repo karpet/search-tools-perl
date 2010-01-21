@@ -190,7 +190,7 @@ sub terms_as_regex {
         my $q = quotemeta($term);    # quotemeta speeds up the match, too
                                      # even though we have to unquote below
 
-        $q =~ s/\\$wild_esc/[$wc]*/; # wildcard match is very approximate
+        $q =~ s/\\$wild_esc/[$wc]*/g;    # wildcard match is very approximate
 
         # treat phrases like OR'd words
         # since that will just create more matches.
