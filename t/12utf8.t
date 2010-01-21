@@ -1,4 +1,4 @@
-use Test::More tests => 24;
+use Test::More tests => 26;
 
 BEGIN { use_ok('Search::Tools::UTF8') }
 
@@ -24,8 +24,8 @@ ok( !is_valid_utf8($nonsense), "nonsense is not utf8" );
 ok( !is_ascii($nonsense),      "nonsense is not ascii" );
 ok( !is_latin1($nonsense),     "nonsense is not latin1" );
 is( find_bad_utf8($nonsense),   $nonsense, "find_bad_utf8" );
-is( find_bad_ascii($nonsense),  1,         "find_bad_ascii" );
-is( find_bad_latin1($nonsense), 10,        "find_bad_latin1" );
+is( find_bad_ascii($nonsense),  0,         "find_bad_ascii" );
+is( find_bad_latin1($nonsense), 9,         "find_bad_latin1" );
 
 my $ambiguous = "this string is ambiguous \x{d9}\x{a6}";
 
@@ -43,7 +43,7 @@ my $moreamb = "this string should break is_latin1 \x{c3}\x{81}";
 ok( is_valid_utf8($moreamb),             "is_valid_utf8 moreamb" );
 ok( !is_latin1($moreamb),                "!is_latin1 moreamb" );
 ok( !defined( find_bad_utf8($moreamb) ), "find_bad_utf8 moreamb" );
-is( find_bad_latin1_report($moreamb), 37, "find_bad_latin1_report moreamb" );
+is( find_bad_latin1_report($moreamb), 36, "find_bad_latin1_report moreamb" );
 
 ok( !defined( find_bad_utf8('PC') ), "find_bad_utf8 allows ascii" );
 
@@ -58,3 +58,9 @@ ok( exists $testhash{$five10utf8}, "5.10 utf8 upgrade hash key" );
 my $five10utf8v2 = to_utf8("bar");
 my %test2hash = ( $five10utf8v2 => 1 );
 ok( exists $test2hash{"bar"}, "utf8 downgrade hash key" );
+
+# win1252 chars
+my $win1252 = "Euro sign = \x{80}";
+ok( my $bad_latin1 = find_bad_latin1_report($win1252),
+    "find bad latin1 in win1252" );
+is( $bad_latin1, 12, "find bad latin1 bytes in win1252 string" );

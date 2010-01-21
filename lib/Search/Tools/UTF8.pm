@@ -121,7 +121,7 @@ sub find_bad_latin1_report {
     if ($bad) {
 
         # explain why we failed
-        my $char = substr( $_[0], $bad - 1, 1 );
+        my $char = substr( $_[0], $bad, 1 );
         my $dec  = ord($char);
         my $hex  = sprintf '%x', $dec;
         carp("byte $bad ($char) is not Latin1 (it's $dec dec / $hex hex)");

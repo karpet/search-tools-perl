@@ -143,8 +143,7 @@ find_bad_ascii(string)
         RETVAL = -1;
         for(i=0; i < len; i++) {
             if (bytes[i] >= 0x80) {
-            # return $+[0], so base-1
-                RETVAL = i + 1;
+                RETVAL = i;
                 break;
             }  
         }
@@ -166,8 +165,7 @@ find_bad_latin1(string)
         RETVAL = -1;
         for(i=0; i < len; i++) {
             if (bytes[i] > 0x7f && bytes[i] < 0xa0) {
-            # return $+[0], so base-1
-                RETVAL = i + 1;
+                RETVAL = i;
                 break;
             }
         }
