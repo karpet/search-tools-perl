@@ -19,6 +19,7 @@ our @EXPORT = qw(
     find_bad_latin1_report
     byte_length
     looks_like_win1252
+    debug_bytes_in_string
 );
 
 our $Debug = ( $ENV{PERL_DEBUG} && $ENV{PERL_DEBUG} > 2 ) ? 1 : 0;
@@ -258,6 +259,11 @@ Those bytes are used by the Windows 1252 character set and include some
 of the troublesome characters like curly quotes.
 
 See also the Search::Tools::Transliterate convert1252() method.
+
+=head2 debug_bytes_in_string( I<text> )
+
+Iterates over each byte in I<text>, printing byte, hex and decimal values
+to stderr.
 
 =head1 AUTHOR
 

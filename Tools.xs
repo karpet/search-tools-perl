@@ -129,6 +129,22 @@ is_latin1(string)
         RETVAL
 
 
+void
+debug_bytes_in_string(string)
+    SV* string;
+
+    PREINIT:
+        STRLEN         len;
+        unsigned char* bytes;
+        unsigned int   i;
+
+    CODE:
+        bytes  = (unsigned char*)SvPV(string, len);
+        for(i=0; i < len; i++) {
+            warn("'%c' \\x%x \\%d\n", bytes[i], bytes[i], bytes[i]);
+        }
+
+
 IV
 find_bad_ascii(string)
     SV* string;

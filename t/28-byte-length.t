@@ -27,5 +27,9 @@ is( $astr,         $bstr,         "eq test" );
 is( length($astr), length($bstr), "length test" );
 isnt( bytes::length($astr), bytes::length($bstr), "bytes::length test" );
 isnt( byte_length($astr),   byte_length($bstr),   "byte_length test" );
-diag($astr);
-diag($bstr);
+
+diag("astr: $astr");
+debug_bytes_in_string($astr);
+
+diag("bstr: $bstr");
+debug_bytes_in_string($bstr);

@@ -218,4 +218,4 @@ Revision history for Perl extension Search::HiLiter.
     * add support for wildcard at start of term in addition to end of term.
     * added looks_like_win1252() to UTF8 class and convert1252() to Transliterate.
     * fix off-by-one errors in find_bad_*_report and find_bad_* UTF8 functions.
-
+    * add debug_bytes_in_string() to UTF8 class.
