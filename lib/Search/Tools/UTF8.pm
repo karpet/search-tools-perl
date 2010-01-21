@@ -18,6 +18,7 @@ our @EXPORT = qw(
     find_bad_latin1
     find_bad_latin1_report
     byte_length
+    looks_like_win1252
 );
 
 our $Debug = ( $ENV{PERL_DEBUG} && $ENV{PERL_DEBUG} > 2 ) ? 1 : 0;
@@ -49,7 +50,7 @@ sub to_utf8 {
     my $c = Encode::decode( $charset, $str );
     $Debug and carp "converted $c";
 
-    unless ( is_sane_utf8($c, 1) ) {
+    unless ( is_sane_utf8( $c, 1 ) ) {
         carp "not sane: $c";
     }
 
@@ -126,6 +127,13 @@ sub find_bad_latin1_report {
         carp("byte $bad ($char) is not Latin1 (it's $dec dec / $hex hex)");
     }
     return $bad;
+}
+
+sub looks_like_win1252 {
+    if ( !is_latin1( $_[0] ) && !is_ascii( $_[0] ) ) {
+        return 1;
+    }
+    return 0;
 }
 
 1;
@@ -241,6 +249,15 @@ converting to UTF-8 if necessary. Returns I<text> encoded and flagged as UTF-8.
 
 Returns undef if for some reason the encoding failed or the result did not pass
 is_sane_utf8().
+
+=head2 looks_like_win1252( I<text> )
+
+Shorthand for !is_latin1(I<text>) && !is_ascii(I<text>). Basically this
+just tests that there are bytes set between B<0x80> and B<0x9f> inclusive.
+Those bytes are used by the Windows 1252 character set and include some
+of the troublesome characters like curly quotes.
+
+See also the Search::Tools::Transliterate convert1252() method.
 
 =head1 AUTHOR
 

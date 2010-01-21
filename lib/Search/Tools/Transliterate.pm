@@ -76,7 +76,15 @@ NOTE: The map() method is an accessor only. You can not pass in a new map.
 
 Returns UTF-8 I<text> converted with all single bytes, transliterated according
 to %Map. Will croak if I<text> is not valid UTF-8, so if in doubt, check first with
-is_valid_utf8() in Search::Tools::UTF8;
+is_valid_utf8() in Search::Tools::UTF8.
+
+=head2 convert1252( I<text> )
+
+Returns UTF-8 I<text> converted to all single byte characters,
+transliterated with convert() and the Windows 1252 characters in the range
+B<0x80> and B<0x9f> inclusive. The 1252 codepoints are converted first to
+their UTF-8 counterparts per http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT
+and then I<text> is run through convert().
 
 =head1 BUGS
 
@@ -241,6 +249,75 @@ sub convert {
     }
 
     return $newbuf;
+}
+
+my %win1252 = (
+    "\x80" => "\x{20AC}",    #EURO SIGN
+
+    #\x81	      	#UNDEFINED
+    "\x82" => "\x{201A}",    #SINGLE LOW-9 QUOTATION MARK
+    "\x83" => "\x{0192}",    #LATIN SMALL LETTER F WITH HOOK
+    "\x84" => "\x{201E}",    #DOUBLE LOW-9 QUOTATION MARK
+    "\x85" => "\x{2026}",    #HORIZONTAL ELLIPSIS
+    "\x86" => "\x{2020}",    #DAGGER
+    "\x87" => "\x{2021}",    #DOUBLE DAGGER
+    "\x88" => "\x{02C6}",    #MODIFIER LETTER CIRCUMFLEX ACCENT
+    "\x89" => "\x{2030}",    #PER MILLE SIGN
+    "\x8A" => "\x{0160}",    #LATIN CAPITAL LETTER S WITH CARON
+    "\x8B" => "\x{2039}",    #SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+    "\x8C" => "\x{0152}",    #LATIN CAPITAL LIGATURE OE
+
+    #\x8D	      	#UNDEFINED
+    "\x8E" => "\x{017D}",    #LATIN CAPITAL LETTER Z WITH CARON
+
+    #\x8F	      	#UNDEFINED
+    #\x90	      	#UNDEFINED
+    "\x91" => "\x{2018}",    #LEFT SINGLE QUOTATION MARK
+    "\x92" => "\x{2019}",    #RIGHT SINGLE QUOTATION MARK
+    "\x93" => "\x{201C}",    #LEFT DOUBLE QUOTATION MARK
+    "\x94" => "\x{201D}",    #RIGHT DOUBLE QUOTATION MARK
+    "\x95" => "\x{2022}",    #BULLET
+    "\x96" => "\x{2013}",    #EN DASH
+    "\x97" => "\x{2014}",    #EM DASH
+    "\x98" => "\x{02DC}",    #SMALL TILDE
+    "\x99" => "\x{2122}",    #TRADE MARK SIGN
+    "\x9A" => "\x{0161}",    #LATIN SMALL LETTER S WITH CARON
+    "\x9B" => "\x{203A}",    #SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+    "\x9C" => "\x{0153}",    #LATIN SMALL LIGATURE OE
+
+    #\x9D	      	#UNDEFINED
+    "\x9E" => "\x{017E}",    #LATIN SMALL LETTER Z WITH CARON
+    "\x9F" => "\x{0178}",    #LATIN CAPITAL LETTER Y WITH DIAERESIS
+
+);
+
+sub convert1252 {
+    my ( $self, $buf ) = @_;
+    my $newbuf = '';
+
+    # don't bother unless we have non-ascii bytes
+    return $buf if is_ascii($buf);
+
+    $self->debug and warn "converting $buf\n";
+    while ( $buf =~ m/(.)/gox ) {
+        my $char = $1;
+        $self->debug and warn "$char\n";
+        if ( is_ascii($char) ) {
+            $self->debug and warn "$char is_ascii\n";
+            $newbuf .= $char;
+        }
+        elsif ( exists $win1252{$char} ) {
+            $self->debug and warn "$char is win1252\n";
+            $newbuf .= $win1252{$char};
+        }
+        else {
+            $self->debug and warn "append $char\n";
+            $newbuf .= $char;
+        }
+
+    }
+
+    return $self->convert($newbuf);
 }
 
 1;
