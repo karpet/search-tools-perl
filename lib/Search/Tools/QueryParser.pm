@@ -12,7 +12,7 @@ use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;
@@ -146,7 +146,7 @@ sub _extract_terms {
     }
 
     my $esc_wildcard = quotemeta($wildcard);
-    my $word_re      = qr/([$wordchar]+($esc_wildcard)?)/;
+    my $word_re      = qr/(($esc_wildcard)?[$wordchar]+($esc_wildcard)?)/;
 
     # backcompat allows for query to be array ref.
     # this called only from S::T::Keywords

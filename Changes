@@ -214,4 +214,6 @@ Revision history for Perl extension Search::HiLiter.
 0.37   06 Dec 2009
     * fix blead perl REGEXP change for Perls >= 5.11. [r2330]
 
+0.38   xxx
+    * add support for wildcard at start of term in addition to end of term.
 
