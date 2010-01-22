@@ -36,9 +36,9 @@ sub to_utf8 {
         return $str;
     }
     if ( is_valid_utf8($str) ) {
-        Encode::_utf8_on($str);
+        my $newstr = Encode::decode_utf8($str, 1);
         $Debug and carp "string '$str' is valid utf8; utf8 flag turned on";
-        return $str;
+        return $newstr;
     }
     if ( is_ascii($str) ) {
         Encode::_utf8_on($str);

@@ -1,4 +1,4 @@
-use Test::More tests => 26;
+use Test::More tests => 27;
 
 BEGIN { use_ok('Search::Tools::UTF8') }
 
@@ -64,3 +64,6 @@ my $win1252 = "Euro sign = \x{80}";
 ok( my $bad_latin1 = find_bad_latin1_report($win1252),
     "find bad latin1 in win1252" );
 is( $bad_latin1, 12, "find bad latin1 bytes in win1252 string" );
+
+my $more1252 = "what\x92s a person";
+ok( !is_valid_utf8($more1252), "$more1252 is not valid utf8" );
