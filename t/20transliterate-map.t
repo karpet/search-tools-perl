@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use strict;
-use Test::More tests => 7;
+use Test::More tests => 9;
 use Data::Dump qw( dump );
 use Search::Tools::Transliterate;
 use Search::Tools::UTF8;
@@ -40,8 +40,8 @@ is( $tr3->map->{"\x{0218}"}, 'Ş', "ebit 1 3rd instance" );
 # win1252
 
 #$tr->debug(1);
-my $win1252 = "a\x{80}b\x{82}c\x{83}d\x{91}e\x{92}f\x{93}g";
-my $utf8_not_1252 = to_utf8("\xcf");    # \xc3\x8f
+my $win1252       = "a\x{80}b\x{82}c\x{83}d\x{91}e\x{92}f\x{93}g";
+my $utf8_not_1252 = to_utf8("\xcf");                                # \xc3\x8f
 ok( looks_like_win1252($win1252),        "looks_like_win1252" );
 ok( !looks_like_win1252($utf8_not_1252), "utf8 string !looks_like_win1252" );
 ok( my $win1252_conv = $tr->convert1252($win1252), "convert1252" );
@@ -53,6 +53,17 @@ ok( my $win1252_conv = $tr->convert1252($win1252), "convert1252" );
 
 #diag( dump $win1252_conv );
 is( $win1252_conv, qq{aEURb'cfd'e'f"g}, "transliterate 1252" );
+
+my $more1252 = "what\x92s a person";
+
+#dump( $more1252 );
+ok( my $more1252_conv = $tr->convert1252($more1252), "convert more1252" );
+is( $more1252_conv, "what's a person", "transliterate more1252" );
+
+#diag("more1252");
+#debug_bytes($more1252);
+#diag("more1252_conv");
+#debug_bytes($more1252_conv);
 
 1;
 
