@@ -29,7 +29,7 @@ isnt( bytes::length($astr), bytes::length($bstr), "bytes::length test" );
 isnt( byte_length($astr),   byte_length($bstr),   "byte_length test" );
 
 diag("astr: $astr");
-debug_bytes_in_string($astr);
+debug_bytes($astr);
 
 diag("bstr: $bstr");
-debug_bytes_in_string($bstr);
+debug_bytes($bstr);

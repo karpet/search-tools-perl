@@ -19,7 +19,7 @@ our @EXPORT = qw(
     find_bad_latin1_report
     byte_length
     looks_like_win1252
-    debug_bytes_in_string
+    debug_bytes
 );
 
 our $Debug = ( $ENV{PERL_DEBUG} && $ENV{PERL_DEBUG} > 2 ) ? 1 : 0;
@@ -133,7 +133,7 @@ sub find_bad_latin1_report {
 sub looks_like_win1252 {
     if (   !is_latin1( $_[0] )
         && !is_ascii( $_[0] )
-        && $_[0] =~ m/[\x80-\x9f]/ )
+        && $_[0] =~ m/[\x00-\x7f]?[\x80-\x9f][\x00-\x7f]?/ )
     {
         return 1;
     }
@@ -263,7 +263,7 @@ of the troublesome characters like curly quotes.
 
 See also the Search::Tools::Transliterate convert1252() method.
 
-=head2 debug_bytes_in_string( I<text> )
+=head2 debug_bytes( I<text> )
 
 Iterates over each byte in I<text>, printing byte, hex and decimal values
 to stderr.

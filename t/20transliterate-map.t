@@ -40,17 +40,19 @@ is( $tr3->map->{"\x{0218}"}, 'Ş', "ebit 1 3rd instance" );
 # win1252
 
 #$tr->debug(1);
-my $win1252 = "\xcf\x80\x82\x83\x91\x92\x93\x94\x9f";
-my $utf8_not_1252 = to_utf8("\xcf");  # \xc3\x8f
-ok( looks_like_win1252($win1252), "looks_like_win1252" );
-ok( !looks_like_win1252($utf8_not_1252), "utf8 string !looks_like_win1252");
+my $win1252 = "a\x{80}b\x{82}c\x{83}d\x{91}e\x{92}f\x{93}g";
+my $utf8_not_1252 = to_utf8("\xcf");    # \xc3\x8f
+ok( looks_like_win1252($win1252),        "looks_like_win1252" );
+ok( !looks_like_win1252($utf8_not_1252), "utf8 string !looks_like_win1252" );
 ok( my $win1252_conv = $tr->convert1252($win1252), "convert1252" );
 
-#debug_bytes_in_string($win1252);
-#debug_bytes_in_string($utf8_not_1252);
+#diag("win1252");
+#debug_bytes($win1252_conv);
+
+#debug_bytes($utf8_not_1252);
 
 #diag( dump $win1252_conv );
-is( $win1252_conv, qq{IEUR'f''""Y}, "transliterate 1252" );
+is( $win1252_conv, qq{aEURb'cfd'e'f"g}, "transliterate 1252" );
 
 1;
 

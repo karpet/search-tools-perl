@@ -130,7 +130,7 @@ is_latin1(string)
 
 
 void
-debug_bytes_in_string(string)
+debug_bytes(string)
     SV* string;
 
     PREINIT:
