@@ -131,7 +131,10 @@ sub find_bad_latin1_report {
 }
 
 sub looks_like_win1252 {
-    if ( !is_latin1( $_[0] ) && !is_ascii( $_[0] ) ) {
+    if (   !is_latin1( $_[0] )
+        && !is_ascii( $_[0] )
+        && $_[0] =~ m/[\x80-\x9f]/ )
+    {
         return 1;
     }
     return 0;

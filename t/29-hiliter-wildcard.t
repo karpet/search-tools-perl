@@ -17,5 +17,5 @@ for my $str (qw( *mythyl mythyl* *mythyl* fancy )) {
         "new hiliter" );
     my $html_copy = $html;
     ok( my $hilited = $hiliter->light($html_copy), "light()" );
-    warn($hilited . "\n");
+    #warn($hilited . "\n");
 }
