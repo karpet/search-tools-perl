@@ -242,7 +242,7 @@ sub convert {
             $newbuf .= ' ';
         }
         else {
-            $self->debug and warn "transliterate $char\n";
+            $self->debug and warn "transliterate $char => $map->{$char}\n";
             $newbuf .= $map->{$char};
         }
 
