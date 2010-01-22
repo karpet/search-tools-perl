@@ -1,4 +1,7 @@
-use Test::More tests => 27;
+#!/usr/bin/env perl
+
+use strict;
+use Test::More tests => 32;
 
 BEGIN { use_ok('Search::Tools::UTF8') }
 
@@ -59,11 +62,39 @@ my $five10utf8v2 = to_utf8("bar");
 my %test2hash = ( $five10utf8v2 => 1 );
 ok( exists $test2hash{"bar"}, "utf8 downgrade hash key" );
 
-# win1252 chars
-my $win1252 = "Euro sign = \x{80}";
-ok( my $bad_latin1 = find_bad_latin1_report($win1252),
-    "find bad latin1 in win1252" );
-is( $bad_latin1, 12, "find bad latin1 bytes in win1252 string" );
+# cp1252 chars
+my $cp1252 = "Euro sign = \x{80}";
+ok( my $bad_latin1 = find_bad_latin1_report($cp1252),
+    "find bad latin1 in cp1252" );
+is( $bad_latin1, 12, "find bad latin1 bytes in cp1252 string" );
 
-my $more1252 = "what\x92s a person";
-ok( !is_valid_utf8($more1252), "$more1252 is not valid utf8" );
+my $more1252 = "what\xc2\x92s a person";
+my $more1252_1252 = Encode::decode( 'cp1252', $more1252 );
+
+#Search::Tools::describe( \$more1252 );
+#Search::Tools::describe( \$more1252_1252 );
+ok( is_valid_utf8($more1252),       "$more1252 is valid utf8" );
+ok( looks_like_cp1252($more1252),   "$more1252 looks like 1252" );
+ok( is_perl_utf8_string($more1252), "$more1252 is_perl_utf8_string" );
+my $more1252_utf8 = to_utf8($more1252);
+ok( is_perl_utf8_string($more1252_utf8),
+    "more1252_utf8 is_perl_utf8_string" );
+
+#Search::Tools::describe( \$more1252_utf8 );
+
+#$Search::Tools::UTF8::Debug = 1;
+ok( my $more1252_fixed = fix_cp1252_codepoints_in_utf8($more1252),
+    "fix_cp1252_codepoints_in_utf8" );
+
+is( $more1252_fixed, to_utf8("what\x{2019}s a person"), "fix 1252" );
+
+#$Search::Tools::UTF8::Debug = 0;
+
+diag("more1252 $more1252");
+debug_bytes($more1252);
+diag("more1252_utf8 $more1252_utf8");
+debug_bytes($more1252_utf8);
+diag("more1252_1252 $more1252_1252");
+debug_bytes($more1252_1252);
+diag("more1252_fixed $more1252_fixed");
+debug_bytes($more1252_fixed);

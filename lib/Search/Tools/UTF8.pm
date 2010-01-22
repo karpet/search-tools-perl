@@ -10,6 +10,7 @@ our @EXPORT = qw(
     to_utf8
     is_valid_utf8
     is_flagged_utf8
+    is_perl_utf8_string
     is_ascii
     is_latin1
     is_sane_utf8
@@ -18,7 +19,8 @@ our @EXPORT = qw(
     find_bad_latin1
     find_bad_latin1_report
     byte_length
-    looks_like_win1252
+    looks_like_cp1252
+    fix_cp1252_codepoints_in_utf8
     debug_bytes
 );
 
@@ -36,7 +38,7 @@ sub to_utf8 {
         return $str;
     }
     if ( is_valid_utf8($str) ) {
-        my $newstr = Encode::decode_utf8($str, 1);
+        my $newstr = Encode::decode_utf8( $str, 1 );
         $Debug and carp "string '$str' is valid utf8; utf8 flag turned on";
         return $newstr;
     }
@@ -130,7 +132,7 @@ sub find_bad_latin1_report {
     return $bad;
 }
 
-sub looks_like_win1252 {
+sub looks_like_cp1252 {
     if (   !is_latin1( $_[0] )
         && !is_ascii( $_[0] )
         && $_[0] =~ m/[\x00-\x7f]?[\x80-\x9f][\x00-\x7f]?/ )
@@ -138,6 +140,55 @@ sub looks_like_win1252 {
         return 1;
     }
     return 0;
+}
+
+my %win1252 = (
+    "\x80" => "\x{20AC}",    #EURO SIGN
+    "\x81" => '',            #UNDEFINED
+    "\x82" => "\x{201A}",    #SINGLE LOW-9 QUOTATION MARK
+    "\x83" => "\x{0192}",    #LATIN SMALL LETTER F WITH HOOK
+    "\x84" => "\x{201E}",    #DOUBLE LOW-9 QUOTATION MARK
+    "\x85" => "\x{2026}",    #HORIZONTAL ELLIPSIS
+    "\x86" => "\x{2020}",    #DAGGER
+    "\x87" => "\x{2021}",    #DOUBLE DAGGER
+    "\x88" => "\x{02C6}",    #MODIFIER LETTER CIRCUMFLEX ACCENT
+    "\x89" => "\x{2030}",    #PER MILLE SIGN
+    "\x8A" => "\x{0160}",    #LATIN CAPITAL LETTER S WITH CARON
+    "\x8B" => "\x{2039}",    #SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+    "\x8C" => "\x{0152}",    #LATIN CAPITAL LIGATURE OE
+    "\x8D" => '',            #UNDEFINED
+    "\x8E" => "\x{017D}",    #LATIN CAPITAL LETTER Z WITH CARON
+    "\x8F" => '',            #UNDEFINED
+    "\x90" => '',            #UNDEFINED
+    "\x91" => "\x{2018}",    #LEFT SINGLE QUOTATION MARK
+    "\x92" => "\x{2019}",    #RIGHT SINGLE QUOTATION MARK
+    "\x93" => "\x{201C}",    #LEFT DOUBLE QUOTATION MARK
+    "\x94" => "\x{201D}",    #RIGHT DOUBLE QUOTATION MARK
+    "\x95" => "\x{2022}",    #BULLET
+    "\x96" => "\x{2013}",    #EN DASH
+    "\x97" => "\x{2014}",    #EM DASH
+    "\x98" => "\x{02DC}",    #SMALL TILDE
+    "\x99" => "\x{2122}",    #TRADE MARK SIGN
+    "\x9A" => "\x{0161}",    #LATIN SMALL LETTER S WITH CARON
+    "\x9B" => "\x{203A}",    #SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+    "\x9C" => "\x{0153}",    #LATIN SMALL LIGATURE OE
+    "\x9D" => '',            #UNDEFINED
+    "\x9E" => "\x{017E}",    #LATIN SMALL LETTER Z WITH CARON
+    "\x9F" => "\x{0178}",    #LATIN CAPITAL LETTER Y WITH DIAERESIS
+
+);
+
+# fix_latin (used in Transliterate) lacks the check for the
+# prefixed \xc2 byte, but the UTF-8 encoding for these
+# Windows codepoints has the leading \xc2 byte.
+sub fix_cp1252_codepoints_in_utf8 {
+    my $buf = shift;
+    if (!is_valid_utf8($buf)) {
+        croak "Invalid UTF8: $buf";
+    }
+    $Debug and warn "converting $buf\n";
+    $buf =~ s/\xc2([\x80-\x9f])/$win1252{$1}/g;
+    return $buf;
 }
 
 1;
@@ -254,14 +305,26 @@ converting to UTF-8 if necessary. Returns I<text> encoded and flagged as UTF-8.
 Returns undef if for some reason the encoding failed or the result did not pass
 is_sane_utf8().
 
-=head2 looks_like_win1252( I<text> )
+=head2 looks_like_cp1252( I<text> )
 
 Shorthand for !is_latin1(I<text>) && !is_ascii(I<text>). Basically this
 just tests that there are bytes set between B<0x80> and B<0x9f> inclusive.
-Those bytes are used by the Windows 1252 character set and include some
+Those bytes are used by the Windows-1252 character set and include some
 of the troublesome characters like curly quotes.
 
 See also the Search::Tools::Transliterate convert1252() method.
+
+=head2 fix_cp1252_codepoints_in_utf8( I<text> )
+
+The Windows-1252 codepoints between B<0x80> and B<0x9f> may be encoded
+validly as UTF-8 but the Unicode standard does not map any characters
+at those codepoints. fix_cp1252_codepoints_in_utf8() converts
+a UTF-8 encoded string I<text> to map the suspect 1252 codepoints to
+their correct Unicode representations.
+
+Note that fix_cp1252_codepoints_in_utf8() is different from the fix_latin()
+function used in Transliterate, which does not differentiate between
+a Windows-1252 encoded string and a UTF-8 encoded string.
 
 =head2 debug_bytes( I<text> )
 

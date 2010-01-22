@@ -87,7 +87,7 @@ B<0x80> and B<0x9f> inclusive. The 1252 codepoints are converted first to
 their UTF-8 counterparts per http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT
 using Encoding::FixLatin and then I<text> is run through convert().
 
-Note that I<text> is checked with the looks_like_win1252() function from
+Note that I<text> is checked with the looks_like_cp1252() function from
 Search::Tools::UTF8 before calling fix_latin().
 
 =head1 BUGS
@@ -262,7 +262,7 @@ sub convert1252 {
     return $buf if is_ascii($buf);
 
     $self->debug and warn "converting $buf\n";
-    my $newbuf = looks_like_win1252($buf) ? fix_latin($buf) : $buf;
+    my $newbuf = looks_like_cp1252($buf) ? fix_latin($buf) : $buf;
     return $self->convert($newbuf);
 }
 
