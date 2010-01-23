@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
-use Test::More tests => 32;
+use Test::More tests => 34;
 
 BEGIN { use_ok('Search::Tools::UTF8') }
 
@@ -68,33 +68,59 @@ ok( my $bad_latin1 = find_bad_latin1_report($cp1252),
     "find bad latin1 in cp1252" );
 is( $bad_latin1, 12, "find bad latin1 bytes in cp1252 string" );
 
-my $more1252 = "what\xc2\x92s a person";
-my $more1252_1252 = Encode::decode( 'cp1252', $more1252 );
+#####################################################################
+#
+# cp1252 tests
+#
 
-#Search::Tools::describe( \$more1252 );
-#Search::Tools::describe( \$more1252_1252 );
-ok( is_valid_utf8($more1252),       "$more1252 is valid utf8" );
-ok( looks_like_cp1252($more1252),   "$more1252 looks like 1252" );
-ok( is_perl_utf8_string($more1252), "$more1252 is_perl_utf8_string" );
-my $more1252_utf8 = to_utf8($more1252);
-ok( is_perl_utf8_string($more1252_utf8),
-    "more1252_utf8 is_perl_utf8_string" );
+my $cp1251_codepoints      = "what\x92s a person";
+my $cp1251_codepoints_utf8 = "what\xc2\x92s a person";
+my $cp1251_codepoints_utf8_decoded
+    = Encode::decode( 'cp1252', $cp1251_codepoints_utf8 );
+
+#Search::Tools::describe( \$cp1251_codepoints_utf8 );
+#Search::Tools::describe( \$cp1251_codepoints_utf8_decoded );
+ok( is_valid_utf8($cp1251_codepoints_utf8),
+    "$cp1251_codepoints_utf8 is valid utf8"
+);
+ok( looks_like_cp1252($cp1251_codepoints_utf8),
+    "$cp1251_codepoints_utf8 looks like 1252"
+);
+ok( looks_like_cp1252($cp1251_codepoints),
+    "real cp1252 encoded string looks like it"
+);
+ok( is_perl_utf8_string($cp1251_codepoints_utf8),
+    "$cp1251_codepoints_utf8 is_perl_utf8_string"
+);
+my $cp1251_codepoints_utf8_double = to_utf8($cp1251_codepoints_utf8);
+ok( is_perl_utf8_string($cp1251_codepoints_utf8_double),
+    "cp1251_codepoints_utf8_double is_perl_utf8_string"
+);
 
 #Search::Tools::describe( \$more1252_utf8 );
 
 #$Search::Tools::UTF8::Debug = 1;
-ok( my $more1252_fixed = fix_cp1252_codepoints_in_utf8($more1252),
-    "fix_cp1252_codepoints_in_utf8" );
+ok( my $cp1251_codepoints_utf8_fixed
+        = fix_cp1252_codepoints_in_utf8($cp1251_codepoints_utf8),
+    "fix_cp1252_codepoints_in_utf8"
+);
 
-is( $more1252_fixed, to_utf8("what\x{2019}s a person"), "fix 1252" );
+is( $cp1251_codepoints_utf8_fixed, to_utf8("what\x{2019}s a person"),
+    "fix 1252" );
+is( $cp1251_codepoints_utf8_fixed,
+    to_utf8( $cp1251_codepoints, 'cp1252' ),
+    "cp1251_codepoints_utf8_fixed cmp to_utf8(\$cp1251_codepoints, cp1252)"
+);
 
 #$Search::Tools::UTF8::Debug = 0;
 
-diag("more1252 $more1252");
-debug_bytes($more1252);
-diag("more1252_utf8 $more1252_utf8");
-debug_bytes($more1252_utf8);
-diag("more1252_1252 $more1252_1252");
-debug_bytes($more1252_1252);
-diag("more1252_fixed $more1252_fixed");
-debug_bytes($more1252_fixed);
+if ( $ENV{PERL_TEST} ) {
+    diag("cp1251_codepoints_utf8 $cp1251_codepoints_utf8");
+    debug_bytes($cp1251_codepoints_utf8);
+    diag("cp1251_codepoints_utf8_double $cp1251_codepoints_utf8_double");
+    debug_bytes($cp1251_codepoints_utf8_double);
+    diag("cp1251_codepoints_utf8_decoded $cp1251_codepoints_utf8_decoded");
+    debug_bytes($cp1251_codepoints_utf8_decoded);
+    diag("cp1251_codepoints_utf8_fixed $cp1251_codepoints_utf8_fixed");
+    debug_bytes($cp1251_codepoints_utf8_fixed);
+}

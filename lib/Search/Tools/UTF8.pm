@@ -5,6 +5,7 @@ use Carp;
 use Search::Tools;    # XS stuff
 use Encode;
 use charnames ':full';
+use Data::Dump qw( dump );
 use base qw( Exporter );
 our @EXPORT = qw(
     to_utf8
@@ -135,7 +136,7 @@ sub find_bad_latin1_report {
 sub looks_like_cp1252 {
     if (   !is_latin1( $_[0] )
         && !is_ascii( $_[0] )
-        && $_[0] =~ m/[\x00-\x7f]?[\x80-\x9f][\x00-\x7f]?/ )
+        && $_[0] =~ m/[\x80-\x9f]/ )
     {
         return 1;
     }
@@ -183,8 +184,9 @@ my %win1252 = (
 # Windows codepoints has the leading \xc2 byte.
 sub fix_cp1252_codepoints_in_utf8 {
     my $buf = shift;
-    if (!is_valid_utf8($buf)) {
-        croak "Invalid UTF8: $buf";
+    unless ( is_valid_utf8($buf) ) {
+        my $badbyte = find_bad_utf8($buf);
+        croak "bad UTF-8 byte(s) at $badbyte [ " . dump($buf) . " ]";
     }
     $Debug and warn "converting $buf\n";
     $buf =~ s/\xc2([\x80-\x9f])/$win1252{$1}/g;
@@ -307,12 +309,13 @@ is_sane_utf8().
 
 =head2 looks_like_cp1252( I<text> )
 
-Shorthand for !is_latin1(I<text>) && !is_ascii(I<text>). Basically this
-just tests that there are bytes set between B<0x80> and B<0x9f> inclusive.
+This function tests that there are bytes in I<text>
+between B<0x80> and B<0x9f> inclusive.
 Those bytes are used by the Windows-1252 character set and include some
 of the troublesome characters like curly quotes.
 
-See also the Search::Tools::Transliterate convert1252() method.
+See also fix_cp1252_codepoints_in_utf8()
+and the Search::Tools::Transliterate convert1252() method.
 
 =head2 fix_cp1252_codepoints_in_utf8( I<text> )
 
@@ -325,6 +328,8 @@ their correct Unicode representations.
 Note that fix_cp1252_codepoints_in_utf8() is different from the fix_latin()
 function used in Transliterate, which does not differentiate between
 a Windows-1252 encoded string and a UTF-8 encoded string.
+
+This function will croak if I<text> does not pass is_valid_utf8().
 
 =head2 debug_bytes( I<text> )
 
