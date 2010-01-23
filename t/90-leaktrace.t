@@ -8,15 +8,22 @@ use Test::LeakTrace;
 
 use Search::Tools::Snipper;
 
-leaks_cmp_ok {
-    my $snipper
-        = Search::Tools::Snipper->new( query => 'three', max_chars => 1 );
-}
-'<', 1;
+SKIP: {
 
-leaks_cmp_ok {
-    my $snipper
-        = Search::Tools::Snipper->new( query => 'three', max_chars => 1 );
-    my $snip = $snipper->snip('one two three four five');
+    skip "set TEST_LEAKS to test", 2
+        unless $ENV{TEST_LEAKS};
+
+    leaks_cmp_ok {
+        my $snipper
+            = Search::Tools::Snipper->new( query => 'three', max_chars => 1 );
+    }
+    '<', 1;
+
+    leaks_cmp_ok {
+        my $snipper
+            = Search::Tools::Snipper->new( query => 'three', max_chars => 1 );
+        my $snip = $snipper->snip('one two three four five');
+    }
+    '<', 1;
+
 }
-'<', 1;
