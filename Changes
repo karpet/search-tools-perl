@@ -214,7 +214,7 @@ Revision history for Perl extension Search::HiLiter.
 0.37   06 Dec 2009
     * fix blead perl REGEXP change for Perls >= 5.11. [r2330]
 
-0.38   xxx
+0.38   22 Jan 2009
     * add support for wildcard at start of term in addition to end of term.
     * added Windows-1252 (cp1252) encoding helpers.
     * added Encoding::FixLatin as a dependency.
