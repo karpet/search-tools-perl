@@ -83,9 +83,13 @@ is_valid_utf8() in Search::Tools::UTF8.
 
 Returns UTF-8 I<text> converted to all single byte characters,
 transliterated with convert() and the Windows 1252 characters in the range
-B<0x80> and B<0x9f> inclusive. The 1252 codepoints are converted first to
-their UTF-8 counterparts per http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT
-using Encoding::FixLatin and then I<text> is run through convert().
+B<0x80> and B<0x9f> inclusive. 
+
+The 1252 codepoints are converted first to
+their UTF-8 counterparts per 
+http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT
+using Encoding::FixLatin::fix_latin() and then 
+I<text> is run through convert().
 
 Note that I<text> is checked with the looks_like_cp1252() function from
 Search::Tools::UTF8 before calling fix_latin().
@@ -149,14 +153,14 @@ L<http://search.cpan.org/dist/Search-Tools/>
 
 =head1 COPYRIGHT
 
-Copyright 2006-2009 by Peter Karman.
+Copyright 2006-2010 by Peter Karman.
 
 This package is free software; you can redistribute it and/or modify it under the 
 same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::Tools::UTF8, Unicode::Map, Encode, Test::utf8
+Search::Tools::UTF8, Unicode::Map, Encode, Test::utf8, Encoding::FixLatin
 
 =cut
 
