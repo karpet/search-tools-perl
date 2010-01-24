@@ -4,7 +4,7 @@ use warnings;
 use base qw( Search::Tools::Object );
 use Carp;
 use Data::Dump qw( dump );
-use Search::QueryParser;
+use Search::Query::Parser;
 use Encode;
 use Data::Dump;
 use Search::Tools::Query;
@@ -12,7 +12,7 @@ use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;
@@ -53,6 +53,7 @@ my %Defaults = (
     treat_uris_like_phrases => 1,
     query_class             => 'Search::Tools::Query',
     default_field           => "",
+    query_dialect           => "Search::Query::Dialect::Native",
 );
 
 __PACKAGE__->mk_accessors( keys %Defaults );
@@ -119,11 +120,11 @@ sub parse {
         );
     }
     return $self->{query_class}->new(
-        search_queryparser => $extracted->{parser},
-        terms              => $extracted->{terms},
-        str                => to_utf8( $query_str, $self->charset ),
-        regex              => \%regex,
-        qp                 => $self,
+        dialect => $extracted->{dialect},
+        terms   => $extracted->{terms},
+        str     => to_utf8( $query_str, $self->charset ),
+        regex   => \%regex,
+        qp      => $self,
     );
 }
 
@@ -140,14 +141,8 @@ sub _extract_terms {
     my $igl           = $self->ignore_last_char;
     my $wordchar      = $self->word_characters;
     my $default_field = $self->default_field;
-
-    if ( length($default_field) && $Search::QueryParser::VERSION le 0.93 ) {
-        carp
-            "upgrade Search::QueryParser to 0.94 or later to use default_field.";
-    }
-
-    my $esc_wildcard = quotemeta($wildcard);
-    my $word_re      = qr/(($esc_wildcard)?[$wordchar]+($esc_wildcard)?)/;
+    my $esc_wildcard  = quotemeta($wildcard);
+    my $word_re       = qr/(($esc_wildcard)?[$wordchar]+($esc_wildcard)?)/;
 
     # backcompat allows for query to be array ref.
     # this called only from S::T::Keywords
@@ -156,19 +151,22 @@ sub _extract_terms {
     $stopwords = [ split( /\s+/, $stopwords ) ] unless ref $stopwords;
     my %stophash = map { to_utf8( lc($_), $self->charset ) => 1 } @$stopwords;
     my ( %words, %uniq, $c );
-    my $parser = Search::QueryParser->new(
+    my $parser = Search::Query::Parser->new(
         rxAnd    => qr{$and_word}i,
         rxOr     => qr{$or_word}i,
         rxNot    => qr{$not_word}i,
         defField => $default_field,
     );
 
+    my $dialect = $self->query_dialect->new;
+
 Q: for my $q (@query) {
         $q = lc($q) if $self->ignore_case;
         $q = to_utf8( $q, $self->charset );
-        my $tree = $parser->parse( $q, 1 ) or croak $parser->err;
-        $self->debug && carp "parsetree: " . Data::Dump::dump($tree);
-        $self->_get_value_from_tree( \%uniq, $tree, $c );
+        my $clause = $parser->parse($q) or croak $parser->err;
+        $self->debug && carp "parsetree: " . Data::Dump::dump($clause);
+        $self->_get_value_from_tree( \%uniq, $clause->tree, $c );
+        $dialect->add_sub_clause($clause);
     }
 
     $self->debug && carp "parsed: " . Data::Dump::dump( \%uniq );
@@ -320,9 +318,9 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
     # sort keeps query in same order as we entered
     return {
-        terms  => [ sort     { $words{$a} <=> $words{$b} } keys %words ],
-        parser => $parser,
-        query  => join( ' ', @query ),
+        terms   => [ sort     { $words{$a} <=> $words{$b} } keys %words ],
+        dialect => $dialect,
+        query   => join( ' ', @query ),
     };
 
 }
@@ -604,7 +602,7 @@ Search::Tools::QueryParser - convert string queries into objects
  my $query    = $qparser->parse(q(the quick color:brown "fox jumped"));
  my $terms = $query->terms; # ['quick', 'brown', '"fox jumped"']
  my $regexp   = $query->regexp_for($terms->[0]); # S::T::R::Keyword
- my $tree     = $query->tree; # the Search::QueryParser-parsed struct
+ my $tree     = $query->tree; # the Search::Query::Dialect tree()
  print "$query\n";  # the quick color:brown "fox jumped"
  print $query->str . "\n"; # same thing
  
@@ -715,11 +713,8 @@ would parse the query:
 
 =head2 default_field
 
-B<NOTE:> This feature depends upon a not-yet-released patch to
-Search::QueryParser. It's a no-op at present.
-
 Set the default field to be used in parsing the query, if no field
-is specified. The default is the empty string (the Search::QueryParser
+is specified. The default is the empty string (the Search::Query::Parser
 default).
 
 =head2 treat_uris_like_phrases
@@ -763,6 +758,11 @@ extracted from C<locale> or defaults to C<iso-8859-1>.
 
 The default is C<Search::Tools::Query> but you can set your own to subclass
 the Query object.
+
+=head2 query_dialect
+
+The default is C<Search::Query::Dialect::Native> but you can set your own.
+See the L<Search::Query::Dialect> documentation.
 
 =head1 LIMITATIONS
 
@@ -819,4 +819,4 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::QueryParser
+Search::Query::Parser

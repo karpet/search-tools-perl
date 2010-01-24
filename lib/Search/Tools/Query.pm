@@ -10,12 +10,12 @@ use Carp;
 use Data::Dump qw( dump );
 use Search::Tools::RegEx;
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
         terms
-        search_queryparser
+        dialect
         str
         regex
         qp
@@ -33,7 +33,7 @@ Search::Tools::Query - objectified string for highlighting, snipping, etc.
  my $query    = $qparser->parse(q(the quick color:brown "fox jumped"));
  my $terms    = $query->terms; # ['quick', 'brown', '"fox jumped"']
  my $regex    = $query->regex_for($terms->[0]); # S::T::RegEx
- my $tree     = $query->tree; # the Search::QueryParser-parsed struct
+ my $tree     = $query->tree; # the Search::Query::Dialect tree()
  print "$query\n";  # the quick color:brown "fox jumped"
  print $query->str . "\n"; # same thing
 
@@ -61,10 +61,6 @@ then only C<foo> is returned. Likewise:
  
 would return only C<foo>.
 
-=head2 search_queryparser
-
-The Search::QueryParser object used to parse the original string.
-
 =head2 str
 
 The original string.
@@ -72,6 +68,11 @@ The original string.
 =head2 regex
 
 The hash ref of terms to Search::Tools::RegEx objects.
+
+=head2 dialect
+
+The internal Search::Query::Dialect object. See tree()
+and str_clean() which delegate to the dialect object.
 
 =head2 qp
 
@@ -105,7 +106,6 @@ sub from_regexp_keywords {
         terms              => $rekw->{array},
         regex              => $regex,
         str                => $rekw->{kw}->{query},
-        search_queryparser => $rekw->{kw}->{parser},
         qp                 => $rekw->{kw},
     );
     return $self;
@@ -123,26 +123,24 @@ sub num_terms {
 
 =head2 tree
 
-Returns the Search::QueryParser->parse() of the original query str().
+Returns the internal Search::Query::Dialect tree().
 
 =cut
 
 sub tree {
     my $self = shift;
-    my $q    = $self->str;
-    return $self->search_queryparser->parse( $q, 1 );
+    return $self->dialect->tree();
 }
 
 =head2 str_clean
 
-Returns the Search::QueryParser->unparse() of tree().
+Returns the internal Search::Query::Dialect stringify().
 
 =cut
 
 sub str_clean {
     my $self = shift;
-    my $tree = $self->tree;
-    return $self->search_queryparser->unparse($tree);
+    return $self->dialect->stringify();
 }
 
 =head2 regex_for(I<term>)
@@ -257,4 +255,4 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Search::QueryParser
+Search::Query::Dialect

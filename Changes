@@ -220,3 +220,7 @@ Revision history for Perl extension Search::HiLiter.
     * added Encoding::FixLatin as a dependency.
     * fix off-by-one errors in find_bad_*_report and find_bad_* UTF8 functions.
     * add debug_bytes() to UTF8 class.
+
+0.39   xxx
+    * switch from Search::QueryParser to Search::Query::Parser.
+
