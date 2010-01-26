@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 17;
 use Data::Dump qw( dump );
 use File::Slurp;
 
@@ -60,17 +60,13 @@ of squiggle this and squiggle that,
 type man! type! until you've reached
 enough words to justify your paltry existence.
 amen.
-when in the course of human events
-you need to create a test to prove that
-your code isn't just a silly mishmash
-of squiggle this and squiggle that,
-type man! type! until you've reached
-enough words to justify your paltry existence.
-amen.
+consider the lilies. do they toil or spin?
+yet they do not speak either, nor write. which
+means that they do not generate text worth snipping.
 EOF
 
 my $excerpt
-    = qq{type man! type! until you've reached enough words to justify your paltry existence. amen. when in the course of human events you need to create a test};
+    = qq{type man! type! until you've reached enough words to justify your paltry existence. amen. consider the lilies. do they toil or spin?};
 
 my $query        = Search::Tools->parser->parse('amen');
 my $snip_excerpt = Search::Tools::Snipper->new(
@@ -97,9 +93,34 @@ like( $snip_excerpt->snip($text2), qr/$excerpt/,
 diag( $snip_excerpt->type_used );
 
 is( $snip_title->snip($text2),
-    qq{ ... justify your paltry existence. amen. when in the course ... },
+    qq{ ... justify your paltry existence. amen. consider the lilies. do ... },
     "8 context"
 );
 diag( $snip_title->type_used );
 
 like( $snip_pp->snip($text2), qr/$excerpt/, "excerpt context" );
+
+############
+# phrases
+my $phrased = '"reached heaven" perjury';
+ok( my $strict_phrase_snipper = Search::Tools::Snipper->new(
+        query                    => $phrased,
+        treat_phrases_as_singles => 0,
+        show                     => 0,
+    ),
+    "strict_phrase_snipper"
+);
+ok( !$strict_phrase_snipper->snip($text2), "snip text2 with strict phrase" );
+
+ok( my $loose_phrase_snipper = Search::Tools::Snipper->new(
+        query => $phrased,
+        show  => 0,
+    ),
+    "loose_phrase_snipper"
+);
+ok( my $phrased_snip = $loose_phrase_snipper->snip($text2),
+    "snip text2 with loose phrase" );
+
+is( $phrased_snip,
+    qq/ ... man! type! until you've reached enough words to justify ... /,
+    "phrased_snip" );

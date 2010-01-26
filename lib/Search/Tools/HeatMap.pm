@@ -16,7 +16,15 @@ if ( !$@ ) {
     $CLOSE = Term::ANSIColor::color('reset') . $CLOSE;
 }
 
-__PACKAGE__->mk_accessors(qw( window_size tokens spans as_sentences ));
+__PACKAGE__->mk_accessors(
+    qw( window_size
+        tokens
+        spans
+        as_sentences
+        _treat_phrases_as_singles
+        _qre
+        )
+);
 
 =head1 NAME
 

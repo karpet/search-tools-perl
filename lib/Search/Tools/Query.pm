@@ -103,10 +103,10 @@ sub from_regexp_keywords {
         );
     }
     my $self = $class->new(
-        terms              => $rekw->{array},
-        regex              => $regex,
-        str                => $rekw->{kw}->{query},
-        qp                 => $rekw->{kw},
+        terms => $rekw->{array},
+        regex => $regex,
+        str   => $rekw->{kw}->{query},
+        qp    => $rekw->{kw},
     );
     return $self;
 }
@@ -170,7 +170,7 @@ instead of "regexp" because it's one less keystroke.
 
 *regexp_for = \&regex_for;
 
-=head2 terms_as_regex
+=head2 terms_as_regex([I<treat_phrases_as_singles>])
 
 Returns all terms() as a single qr// regex, pipe-joined in a "OR"
 logic.
@@ -178,10 +178,12 @@ logic.
 =cut
 
 sub terms_as_regex {
-    my $self     = shift;
-    my $wildcard = $self->qp->wildcard;
-    my $wild_esc = quotemeta($wildcard);
-    my $wc       = $self->qp->word_characters;
+    my $self                     = shift;
+    my $treat_phrases_as_singles = shift;
+    $treat_phrases_as_singles = 1 unless defined $treat_phrases_as_singles;
+    my $wildcard                 = $self->qp->wildcard;
+    my $wild_esc                 = quotemeta($wildcard);
+    my $wc                       = $self->qp->word_characters;
     my @re;
     for my $term ( @{ $self->{terms} } ) {
 
@@ -193,7 +195,7 @@ sub terms_as_regex {
         # treat phrases like OR'd words
         # since that will just create more matches.
         # if hiliting later, the phrase will be treated as such.
-        $q =~ s/(\\ )+/\|/g;
+        $q =~ s/(\\ )+/\|/g if $treat_phrases_as_singles;
 
         push( @re, $q );
     }

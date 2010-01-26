@@ -228,4 +228,4 @@ Revision history for Perl extension Search::HiLiter.
 
 0.40   26 Jan 2009
     * added ignore_length() feature to Snipper.
-
+    * added treat_phrases_as_singles() feature to Snipper.

@@ -36,21 +36,23 @@ __PACKAGE__->mk_accessors(
         collapse_whitespace
         use_pp
         as_sentences
+        treat_phrases_as_singles
         )
 );
 
 my %Defaults = (
-    type                => $DefaultSnipper,
-    occur               => 5,
-    max_chars           => 300,
-    context             => 8,
-    word_len            => 4,                 # TODO still used?
-    show                => 1,
-    collapse_whitespace => 1,
-    escape              => 0,
-    force               => 0,
-    as_sentences        => 0,
-    ignore_length       => 0,
+    type                     => $DefaultSnipper,
+    occur                    => 5,
+    max_chars                => 300,
+    context                  => 8,
+    word_len                 => 4,                 # TODO still used?
+    show                     => 1,
+    collapse_whitespace      => 1,
+    escape                   => 0,
+    force                    => 0,
+    as_sentences             => 0,
+    ignore_length            => 0,
+    treat_phrases_as_singles => 1,
 );
 
 sub init {
@@ -74,7 +76,8 @@ sub init {
     # regexp for splitting into terms in _re()
     $self->{_wc_regexp} = qr/[^$wc]+/io;
 
-    $self->{_qre} = $self->query->terms_as_regex;
+    $self->{_qre}
+        = $self->query->terms_as_regex( $self->treat_phrases_as_singles );
 
     $self->count(0);
 
@@ -165,9 +168,12 @@ sub _token {
     my $tokens = $self->{_tokenizer}->$method( $_[0], qr/^$qre$/ );
 
     my $heatmap = Search::Tools::HeatMap->new(
-        tokens       => $tokens,
-        window_size  => $self->{context},
-        as_sentences => $self->{as_sentences},
+        tokens                    => $tokens,
+        window_size               => $self->{context},
+        as_sentences              => $self->{as_sentences},
+        debug                     => $self->debug,
+        _qre                      => $qre,
+        _treat_phrases_as_singles => $self->{treat_phrases_as_singles},
     );
 
     $self->debug and dump $heatmap;
@@ -899,6 +905,11 @@ Boolean flag. If set to false (default) then C<max_chars> is respected.
 If set to true, C<max_chars> is ignored.
 
 Available via new().
+
+=head2 treat_phrases_as_singles
+
+Boolean flag. If set to true (default), individual terms within a phrase
+are considered a match. If false, 
 
 =head2 snip( I<text> )
 
