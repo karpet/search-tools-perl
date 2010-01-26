@@ -1,6 +1,8 @@
+#!/usr/bin/env perl
+
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 16;
 
 my $foo_re_plain = qr/
 (
@@ -51,3 +53,11 @@ is( $query_no_hyphen->regex_for('foo')->plain,
     $foo_re_plain_no_hyphen, "foo_re_plain" );
 like( 'foo', $query_no_hyphen->regex_for('foo')->plain, "match foo plain" );
 like( 'foo', $query_no_hyphen->regex_for('foo')->html,  "match foo html" );
+
+ok( my $qp_wonly
+        = Search::Tools::QueryParser->new( word_characters => '\w', ),
+    "qp_wonly"
+);
+ok( my $wonly_query = $qp_wonly->parse('garden*'), "parse wonly" );
+like( 'LIFE--GARDENING', $wonly_query->regex_for('garden*')->plain,
+    "match garden" );
