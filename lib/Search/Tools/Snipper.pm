@@ -12,7 +12,7 @@ use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';
@@ -23,6 +23,7 @@ __PACKAGE__->mk_accessors(
         query
         occur
         context
+        ignore_length
         max_chars
         word_len
         show
@@ -49,6 +50,7 @@ my %Defaults = (
     escape              => 0,
     force               => 0,
     as_sentences        => 0,
+    ignore_length       => 0,
 );
 
 sub init {
@@ -113,7 +115,7 @@ sub snip {
     $text = to_utf8($text);
 
     # don't snip if we're less than the threshold
-    if ( length($text) < $self->max_chars ) {
+    if ( length($text) < $self->max_chars && !$self->ignore_length ) {
         return $text if $self->show;
         return '';
     }
@@ -131,11 +133,11 @@ sub snip {
     $self->debug and warn "snipped: '$s'\n";
 
     # sanity check
-    if ( length($s) > ( $self->max_chars * 4 ) ) {
+    if ( length($s) > ( $self->max_chars * 4 ) && !$self->ignore_length ) {
         $s = $self->_dumb($s);
         $self->debug and warn "too long. dumb snip: '$s'\n";
     }
-    elsif ( !length($s) ) {
+    elsif ( !length($s) && !$self->ignore_length ) {
         $s = $self->_dumb($text);
         $self->debug and warn "too short. dumb snip: '$s'\n";
     }
@@ -785,7 +787,9 @@ Available via new().
 
 The maximum number of characters (not bytes! under Perl >= 5.8) to return
 in a snippet. B<NOTE:> This is only used to test whether I<test> is worth
-snipping at all, or if no terms are found (see show()).
+snipping at all, or if no terms are found.
+
+See also show() and ignore_length().
 
 Available via new().
 
@@ -886,6 +890,15 @@ Available via new().
 Set to a true value to use Tokenizer->tokenize_pp() and TokenListPP
 and TokenPP instead of the XS versions of the same. XS is the default
 and is much faster, but harder to modify or subclass.
+
+Available via new().
+
+=head2 ignore_length
+
+Boolean flag. If set to false (default) then C<max_chars> is respected.
+If set to true, C<max_chars> is ignored.
+
+Available via new().
 
 =head2 snip( I<text> )
 
