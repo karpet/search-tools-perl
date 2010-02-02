@@ -12,7 +12,7 @@ use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;

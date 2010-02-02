@@ -5,7 +5,7 @@ use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 =pod
 
@@ -453,16 +453,17 @@ sub attr_safe {
     my $self = shift;
     my $attr = shift;
     return '' unless defined $attr;
-    if (ref $attr ne "HASH") {
+    if ( ref $attr ne "HASH" ) {
         croak "attributes must be a hash ref";
     }
-    my @xml = (''); # force space at start in return
-    for my $name (sort keys %$attr) {
+    my @xml = ('');    # force space at start in return
+    for my $name ( sort keys %$attr ) {
         my $val = _escape_xml( $attr->{$name} );
         push @xml, tag_safe($name) . qq{="$val"};
     }
-    return join(' ', @xml);
+    return join( ' ', @xml );
 }
+
 =pod
 
 =head2 utf8_safe( I<string> )
@@ -612,6 +613,159 @@ sub unescape_decimal {
     # resolve numeric entities as best we can
     $t =~ s/&#(\d+);/chr($1)/ego if defined($t);
     return $t;
+}
+
+=head2 perl_to_xml( I<ref>, I<root_element> [, I<strip_plural> ] )
+
+Similar to the XML::Simple XMLout() feature, perl_to_xml()
+will take a Perl data structure I<ref> and convert it to XML,
+using I<root_element> as the top-level element.
+
+If I<strip_plural> is a true value and not a CODE ref, 
+any trailing C<s> character will be stripped from the enclosing tag name 
+whenever an array of hashrefs is found. Example:
+
+ my $data = {
+    values => [
+        {   two   => 2,
+            three => 3,
+        },
+        {   four => 4,
+            five => 5,
+        },
+    ],
+ };
+
+ my $xml = $utils->perl_to_xml($data, 'data', 1);
+ 
+ # $xml DOM will look like:
+ 
+ <data>
+  <values>
+   <value>
+    <three>3</three>
+    <two>2</two>
+   </value>
+   <value>
+    <five>5</five>
+    <four>4</four>
+   </value>
+  </values>
+ </data>
+
+Obviously stripping the final C<s> will not always render sensical tag names.
+Pass a CODE ref instead, expecting one value (the tag name) and returning the
+tag name to use:
+
+ use Lingua::EN::Inflect;
+ my $xml = $utils->perl_to_xml($data, 'data', \&Lingua::EN::Inflect::PL);
+
+=cut
+
+sub _make_singular {
+    my ($t) = @_;
+    $t =~ s/s$//i;
+    return length $t ? $t : $_[0];
+}
+
+sub perl_to_xml {
+    my $self         = shift;
+    my $perl         = shift;
+    my $root         = shift || '_root';
+    my $strip_plural = shift || 0;
+    unless ( defined $perl ) {
+        croak "perl data struct required";
+    }
+
+    if ( $strip_plural and ref($strip_plural) ne 'CODE' ) {
+        $strip_plural = \&_make_singular;
+    }
+
+    if ( !ref $perl ) {
+        return
+              $self->start_tag($root)
+            . $self->utf8_safe($perl)
+            . $self->end_tag($root);
+    }
+
+    my $xml = $self->start_tag($root);
+    $self->_ref_to_xml( $perl, '', \$xml, $strip_plural );
+    $xml .= $self->end_tag($root);
+    return $xml;
+}
+
+sub _ref_to_xml {
+    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    my $type = ref $perl;
+    if ( !$type ) {
+        ( $$xml_ref .= $self->start_tag($root) )
+            if length($root);
+        $$xml_ref .= $self->utf8_safe($perl);
+        ( $$xml_ref .= $self->end_tag($root) )
+            if length($root);
+
+        #$$xml_ref .= "\n";    # just for debugging
+    }
+    elsif ( $type eq 'SCALAR' ) {
+        $self->_scalar_to_xml( $perl, $root, $xml_ref, $strip_plural );
+    }
+    elsif ( $type eq 'ARRAY' ) {
+        $self->_array_to_xml( $perl, $root, $xml_ref, $strip_plural );
+    }
+    elsif ( $type eq 'HASH' ) {
+        $self->_hash_to_xml( $perl, $root, $xml_ref, $strip_plural );
+    }
+    else {
+        croak "unsupported ref type: $type";
+    }
+
+}
+
+sub _array_to_xml {
+    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    for my $thing (@$perl) {
+        if ( ref $thing and length($root) ) {
+            $$xml_ref .= $self->start_tag($root);
+        }
+        $self->_ref_to_xml( $thing, $root, $xml_ref, $strip_plural );
+        if ( ref $thing and length($root) ) {
+            $$xml_ref .= $self->end_tag($root);
+        }
+    }
+}
+
+sub _hash_to_xml {
+    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    for my $key ( keys %$perl ) {
+        my $thing = $perl->{$key};
+        if ( ref $thing ) {
+            my $key_to_pass = $key;
+            my %attr;
+            if ( ref $thing eq 'ARRAY' && $strip_plural ) {
+                $key_to_pass = $strip_plural->($key_to_pass);
+                $attr{count} = scalar @$thing;
+            }
+            $$xml_ref .= $self->start_tag( $key, \%attr );
+            $self->_ref_to_xml( $thing, $key_to_pass, $xml_ref,
+                $strip_plural );
+            $$xml_ref .= $self->end_tag($key);
+
+            #$$xml_ref .= "\n";                  # just for debugging
+        }
+        else {
+            $self->_ref_to_xml( $thing, $key, $xml_ref, $strip_plural );
+        }
+    }
+}
+
+sub _scalar_to_xml {
+    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    $$xml_ref
+        .= $self->start_tag($root)
+        . $self->utf8_safe($$perl)
+        . $self->end_tag($root);
+
+    #$$xml_ref .= "\n";    # just for debugging
 }
 
 1;
