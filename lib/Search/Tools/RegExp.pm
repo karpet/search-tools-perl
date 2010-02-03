@@ -7,7 +7,7 @@ use Search::Tools::Keywords;
 use Search::Tools::RegExp::Keywords;
 use Search::Tools::RegExp::Keyword;
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 __PACKAGE__->mk_accessors(qw( kw ));
 

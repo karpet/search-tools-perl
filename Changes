@@ -233,3 +233,7 @@ Revision history for Perl extension Search::HiLiter.
 0.41   01 Feb 2010
     * move SWISH::Prog::Utils perl_to_xml() feature to Search::Tools::XML.
 
+0.42   03 Feb 2010
+    * fix bug in XML->tag_safe that disallowed XML namespaces.
+    * add XML->tidy method.
+

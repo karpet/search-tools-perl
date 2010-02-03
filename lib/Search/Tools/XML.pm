@@ -5,7 +5,7 @@ use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 =pod
 
@@ -414,10 +414,15 @@ chars using tag_safe().
 
 If I<\%attr> is passed, XML-safe attributes are generated using attr_safe().
 
+=head2 singleton( I<string> [, I<\%attr> ] )
+
+Like start_tag() but includes the closing slash.
+
 =cut
 
 sub start_tag { "<" . tag_safe( $_[1] ) . $_[0]->attr_safe( $_[2] ) . ">" }
 sub end_tag   { "</" . tag_safe( $_[1] ) . ">" }
+sub singleton { "<" . tag_safe( $_[1] ) . $_[0]->attr_safe( $_[2] ) . "/>" }
 
 =pod
 
@@ -437,7 +442,7 @@ sub tag_safe {
 
     return '_' unless length $t;
 
-    $t =~ s/[^-\.\w]/_/g;
+    $t =~ s/[^-\.\w:]/_/g;
     $t =~ s/^(\d)/_$1/;
 
     return $t;
@@ -615,7 +620,7 @@ sub unescape_decimal {
     return $t;
 }
 
-=head2 perl_to_xml( I<ref>, I<root_element> [, I<strip_plural> ] )
+=head2 perl_to_xml( I<ref>, I<root_element> [, I<strip_plural> ][, I<do_not_escape>] )
 
 Similar to the XML::Simple XMLout() feature, perl_to_xml()
 will take a Perl data structure I<ref> and convert it to XML,
@@ -669,10 +674,11 @@ sub _make_singular {
 }
 
 sub perl_to_xml {
-    my $self         = shift;
-    my $perl         = shift;
-    my $root         = shift || '_root';
-    my $strip_plural = shift || 0;
+    my $self          = shift;
+    my $perl          = shift;
+    my $root          = shift || '_root';
+    my $strip_plural  = shift || 0;
+    my $do_not_escape = shift || 0;
     unless ( defined $perl ) {
         croak "perl data struct required";
     }
@@ -684,36 +690,39 @@ sub perl_to_xml {
     if ( !ref $perl ) {
         return
               $self->start_tag($root)
-            . $self->utf8_safe($perl)
+            . ( $do_not_escape ? $perl : $self->utf8_safe($perl) )
             . $self->end_tag($root);
     }
 
     my $xml = $self->start_tag($root);
-    $self->_ref_to_xml( $perl, '', \$xml, $strip_plural );
+    $self->_ref_to_xml( $perl, '', \$xml, $strip_plural, $do_not_escape );
     $xml .= $self->end_tag($root);
     return $xml;
 }
 
 sub _ref_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
     my $type = ref $perl;
     if ( !$type ) {
         ( $$xml_ref .= $self->start_tag($root) )
             if length($root);
-        $$xml_ref .= $self->utf8_safe($perl);
+        $$xml_ref .= ( $do_not_escape ? $perl : $self->utf8_safe($perl) );
         ( $$xml_ref .= $self->end_tag($root) )
             if length($root);
 
         #$$xml_ref .= "\n";    # just for debugging
     }
     elsif ( $type eq 'SCALAR' ) {
-        $self->_scalar_to_xml( $perl, $root, $xml_ref, $strip_plural );
+        $self->_scalar_to_xml( $perl, $root, $xml_ref, $strip_plural,
+            $do_not_escape );
     }
     elsif ( $type eq 'ARRAY' ) {
-        $self->_array_to_xml( $perl, $root, $xml_ref, $strip_plural );
+        $self->_array_to_xml( $perl, $root, $xml_ref, $strip_plural,
+            $do_not_escape );
     }
     elsif ( $type eq 'HASH' ) {
-        $self->_hash_to_xml( $perl, $root, $xml_ref, $strip_plural );
+        $self->_hash_to_xml( $perl, $root, $xml_ref, $strip_plural,
+            $do_not_escape );
     }
     else {
         croak "unsupported ref type: $type";
@@ -722,12 +731,13 @@ sub _ref_to_xml {
 }
 
 sub _array_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
     for my $thing (@$perl) {
         if ( ref $thing and length($root) ) {
             $$xml_ref .= $self->start_tag($root);
         }
-        $self->_ref_to_xml( $thing, $root, $xml_ref, $strip_plural );
+        $self->_ref_to_xml( $thing, $root, $xml_ref, $strip_plural,
+            $do_not_escape );
         if ( ref $thing and length($root) ) {
             $$xml_ref .= $self->end_tag($root);
         }
@@ -735,7 +745,7 @@ sub _array_to_xml {
 }
 
 sub _hash_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
     for my $key ( keys %$perl ) {
         my $thing = $perl->{$key};
         if ( ref $thing ) {
@@ -746,26 +756,96 @@ sub _hash_to_xml {
                 $attr{count} = scalar @$thing;
             }
             $$xml_ref .= $self->start_tag( $key, \%attr );
-            $self->_ref_to_xml( $thing, $key_to_pass, $xml_ref,
-                $strip_plural );
+            $self->_ref_to_xml( $thing, $key_to_pass, $xml_ref, $strip_plural,
+                $do_not_escape );
             $$xml_ref .= $self->end_tag($key);
 
             #$$xml_ref .= "\n";                  # just for debugging
         }
         else {
-            $self->_ref_to_xml( $thing, $key, $xml_ref, $strip_plural );
+            $self->_ref_to_xml( $thing, $key, $xml_ref, $strip_plural,
+                $do_not_escape );
         }
     }
 }
 
 sub _scalar_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
     $$xml_ref
         .= $self->start_tag($root)
-        . $self->utf8_safe($$perl)
+        . ( $do_not_escape ? $perl : $self->utf8_safe($perl) )
         . $self->end_tag($root);
 
     #$$xml_ref .= "\n";    # just for debugging
+}
+
+=head2 tidy( I<xmlstring> )
+
+Attempts to indent I<xmlstring> correctly to make
+it more legible.
+
+Returns the I<xmlstring> tidied up.
+
+B<WARNING> This is an experimental feature. It might be
+really slow or eat your XML. You have been warned.
+
+=cut
+
+sub tidy {
+    my $xml    = pop;
+    my $level  = 2;
+    my $indent = 0;
+    my @tidy   = ();
+
+    # normalize tag breaks
+    $xml =~ s,>\s*<,>\n<,gs;
+
+    my @xmlarr = split( m/\n/, $xml );
+
+    # shift off declaration
+    if ( scalar(@xmlarr) and $xmlarr[0] =~ m/^<\?\s*xml/ ) {
+        push @tidy, shift(@xmlarr);
+    }
+
+    my $count = 0;
+    for my $el (@xmlarr) {
+
+        if ( $count == 1 ) {
+            $indent = 2;
+        }
+        if ( $count == scalar(@xmlarr) - 1 ) {
+            $indent = 0;
+        }
+
+        #warn "el: $el\n";
+
+        # match opening tag
+        if ( $el =~ m/^<([\w])+[^>\/]*>$/ ) {
+
+            #warn "open $indent\n";
+            push @tidy, ( ' ' x $indent ) . $el;
+            $indent += $level;
+        }
+        else {
+            if ( $el =~ m/^<\// ) {
+
+                #warn "close $indent\n";
+                $indent -= $level;    # closing tag
+            }
+            if ( $indent < 0 ) {
+                $indent += $level;
+            }
+            push @tidy, ( ' ' x $indent ) . $el;
+        }
+
+        #warn "indent = $indent\n";
+
+        #Data::Dump::dump \@tidy;
+        $count++;
+    }
+
+    return join( "\n", @tidy );
+
 }
 
 1;
