@@ -10,7 +10,7 @@ use Carp;
 use Data::Dump qw( dump );
 use Search::Tools::RegEx;
 
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
