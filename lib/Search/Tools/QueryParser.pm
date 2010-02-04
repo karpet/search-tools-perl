@@ -362,8 +362,14 @@ sub _get_value_from_tree {
                 next;
             }
 
-            if ( ref $v ) {
+            if ( ref $v eq 'HASH' ) {
                 $self->_get_value_from_tree( $uniq, $v, $c );
+            }
+            elsif ( ref $v eq 'ARRAY' ) {
+                for my $value (@$v) {
+                    $value =~ s/\s+/ /g;
+                    $uniq->{$value} = ++$c;
+                }
             }
             else {
 
