@@ -237,3 +237,6 @@ Revision history for Perl extension Search::HiLiter.
     * fix bug in XML->tag_safe that disallowed XML namespaces.
     * add XML->tidy method.
 
+0.43   xxx
+    * fix bug with Search::Query::Parser method name (error() not err()).
+

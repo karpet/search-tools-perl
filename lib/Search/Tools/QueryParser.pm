@@ -163,7 +163,7 @@ sub _extract_terms {
 Q: for my $q (@query) {
         $q = lc($q) if $self->ignore_case;
         $q = to_utf8( $q, $self->charset );
-        my $clause = $parser->parse($q) or croak $parser->err;
+        my $clause = $parser->parse($q) or croak $parser->error;
         $self->debug && carp "parsetree: " . Data::Dump::dump($clause);
         $self->_get_value_from_tree( \%uniq, $clause->tree, $c );
         $dialect->add_sub_clause($clause);
