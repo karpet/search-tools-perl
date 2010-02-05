@@ -156,13 +156,14 @@ sub _extract_terms {
         or_regex      => qr{$or_word}i,
         not_regex     => qr{$not_word}i,
         default_field => $default_field,
+        query_class   => $self->query_dialect,
     );
 
     my $baked_query = $raw_query;
     $baked_query = lc($baked_query) if $self->ignore_case;
     $baked_query = to_utf8( $baked_query, $self->charset );
     my $dialect = $parser->parse($baked_query) or croak $parser->error;
-    $self->debug && carp "parsetree: " . Data::Dump::dump($dialect);
+    $self->debug && carp "parsetree: " . Data::Dump::dump( $dialect->tree );
     $self->_get_value_from_tree( \%uniq, $dialect->tree, $c );
 
     $self->debug && carp "parsed: " . Data::Dump::dump( \%uniq );
