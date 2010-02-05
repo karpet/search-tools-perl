@@ -146,28 +146,24 @@ sub _extract_terms {
 
     # backcompat allows for query to be array ref.
     # this called only from S::T::Keywords
-    my @query = @{ ref $query ? $query : [$query] };
+    my $raw_query = ref $query ? join( ' ', @$query ) : $query;
 
     $stopwords = [ split( /\s+/, $stopwords ) ] unless ref $stopwords;
     my %stophash = map { to_utf8( lc($_), $self->charset ) => 1 } @$stopwords;
     my ( %words, %uniq, $c );
     my $parser = Search::Query::Parser->new(
-        rxAnd    => qr{$and_word}i,
-        rxOr     => qr{$or_word}i,
-        rxNot    => qr{$not_word}i,
-        defField => $default_field,
+        and_regex     => qr{$and_word}i,
+        or_regex      => qr{$or_word}i,
+        not_regex     => qr{$not_word}i,
+        default_field => $default_field,
     );
 
-    my $dialect = $self->query_dialect->new;
-
-Q: for my $q (@query) {
-        $q = lc($q) if $self->ignore_case;
-        $q = to_utf8( $q, $self->charset );
-        my $clause = $parser->parse($q) or croak $parser->error;
-        $self->debug && carp "parsetree: " . Data::Dump::dump($clause);
-        $self->_get_value_from_tree( \%uniq, $clause->tree, $c );
-        $dialect->add_sub_clause($clause);
-    }
+    my $baked_query = $raw_query;
+    $baked_query = lc($baked_query) if $self->ignore_case;
+    $baked_query = to_utf8( $baked_query, $self->charset );
+    my $dialect = $parser->parse($baked_query) or croak $parser->error;
+    $self->debug && carp "parsetree: " . Data::Dump::dump($dialect);
+    $self->_get_value_from_tree( \%uniq, $dialect->tree, $c );
 
     $self->debug && carp "parsed: " . Data::Dump::dump( \%uniq );
 
@@ -318,9 +314,9 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
     # sort keeps query in same order as we entered
     return {
-        terms   => [ sort     { $words{$a} <=> $words{$b} } keys %words ],
+        terms   => [ sort { $words{$a} <=> $words{$b} } keys %words ],
         dialect => $dialect,
-        query   => join( ' ', @query ),
+        query   => $raw_query,
     };
 
 }

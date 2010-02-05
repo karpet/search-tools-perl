@@ -1,4 +1,4 @@
-use Test::More tests => 22;
+use Test::More tests => 25;
 use strict;
 use warnings;
 use Data::Dump qw( dump );
@@ -34,13 +34,11 @@ for my $q ( $wild_end, $wild_start, $wild_both ) {
     like( $term, $q->regex_for($term)->html,  "html regex match $q" );
 }
 
-#if ("*methyl*")
-# qr/\w*methyl\w*/
-#}
-#elsif ("methyl*")
-#  qr/methyl\w*/
-#}
-#else{
-#  qr/\w*methyl/
-#}
-
+# range
+ok( my $swish_parser
+        = Search::Tools::QueryParser->new( query_dialect => 'SWISH' ),
+    "new SWISH parser"
+);
+ok( my $range_query = $swish_parser->parse('date!=( 1..3 )'),
+    "parse range query" );
+is( $range_query, "date!=( 1..3 )", "$range_query stringified" );
