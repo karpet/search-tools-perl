@@ -909,7 +909,8 @@ Available via new().
 =head2 treat_phrases_as_singles
 
 Boolean flag. If set to true (default), individual terms within a phrase
-are considered a match. If false, 
+are considered a match. If false, only match if individual terms
+have a proximity distance of 1.
 
 =head2 snip( I<text> )
 
