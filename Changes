@@ -239,5 +239,6 @@ Revision history for Perl extension Search::HiLiter.
 
 0.43   xxx
     * fix bug with Search::Query::Parser method name (error() not err()).
+    * fix doc bug in Snipper.
     * refactor QueryParser internals to work with latest Search::Query 0.07.
 
