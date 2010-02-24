@@ -242,3 +242,6 @@ Revision history for Perl extension Search::HiLiter.
     * fix doc bug in Snipper.
     * refactor QueryParser internals to work with latest Search::Query 0.07.
 
+0.44   24 Feb 2010
+    * fix locale test case comparison for UTF-8 (RT#54941 reported by John Napiorkowski)
+
