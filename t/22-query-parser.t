@@ -35,10 +35,7 @@ for my $q ( $wild_end, $wild_start, $wild_both ) {
 }
 
 # range
-ok( my $swish_parser
-        = Search::Tools::QueryParser->new( query_dialect => 'SWISH' ),
-    "new SWISH parser"
-);
+ok( my $swish_parser = Search::Tools::QueryParser->new(), "new QueryParser" );
 ok( my $range_query = $swish_parser->parse('date!=( 1..3 )'),
     "parse range query" );
 is( $range_query, "date!=( 1..3 )", "$range_query stringified" );

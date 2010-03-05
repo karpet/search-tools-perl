@@ -245,3 +245,6 @@ Revision history for Perl extension Search::HiLiter.
 0.44   24 Feb 2010
     * fix locale test case comparison for UTF-8 (RT#54941 reported by John Napiorkowski)
 
+0.45   04 March 2010
+    * change QueryParser tests for range to use native dialect, not SWISH.
+
