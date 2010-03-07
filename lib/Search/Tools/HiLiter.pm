@@ -6,7 +6,7 @@ use Carp;
 use Search::Tools::XML;
 use Search::Tools::UTF8;
 
-our $VERSION = '0.45';
+our $VERSION = '0.46';
 
 my $XML = Search::Tools::XML->new;
 
@@ -369,15 +369,16 @@ Q: for my $query ( $self->_kworder ) {
             and carp
             "plain hiliter looking for: $re against '$query' in '$text'";
 
-        # because s// fails to find duplicate instances like 'foo foo'
+        # because s/// fails to find duplicate instances like 'foo foo'
         # we use a while loop and increment pos()
 
         # this can suck into an infinite loop because increm pos()-- results
         # in repeated match on nonwordchar: > (since we just added a tag)
 
         if ( $self->debug ) {
-            if ( $text =~ m/\Q$query\E/i && $text !~ m/$re/ ) {
-                croak "bad regex for '$query': $re";
+            if ( $text =~ m/\b\Q$query\E\b/i && $text !~ m/$re/i ) {
+                my ($snip) = ( $text =~ m/(.....\Q$query\E.....)/gi );
+                croak "bad regex for '$query' [$snip]: $re";
             }
         }
 

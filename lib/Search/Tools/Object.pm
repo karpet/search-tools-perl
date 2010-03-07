@@ -6,7 +6,7 @@ use base qw( Rose::ObjectX::CAF );
 use Scalar::Util qw( blessed );
 use Search::Tools::MethodMaker;
 
-our $VERSION = '0.45';
+our $VERSION = '0.46';
 
 __PACKAGE__->mk_accessors(qw( debug ));
 
