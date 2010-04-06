@@ -18,9 +18,9 @@ is( check_tokens($tokens), 5, "check_tokens" );
 
 # test for some leaks and refcnt bugs
 ok( my $tok = $tokens->get_token(0), "get 0 token" );
-diag("destroy tokens");
+#diag("destroy tokens");
 $tokens = undef;
-diag("tokens are undef");
+#diag("tokens are undef");
 ok( defined $tok, "0 token still defined" );
 ok( "$tok",       "token still returns string" );
 

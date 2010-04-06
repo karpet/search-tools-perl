@@ -10,14 +10,14 @@ BEGIN {
 
 ok( my $kw = Search::Tools::Keywords->new(), "new keywords" );
 
-diag( 'queryparser (keywords) locale: ' . $kw->locale );
+#diag( 'queryparser (keywords) locale: ' . $kw->locale );
 
 SKIP: {
 
     my $locale_ctype = setlocale(LC_CTYPE);
-    diag("setlocale(LC_CTYPE) = $locale_ctype");
+    #diag("setlocale(LC_CTYPE) = $locale_ctype");
     my $locale_all = setlocale(LC_ALL);
-    diag("setlocale(LC_ALL) = $locale_all");
+    #diag("setlocale(LC_ALL) = $locale_all");
 
     skip "UTF-8 charset not supported", 1 if $locale_ctype ne 'en_US.UTF-8';
 

@@ -168,6 +168,7 @@ sub _as_sentences {
         while ( $end < $max_end ) {
             my $tok = $tokens->get_token( $end++ ) or last;
             if ( $tok->is_sentence_end ) {
+                $end--;
                 last;
             }
         }

@@ -250,4 +250,5 @@ Revision history for Perl extension Search::HiLiter.
 
 0.46   xxx
     * fix croak message for debug-level sanity check on text match in HiLiter.
+    * fix bugs with as_sentences for checking end boundaries.
 

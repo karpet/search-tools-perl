@@ -70,7 +70,7 @@ sub test {
             ( $snipper->context - 5 ),
             "context length >="
         );
-        diag( "context == " . scalar(@snip_words) );
+        #diag( "context == " . scalar(@snip_words) );
     }
     else {
         cmp_ok( scalar(@snip_words), '==', scalar(@plain_words),

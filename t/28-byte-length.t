@@ -22,14 +22,14 @@ my ( $astr, $bstr );
 $astr = $bstr = chr(0xff);
 utf8::upgrade($astr);
 utf8::downgrade($bstr);
-diag( Data::Dump::dump( $astr, $bstr ) );
+#diag( Data::Dump::dump( $astr, $bstr ) );
 is( $astr,         $bstr,         "eq test" );
 is( length($astr), length($bstr), "length test" );
 isnt( bytes::length($astr), bytes::length($bstr), "bytes::length test" );
 isnt( byte_length($astr),   byte_length($bstr),   "byte_length test" );
 
-diag("astr: $astr");
-debug_bytes($astr);
+#diag("astr: $astr");
+#debug_bytes($astr);
 
-diag("bstr: $bstr");
-debug_bytes($bstr);
+#diag("bstr: $bstr");
+#debug_bytes($bstr);

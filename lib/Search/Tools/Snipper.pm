@@ -194,15 +194,16 @@ sub _token {
         if ( $#snips > $occur_index ) {
             @snips = @snips[ 0 .. $occur_index ];
         }
-        my $snip = join( ' ... ', @snips );
+        my $snip = join( $ellip, @snips );
         my $snips_start_with_query = $_[0] =~ m/^\Q$snip\E/;
         my $snips_end_with_query   = $_[0] =~ m/\Q$snip\E$/;
         if ( $self->{as_sentences} ) {
             $snips_start_with_query = 1;
+            $snips_end_with_query   = $snip =~ m/[\.\?\!]\s*$/;
         }
         my $extract = join( '',
-            ( $snips_start_with_query ? '' : ' ... ' ),
-            $snip, ( $snips_end_with_query ? '' : ' ... ' ) );
+            ( $snips_start_with_query ? '' : $ellip ),
+            $snip, ( $snips_end_with_query ? '' : $ellip ) );
         return $extract;
     }
     else {
@@ -243,7 +244,7 @@ sub _get_offset_snips {
     if ( $size > $len ) {
 
         #warn "window bigger than document";
-        return [ $self->_token($txt) ];
+        return [$txt];
     }
 
     my ( $seen_start, $seen_end );

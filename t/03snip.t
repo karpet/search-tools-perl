@@ -26,8 +26,8 @@ ok( my $s = Search::Tools::Snipper->new(
 
 ok( my $snip = $s->snip($text), "snip" );
 
-diag($snip);
-diag( $s->type_used );
+#diag($snip);
+#diag( $s->type_used );
 
 ok( length($snip) < $s->max_chars, "max_chars" );
 
@@ -47,7 +47,7 @@ ok( $s = Search::Tools::Snipper->new(
 ok( $snip = $s->snip($text), "new snip" );
 
 #diag($snip);
-diag( $s->type_used );
+#diag( $s->type_used );
 
 ok( length($snip) < $s->max_chars, "more snip" );
 
@@ -90,13 +90,13 @@ like( $snip_excerpt->snip($text2), qr/$excerpt/, "excerpt context" );
 ok( $snip_excerpt->type('re'), "set re type" );
 like( $snip_excerpt->snip($text2), qr/$excerpt/,
     "re matches loop algorithm" );
-diag( $snip_excerpt->type_used );
+#diag( $snip_excerpt->type_used );
 
 is( $snip_title->snip($text2),
     qq{ ... justify your paltry existence. amen. consider the lilies. do ... },
     "8 context"
 );
-diag( $snip_title->type_used );
+#diag( $snip_title->type_used );
 
 like( $snip_pp->snip($text2), qr/$excerpt/, "excerpt context" );
 
