@@ -14,8 +14,8 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  Rose::Object
-  Search::QueryParser
+  Rose::ObjectX::CAF
+  Search::Query
   Encode
   Carp
   
