@@ -248,7 +248,7 @@ Revision history for Perl extension Search::HiLiter.
 0.45   04 March 2010
     * change QueryParser tests for range to use native dialect, not SWISH.
 
-0.46   xxx
+0.46   06 April 2010
     * fix croak message for debug-level sanity check on text match in HiLiter.
     * fix bugs with as_sentences for checking end boundaries.
 
