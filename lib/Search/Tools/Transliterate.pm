@@ -12,7 +12,7 @@ __PACKAGE__->mk_accessors(qw( ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.46';
+our $VERSION = '0.47';
 
 =pod
 
@@ -238,7 +238,7 @@ sub convert {
     my $map = $self->map;
 
     $self->debug and warn "converting $buf\n";
-    while ( $buf =~ m/(.)/gox ) {
+    while ( $buf =~ m/(.)/gso ) {
         my $char = $1;
         $self->debug and warn "$char\n";
         if ( is_ascii($char) ) {
