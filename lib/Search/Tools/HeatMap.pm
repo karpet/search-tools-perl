@@ -5,7 +5,7 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.47';
+our $VERSION = '0.48';
 
 # debuggin only
 my $OPEN  = '[';
@@ -222,6 +222,15 @@ START_END:
         $span{tokens}    = \@cluster_tokens;
         $span{str}       = join( '', @strings );
 
+        # no false phrase matches if !_treat_phrases_as_singles
+        if ( !$self->{_treat_phrases_as_singles} ) {
+
+            #warn "_treat_phrases_as_singles NOT true";
+            if ( $span{str} !~ m/$self->{_qre}/ ) {
+                next;
+            }
+        }
+
         # just for debug
         if ($debug) {
             my $i = 0;
@@ -373,6 +382,15 @@ CLUSTER:
         $span{pos}     = \@cluster_pos;
         $span{tokens}  = \@cluster_tokens;
         $span{str}     = join( '', @strings );
+
+        # no false phrase matches if !_treat_phrases_as_singles
+        if ( !$self->{_treat_phrases_as_singles} ) {
+
+            #warn "_treat_phrases_as_singles NOT true";
+            if ( $span{str} !~ m/$self->{_qre}/ ) {
+                next;
+            }
+        }
 
         # just for debug
         if ($debug) {

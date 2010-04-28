@@ -255,3 +255,6 @@ Revision history for Perl extension Search::HiLiter.
 0.47   16 April 2010
     * fix regex bug in Transliterate->convert where newlines were being skipped.
 
+0.48   xxx
+    * fix treat_phrases_as_singles bug in Snipper where phrases were never being matched.
+

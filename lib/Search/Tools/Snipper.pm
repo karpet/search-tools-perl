@@ -12,7 +12,7 @@ use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.47';
+our $VERSION = '0.48';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';
@@ -159,13 +159,14 @@ sub snip {
 sub _token {
     my $self = shift;
     my $qre  = $self->{_qre};
-    $self->debug and warn "$qre";
+    $self->debug and warn "\$qre: $qre";
 
     my $method = ( $self->{use_pp} ) ? 'tokenize_pp' : 'tokenize';
 
-    # we don't bother testing for phrases here.
-    # instead we rely on HeatMap to find them for us later.
-    my $tokens = $self->{_tokenizer}->$method( $_[0], qr/^$qre$/ );
+    # must split phrases into OR'd regex or else no heat is generated.
+    my $qre_ORd = $qre;
+    $qre_ORd =~ s/(\\ )+/\|/g;
+    my $tokens = $self->{_tokenizer}->$method( $_[0], qr/^$qre_ORd$/ );
 
     my $heatmap = Search::Tools::HeatMap->new(
         tokens                    => $tokens,
@@ -176,7 +177,7 @@ sub _token {
         _treat_phrases_as_singles => $self->{treat_phrases_as_singles},
     );
 
-    $self->debug and dump $heatmap;
+    $self->debug and warn "heatmap: " . dump $heatmap;
 
     my $tokens_arr = $tokens->as_array;
 

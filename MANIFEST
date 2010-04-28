@@ -69,6 +69,7 @@ t/27-bigfile.t
 t/28-byte-length.t
 t/29-hiliter-wildcard.t
 t/30-perl-to-xml.t
+t/31-snip-phrases.t
 t/90-leaktrace.t
 t/91-valgrind.t
 t/99-0.24-back-compat.t
@@ -84,6 +85,7 @@ t/docs/greek_and_ojibwe.txt
 t/docs/linux-user-group.html
 t/docs/little-c-child-abuse.html
 t/docs/quick_brown_babel.dmp
+t/docs/snip-phrases.txt
 t/docs/test.html
 t/docs/test.txt
 t/pod-coverage.t
