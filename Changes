@@ -257,4 +257,5 @@ Revision history for Perl extension Search::HiLiter.
 
 0.48   xxx
     * fix treat_phrases_as_singles bug in Snipper where phrases were never being matched.
+    * compromise on proximity query syntax ("foo bar"~10) by always treating as single terms.
 
