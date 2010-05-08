@@ -8,23 +8,7 @@
  * Search::Tools C helpers
  */
 
-/* the FUNCTION__ logic below first appeared in 5.8.8
- * so we copy/paste it here for lesser versions
- */
-#ifndef FUNCTION__
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(__SUNPRO_C)) /* C99 or close enough. */
-#  define FUNCTION__ __func__
-#else
-#  if (defined(_MSC_VER) && _MSC_VER < 1300) || /* Pre-MSVC 7.0 has neither __func__ nor __FUNCTION and no good workarounds, either. */ \
-      (defined(__DECC_VER)) /* Tru64 or VMS, and strict C89 being used, but not modern enough cc (in Tur64, -c99 not known, only -std1). */
-#    define FUNCTION__ ""
-#  else
-#    define FUNCTION__ __FUNCTION__ /* Common extension. */
-#  endif
-#endif
-#endif
-
-#define ST_CROAK(args, ...) st_croak(__FILE__, __LINE__, FUNCTION__, args)
+#define ST_CROAK(args, ...) st_croak(__FILE__, __LINE__, __func__, args)
 
 #define ST_CLASS_TOKEN      "Search::Tools::Token"
 #define ST_CLASS_TOKENLIST  "Search::Tools::TokenList"
