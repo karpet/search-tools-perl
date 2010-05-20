@@ -269,4 +269,6 @@ Revision history for Perl extension Search::HiLiter.
          don't think twice it's all-right
       is now 5 tokens instead of 6.
 
+0.51   xxx
+    * singularizer in XML->perl_to_xml will now treat s/ies/y/ as well as s/s//
 

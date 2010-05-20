@@ -5,7 +5,7 @@ use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 
-our $VERSION = '0.50';
+our $VERSION = '0.51';
 
 =pod
 
@@ -669,6 +669,7 @@ tag name to use:
 
 sub _make_singular {
     my ($t) = @_;
+    $t =~ s/ies$/y/i;
     $t =~ s/s$//i;
     return length $t ? $t : $_[0];
 }
