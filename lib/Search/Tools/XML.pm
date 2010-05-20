@@ -16,32 +16,32 @@ Search::Tools::XML - methods for playing nice with XML and HTML
 =head1 SYNOPSIS
 
  use Search::Tools::XML;
- 
+
  my $class = 'Search::Tools::XML';
- 
+
  my $text = 'the "quick brown" fox';
- 
+
  my $xml = $class->start_tag('foo');
- 
+
  $xml .= $class->utf8_safe( $text );
- 
+
  $xml .= $class->end_tag('foo');
- 
+
  # $xml: <foo>the &#34;quick brown&#34; fox</foo>
- 
+
  $xml = $class->escape( $xml );
- 
+
  # $xml: &lt;foo&gt;the &amp;#34;quick brown&amp;#34; fox&lt;/foo&gt;
- 
+
  $xml = $class->unescape( $xml );
- 
+
  # $xml: <foo>the "quick brown" fox</foo>
- 
+
  my $plain = $class->no_html( $xml );
- 
+
  # $plain eq $text
- 
- 
+
+
 =head1 DESCRIPTION
 
 B<IMPORTANT:> The API for escape() and unescape() has changed as of version 0.16.
@@ -56,7 +56,7 @@ B<NOTE:> To get full UTF-8 character set from chr() you must be using Perl >= 5.
 This affects things like the unescape* methods.
 
 =head1 VARIABLES
- 
+
 =head2 %HTML_ents
 
 Complete map of all named HTML entities to their decimal values.
@@ -448,7 +448,7 @@ sub tag_safe {
     return $t;
 }
 
-=head2 attr_safe( I<\%attr> ) 
+=head2 attr_safe( I<\%attr> )
 
 Returns stringified I<\%attr> as XML attributes.
 
@@ -540,13 +540,13 @@ An alias for no_html().
 
 =head2 escape( I<text> )
 
-Similar to escape() functions in more famous CPAN modules, but without the 
+Similar to escape() functions in more famous CPAN modules, but without the
 added dependency. escape() will convert the special XML chars (><'"&) to their
 named entity equivalents.
 
 The escaped I<text> is returned.
 
-B<IMPORTANT:> The API for this method has changed as of version 0.16. I<text> 
+B<IMPORTANT:> The API for this method has changed as of version 0.16. I<text>
 is no longer modified in-place.
 
 As of version 0.27 escape() is written in C/XS for speed.
@@ -567,7 +567,7 @@ dependency. unescape() will convert all entities to their chr() equivalents.
 B<NOTE:> unescape() does more than reverse the effects of escape(). It attempts
 to resolve B<all> entities, not just the special XML entities (><'"&).
 
-B<IMPORTANT:> The API for this method has changed as of version 0.16. 
+B<IMPORTANT:> The API for this method has changed as of version 0.16.
 I<text> is no longer modified in-place.
 
 =cut
@@ -626,8 +626,8 @@ Similar to the XML::Simple XMLout() feature, perl_to_xml()
 will take a Perl data structure I<ref> and convert it to XML,
 using I<root_element> as the top-level element.
 
-If I<strip_plural> is a true value and not a CODE ref, 
-any trailing C<s> character will be stripped from the enclosing tag name 
+If I<strip_plural> is a true value and not a CODE ref,
+any trailing C<s> character will be stripped from the enclosing tag name
 whenever an array of hashrefs is found. Example:
 
  my $data = {
@@ -642,9 +642,9 @@ whenever an array of hashrefs is found. Example:
  };
 
  my $xml = $utils->perl_to_xml($data, 'data', 1);
- 
+
  # $xml DOM will look like:
- 
+
  <data>
   <values>
    <value>
@@ -670,6 +670,8 @@ tag name to use:
 sub _make_singular {
     my ($t) = @_;
     $t =~ s/ies$/y/i;
+    return $t if ( $t =~ s/ses$/s/i );
+    return $t if ( $t =~ /[aeiouy]ss$/i );
     $t =~ s/s$//i;
     return length $t ? $t : $_[0];
 }
@@ -856,16 +858,16 @@ __END__
 
 Peter Karman C<< <karman@cpan.org> >>
 
-Originally based on the HTML::HiLiter regular expression building code, 
+Originally based on the HTML::HiLiter regular expression building code,
 by the same author, copyright 2004 by Cray Inc.
 
-Thanks to Atomic Learning C<www.atomiclearning.com> 
+Thanks to Atomic Learning C<www.atomiclearning.com>
 for sponsoring the development of these modules.
 
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-search-tools at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Search-Tools>.  
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Search-Tools>.
 I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
@@ -902,7 +904,7 @@ L<http://search.cpan.org/dist/Search-Tools/>
 
 Copyright 2006-2009 by Peter Karman.
 
-This package is free software; you can redistribute it and/or modify it under the 
+This package is free software; you can redistribute it and/or modify it under the
 same terms as Perl itself.
 
 =head1 SEE ALSO
