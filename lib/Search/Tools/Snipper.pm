@@ -12,7 +12,7 @@ use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';
@@ -83,11 +83,11 @@ sub init {
 
 }
 
-# I tried Text::Context but that was too slow
-# here are several different models.
+# I tried Text::Context but that was too slow.
+# Here are several different models.
 # I have found that _loop() is faster for single-word queries,
 # while _re() seems to be the best compromise between speed and accuracy.
-# new in version 0.24 is _token() which is mostly XS and should be best.
+# New in version 0.24 is _token() which is mostly XS and should be best.
 
 sub _pick_snipper {
     my ( $self, $text ) = @_;

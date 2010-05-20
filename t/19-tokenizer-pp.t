@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use Test::More tests => 1275;
+use Test::More tests => 1263;
 use File::Slurp;
 
 # http://code.google.com/p/test-more/issues/detail?id=46
@@ -51,7 +51,7 @@ is( check_tokens($tokens), 48,   "str count" );
 is( $tokens->str,          $str, "tokens->str" );
 
 ok( my $tokens2 = $tokenizer->tokenize_pp($str2), "tokenize str2" );
-is( check_tokens($tokens2), 25,    "str2 count" );
+is( check_tokens($tokens2), 23,    "str2 count" );
 is( $tokens2->str,          $str2, "tokens2->str" );
 ok( my $grtokens = $tokenizer->tokenize_pp($greek), "tokenize greek" );
 is( check_tokens($grtokens), 99,     "grtokens count" );

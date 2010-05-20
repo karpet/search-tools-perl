@@ -12,7 +12,7 @@ use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
 
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;
@@ -37,7 +37,7 @@ my %Defaults = (
     lang                    => $lang,
     stopwords               => [],
     wildcard                => q/*/,
-    term_re                 => qr/\w+(?:'\w+)*/,
+    term_re                 => qr/\w+(?:[\'\-]\w+)*/,
     word_characters         => q/\w/ . quotemeta(q/'-/),
     ignore_first_char       => quotemeta(q/'-/),
     ignore_last_char        => quotemeta(q/'-/),

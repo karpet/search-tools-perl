@@ -262,3 +262,11 @@ Revision history for Perl extension Search::HiLiter.
 0.49   08 May 2010
     * change from FUNCTION__ to __func__ in all .c code.
 
+0.50   19 May 2010
+    * fix default regex for QueryParser->term_re and Tokenizer->re to match default
+      QueryParser->word_characters. The chief difference is that now the hyphen "-" is
+      considered a word character if it appears like a single quote does. So this:
+         don't think twice it's all-right
+      is now 5 tokens instead of 6.
+
+

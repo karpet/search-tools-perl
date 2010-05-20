@@ -18,15 +18,18 @@ my $snipper = Search::Tools::Snipper->new(
     as_sentences  => 1,
     ignore_length => 1,      # ignore max_chars, return entire snippet.
     show          => 0,      # only show if match, no dumb substr
-    
-    debug         => 1,
     treat_phrases_as_singles => 0,    # keep phrases together
+
+    #debug                    => 1,
+
 );
 
 my $hiliter = Search::Tools::HiLiter->new( query => $q );
 
 #dump $snipper;
+
 ok( my $snip = $snipper->snip($buf), "snip buf" );
 ok( length $snip, "snip has length" );
 ok( my $hilited = $hiliter->hilite($snip), "hilite" );
-diag($hilited);
+
+#diag($hilited);

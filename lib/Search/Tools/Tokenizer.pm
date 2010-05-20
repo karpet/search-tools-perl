@@ -8,14 +8,14 @@ use Search::Tools::TokenList;
 use Search::Tools::UTF8;
 use Carp;
 
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 
 __PACKAGE__->mk_accessors(qw( re ));
 
 sub init {
     my $self = shift;
     $self->SUPER::init(@_);
-    $self->{re} ||= qr/\w+(?:'\w+)*/;
+    $self->{re} ||= qr/\w+(?:[\'\-]\w+)*/;
     if ( $self->debug ) {
         $self->set_debug( $self->debug - 1 );    # XS debug a level higher
     }
