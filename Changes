@@ -269,7 +269,7 @@ Revision history for Perl extension Search::HiLiter.
          don't think twice it's all-right
       is now 5 tokens instead of 6.
 
-0.51   xxx
+0.51   23 May 2010
     * singularizer in XML->perl_to_xml will now treat common English plurals
 
 
