@@ -10,7 +10,7 @@ use Search::Tools;    # XS required
 use Carp;
 use base qw( Search::Tools::TokenListUtils );
 
-our $VERSION = '0.51';
+our $VERSION = '0.52';
 
 1;
 

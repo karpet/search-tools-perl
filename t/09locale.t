@@ -21,6 +21,6 @@ SKIP: {
 
     skip "UTF-8 charset not supported", 1 if $locale_ctype ne 'en_US.UTF-8';
 
-    is( uc($kw->charset), 'UTF-8', "UTF-8 charset" );
+    like( uc($kw->charset), qr/UTF-?8/, "UTF-8 charset" );
 }
 
