@@ -662,9 +662,6 @@ Obviously stripping the final C<s> will not always render sensical tag names.
 Pass a CODE ref instead, expecting one value (the tag name) and returning the
 tag name to use:
 
- use Lingua::EN::Inflect;
- my $xml = $utils->perl_to_xml($data, 'data', \&Lingua::EN::Inflect::PL);
-
 =cut
 
 sub _make_singular {
