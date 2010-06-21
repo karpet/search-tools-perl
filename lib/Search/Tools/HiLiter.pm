@@ -388,10 +388,16 @@ sub plain {
     my @kworder   = $self->_kworder;
 
 Q: for my $query (@kworder) {
-        my $re            = $self->_regex_for($query)->plain;
+        my $regex         = $self->_regex_for($query);
+        my $re            = $regex->plain;
+        my $term_re       = $regex->term_re;
         my $o             = $self->open_tag($query);
         my $c             = $self->close_tag($query);
         my $length_we_add = length( $o . $c ) - 1;
+
+        unless ( $text =~ m/$term_re/ ) {
+            next Q;
+        }
 
         # cache this
         my $query_re = $self->{_compiled_query_regex}->{"$query"}

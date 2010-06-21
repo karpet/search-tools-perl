@@ -13,6 +13,7 @@ __PACKAGE__->mk_ro_accessors(
         plain
         html
         term
+        term_re
         is_phrase
         )
 );
@@ -39,6 +40,8 @@ Search::Tools::RegEx - regular expressions for terms
 =head2 html
 
 =head2 term
+
+=head2 term_re
 
 =head2 is_phrase
 
