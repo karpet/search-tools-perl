@@ -352,6 +352,8 @@ sub _clean_up_hilites {
 
 }
 
+my %compiled_query_regex = ();
+
 # based on HTML::HiLiter plaintext()
 sub plain {
     my $self      = shift;
@@ -364,6 +366,12 @@ Q: for my $query ( $self->_kworder ) {
         my $o             = $self->open_tag($query);
         my $c             = $self->close_tag($query);
         my $length_we_add = length( $o . $c ) - 1;
+
+        # cache this
+        my $query_re = $compiled_query_regex{"$query"} || quotemeta($query);
+        if ( !$compiled_query_regex{"$query"} ) {
+            $compiled_query_regex{"$query"} = qr/$query_re/;
+        }
 
         $debug > 1
             and carp
@@ -410,7 +418,7 @@ Q: for my $query ( $self->_kworder ) {
         $debug and warn "found $found_matches matches";
 
         # sanity check similar to Snipper->_re_snip()
-        if ( !$found_matches and $text =~ m/\Q$query\E/ ) {
+        if ( !$found_matches and $text =~ m/$query_re/ ) {
             $debug and warn "ERROR: regex failure for '$query'";
             $text = $self->html($text);
         }
