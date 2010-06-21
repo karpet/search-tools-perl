@@ -65,13 +65,11 @@ sub _singles {
     return grep { !$q->regex_for($_)->is_phrase } @{ $q->terms };
 }
 
-my %kworder_cache = ();
-
 sub _kworder {
     my $self = shift;
     my $q    = $self->{query};
-    if ( exists $kworder_cache{"$q"} ) {
-        return @{ $kworder_cache{"$q"} };
+    if ( exists $self->{_kworder_cache}->{"$q"} ) {
+        return @{ $self->{_kworder_cache}->{"$q"} };
     }
 
     # do phrases first so that duplicates privilege phrases
@@ -86,7 +84,7 @@ sub _kworder {
         }
     }
 
-    $kworder_cache{"$q"} = [ @phrases, @singles ];
+    $self->{_kworder_cache}->{"$q"} = [ @phrases, @singles ];
 
     return ( @phrases, @singles );
 }
@@ -370,8 +368,6 @@ sub _clean_up_hilites {
 
 }
 
-my %compiled_query_regex = ();
-
 # based on HTML::HiLiter plaintext()
 sub plain {
     my $self      = shift;
@@ -387,9 +383,10 @@ Q: for my $query (@kworder) {
         my $length_we_add = length( $o . $c ) - 1;
 
         # cache this
-        my $query_re = $compiled_query_regex{"$query"} || quotemeta($query);
-        if ( !$compiled_query_regex{"$query"} ) {
-            $compiled_query_regex{"$query"} = qr/$query_re/;
+        my $query_re = $self->{_compiled_query_regex}->{"$query"}
+            || quotemeta($query);
+        if ( !$self->{_compiled_query_regex}->{"$query"} ) {
+            $self->{_compiled_query_regex}->{"$query"} = qr/$query_re/;
         }
 
         $debug > 1
