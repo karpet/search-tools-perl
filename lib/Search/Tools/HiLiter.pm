@@ -445,7 +445,7 @@ Q: for my $query (@kworder) {
         $debug and warn "found $found_matches matches";
 
         # sanity check similar to Snipper->_re_snip()
-        if ( !$found_matches and $text =~ m/$query_re/ ) {
+        if ( $debug and !$found_matches and $text =~ m/$query_re/ ) {
             $debug and warn "ERROR: regex failure for '$query'";
             $text = $self->html($text);
         }
