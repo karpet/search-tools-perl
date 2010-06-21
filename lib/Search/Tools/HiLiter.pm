@@ -69,8 +69,18 @@ sub _kworder {
     my $self = shift;
 
     # do phrases first so that duplicates privilege phrases
+    my ( @phrases, @singles );
+    my $q = $self->{query};
+    for ( @{ $q->terms } ) {
+        if ( $q->regex_for($_)->is_phrase ) {
+            push @phrases, $_;
+        }
+        else {
+            push @singles, $_;
+        }
+    }
 
-    return ( $self->_phrases, $self->_singles );
+    return ( @phrases, @singles );
 }
 
 sub _build_tags {
