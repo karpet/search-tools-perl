@@ -354,9 +354,9 @@ sub _clean_up_hilites {
 
 # based on HTML::HiLiter plaintext()
 sub plain {
-    my $self = shift;
-    my $text = shift or croak "need text to light()";
-
+    my $self      = shift;
+    my $text      = shift or croak "need text to light()";
+    my $debug     = $self->debug;
     my $query_obj = $self->{query};
 
 Q: for my $query ( $self->_kworder ) {
@@ -365,7 +365,7 @@ Q: for my $query ( $self->_kworder ) {
         my $c             = $self->close_tag($query);
         my $length_we_add = length( $o . $c ) - 1;
 
-        $self->debug > 1
+        $debug > 1
             and carp
             "plain hiliter looking for: $re against '$query' in '$text'";
 
@@ -375,7 +375,7 @@ Q: for my $query ( $self->_kworder ) {
         # this can suck into an infinite loop because increm pos()-- results
         # in repeated match on nonwordchar: > (since we just added a tag)
 
-        if ( $self->debug ) {
+        if ($debug) {
             if ( $text =~ m/\b\Q$query\E\b/i && $text !~ m/$re/i ) {
                 my ($snip) = ( $text =~ m/(.....\Q$query\E.....)/gi );
                 croak "bad regex for '$query' [$snip]: $re";
@@ -391,7 +391,7 @@ Q: for my $query ( $self->_kworder ) {
 
             $found_matches++;
 
-            $self->debug > 1 and carp "matched $s $m $e against $re";
+            $debug > 1 and carp "matched $s $m $e against $re";
 
             # use substr to do what s/// would normally do
             # if pos() wasn't an issue -- is this a big speed diff?
@@ -407,11 +407,11 @@ Q: for my $query ( $self->_kworder ) {
 
         }
 
-        $self->debug and warn "found $found_matches matches";
+        $debug and warn "found $found_matches matches";
 
         # sanity check similar to Snipper->_re_snip()
         if ( !$found_matches and $text =~ m/\Q$query\E/ ) {
-            $self->debug and warn "ERROR: regex failure for '$query'";
+            $debug and warn "ERROR: regex failure for '$query'";
             $text = $self->html($text);
         }
 
