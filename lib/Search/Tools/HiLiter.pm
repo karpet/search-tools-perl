@@ -56,27 +56,28 @@ sub keywords {
 sub _phrases {
     my $self = shift;
     my $q    = $self->{query};
-    return grep { $q->regex_for($_)->is_phrase } @{ $q->terms };
+    return grep { $self->_regex_for($_)->is_phrase } @{ $q->terms };
 }
 
 sub _singles {
     my $self = shift;
     my $q    = $self->{query};
-    return grep { !$q->regex_for($_)->is_phrase } @{ $q->terms };
+    return grep { !$self->_regex_for($_)->is_phrase } @{ $q->terms };
 }
 
 sub _kworder {
     my $self = shift;
     my $q    = $self->{query};
-    if ( exists $self->{_kworder_cache}->{"$q"} ) {
-        return @{ $self->{_kworder_cache}->{"$q"} };
+    my $qstr = $q->str;
+    if ( exists $self->{_kworder_cache}->{$qstr} ) {
+        return @{ $self->{_kworder_cache}->{$qstr} };
     }
 
     # do phrases first so that duplicates privilege phrases
     my ( @phrases, @singles );
 
     for ( @{ $q->terms } ) {
-        if ( $q->regex_for($_)->is_phrase ) {
+        if ( $self->_regex_for($_)->is_phrase ) {
             push @phrases, $_;
         }
         else {
@@ -84,7 +85,7 @@ sub _kworder {
         }
     }
 
-    $self->{_kworder_cache}->{"$q"} = [ @phrases, @singles ];
+    $self->{_kworder_cache}->{$qstr} = [ @phrases, @singles ];
 
     return ( @phrases, @singles );
 }
@@ -205,6 +206,16 @@ sub _get_real_html {
 
 }
 
+sub _regex_for {
+    my $self = shift;
+    my $term = shift or croak "term required";
+    if ( exists $self->{_regex_for}->{$term} ) {
+        return $self->{_regex_for}->{$term};
+    }
+    $self->{_regex_for}->{$term} = $self->query->regex_for($term);
+    return $self->{_regex_for}->{$term};
+}
+
 # based on HTML::HiLiter hilite()
 sub html {
     my $self = shift;
@@ -232,7 +243,7 @@ sub html {
     $text_copy =~ s/\002.*?\003//sgi;
 
 Q: for my $query (@kworder) {
-        my $re = $self->query->regex_for($query)->html;
+        my $re = $self->_regex_for($query)->html;
         my $real = $self->_get_real_html( \$text_copy, $re );
 
     R: for my $r ( keys %$real ) {
@@ -377,7 +388,7 @@ sub plain {
     my @kworder   = $self->_kworder;
 
 Q: for my $query (@kworder) {
-        my $re            = $query_obj->regex_for($query)->plain;
+        my $re            = $self->_regex_for($query)->plain;
         my $o             = $self->open_tag($query);
         my $c             = $self->close_tag($query);
         my $length_we_add = length( $o . $c ) - 1;
