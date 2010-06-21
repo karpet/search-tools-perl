@@ -360,8 +360,9 @@ sub plain {
     my $text      = shift or croak "need text to light()";
     my $debug     = $self->debug;
     my $query_obj = $self->{query};
+    my @kworder   = $self->_kworder;
 
-Q: for my $query ( $self->_kworder ) {
+Q: for my $query (@kworder) {
         my $re            = $query_obj->regex_for($query)->plain;
         my $o             = $self->open_tag($query);
         my $c             = $self->close_tag($query);
