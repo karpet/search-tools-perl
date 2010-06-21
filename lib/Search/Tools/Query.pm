@@ -155,10 +155,11 @@ sub regex_for {
     unless ( defined $term ) {
         croak "term required";
     }
-    if ( !exists $self->{regex} or !exists $self->{regex}->{$term} ) {
+    my $regex = $self->{regex} or croak "regex not defined for query";
+    if ( !exists $regex->{$term} ) {
         croak "no regex for $term";
     }
-    return $self->{regex}->{$term};
+    return $regex->{$term};
 }
 
 =head2 regexp_for
@@ -181,9 +182,9 @@ sub terms_as_regex {
     my $self                     = shift;
     my $treat_phrases_as_singles = shift;
     $treat_phrases_as_singles = 1 unless defined $treat_phrases_as_singles;
-    my $wildcard                 = $self->qp->wildcard;
-    my $wild_esc                 = quotemeta($wildcard);
-    my $wc                       = $self->qp->word_characters;
+    my $wildcard = $self->qp->wildcard;
+    my $wild_esc = quotemeta($wildcard);
+    my $wc       = $self->qp->word_characters;
     my @re;
     for my $term ( @{ $self->{terms} } ) {
 
