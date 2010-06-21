@@ -65,12 +65,18 @@ sub _singles {
     return grep { !$q->regex_for($_)->is_phrase } @{ $q->terms };
 }
 
+my %kworder_cache = ();
+
 sub _kworder {
     my $self = shift;
+    my $q    = $self->{query};
+    if ( exists $kworder_cache{"$q"} ) {
+        return @{ $kworder_cache{"$q"} };
+    }
 
     # do phrases first so that duplicates privilege phrases
     my ( @phrases, @singles );
-    my $q = $self->{query};
+
     for ( @{ $q->terms } ) {
         if ( $q->regex_for($_)->is_phrase ) {
             push @phrases, $_;
@@ -79,6 +85,8 @@ sub _kworder {
             push @singles, $_;
         }
     }
+
+    $kworder_cache{"$q"} = [ @phrases, @singles ];
 
     return ( @phrases, @singles );
 }
