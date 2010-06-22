@@ -135,11 +135,11 @@ st_av_fetch( AV* a, I32 index ) {
     return *ok;
 }
 
-static IV
+static void * 
 st_av_fetch_ptr( AV* a, I32 index ) {
     dTHX;
     SV** ok;
-    IV ptr;
+    void * ptr;
     ok = av_fetch(a, index, 0);
     if (ok == NULL) {
         ST_CROAK("failed to fetch index %d", index);
@@ -342,18 +342,18 @@ st_dump_token(st_token *tok) {
 
 /* make a Perl blessed object from a C pointer */
 static SV* 
-st_bless_ptr( const char *class, IV c_ptr ) {
+st_bless_ptr( const char *class, void * c_ptr ) {
     dTHX;
-    SV* obj = newSViv(c_ptr);
-    sv_setref_pv(obj, class, (void*)c_ptr);
+    SV* obj = newSViv( PTR2IV( c_ptr ) ); // use instead of sv_newmortal().
+    sv_setref_pv(obj, class, c_ptr);
     return obj;
 }
 
 /* return the C pointer from a Perl blessed O_OBJECT */
-static IV 
+static void * 
 st_extract_ptr( SV* object ) {
     dTHX;
-    return SvIV((SV*)SvRV( object ));
+    return INT2PTR( void*, SvIV(SvRV( object )) );
 }
 
 static void
@@ -674,7 +674,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                     token->is_sentence_start, token->is_sentence_end);
             }
             
-            tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
+            tok = st_bless_ptr(ST_CLASS_TOKEN, token);
             av_push(tokens, tok);
             if (token->is_sentence_start) {
                 //av_push(sentence_starts, newSViv(token->pos));
@@ -702,7 +702,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
             );
         }
         
-        tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
+        tok = st_bless_ptr(ST_CLASS_TOKEN, token);
         if (heat_seeker != NULL) {
             if (heat_seeker_is_CV) {
                 PUSHMARK(SP);
@@ -754,13 +754,13 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
             );
         }
 
-        tok = st_bless_ptr(ST_CLASS_TOKEN, (IV)token);
+        tok = st_bless_ptr(ST_CLASS_TOKEN, token);
         av_push(tokens, tok);
     }
         
     return st_bless_ptr(
             ST_CLASS_TOKENLIST, 
-            (IV)st_new_token_list(tokens, heat, sentence_starts, num_tokens)
+            st_new_token_list(tokens, heat, sentence_starts, num_tokens)
            );
 }
 
