@@ -619,9 +619,14 @@ Search::Tools::QueryParser - convert string queries into objects
     );
     
  my $query    = $qparser->parse(q(the quick color:brown "fox jumped"));
- my $terms = $query->terms; # ['quick', 'brown', '"fox jumped"']
- my $regexp   = $query->regexp_for($terms->[0]); # S::T::R::Keyword
- my $tree     = $query->tree; # the Search::Query::Dialect tree()
+ my $terms    = $query->terms; # ['quick', 'brown', '"fox jumped"']
+ 
+ # a Search::Tools::RegEx object
+ my $regexp   = $query->regexp_for($terms->[0]); 
+ 
+ # the Search::Query::Dialect tree()
+ my $tree     = $query->tree;
+ 
  print "$query\n";  # the quick color:brown "fox jumped"
  print $query->str . "\n"; # same thing
  
@@ -640,8 +645,8 @@ backwords compatability is preserved except where noted.
 
 =head2 new( %opts )
 
-The new() method instantiates a S::T::K object. With the exception
-of extract(), all the following methods can be passed as key/value
+The new() method instantiates a QueryParser object. With the exception
+of parse(), all the following methods can be passed as key/value
 pairs in new().
 
 =head2 init
