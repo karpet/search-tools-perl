@@ -272,6 +272,6 @@ Revision history for Perl extension Search::HiLiter.
 0.51   23 May 2010
     * singularizer in XML->perl_to_xml will now treat common English plurals
 
-0.52   xxx
+0.52   22 June 2010
     * tweek locale tests because some OSes (linux) use 'UTF8' instead of 'UTF-8' naming.
     * small optimizations to HiLiter

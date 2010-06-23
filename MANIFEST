@@ -5,6 +5,7 @@ example/bench-snipper.pl
 example/bench.pl
 example/dirsearch.pl
 example/keywords.pl
+example/profile-hiliter.pl
 example/profile-snipper.pl
 example/qp.pl
 example/swish-e.pl
