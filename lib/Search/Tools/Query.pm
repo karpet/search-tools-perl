@@ -10,7 +10,7 @@ use Carp;
 use Data::Dump qw( dump );
 use Search::Tools::RegEx;
 
-our $VERSION = '0.52';
+our $VERSION = '0.53';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
@@ -170,6 +170,45 @@ instead of "regexp" because it's one less keystroke.
 =cut
 
 *regexp_for = \&regex_for;
+
+=head2 matches_text( I<text> )
+
+Returns the number of matches for the query against I<text>.
+
+=head2 matches_html( I<html> )
+
+Returns the number of matches for the query against I<html>.
+
+=cut
+
+sub _matches {
+    my $self  = shift;
+    my $style = shift;
+    my $count = 0;
+    for my $term ( @{ $self->{terms} } ) {
+        my $regex = $self->{regex}->{$term}->{$style};
+        $count += $_[0] =~ m/$regex/;
+    }
+    return $count;
+}
+
+sub matches_text {
+    my $self = shift;
+    my $text = shift;
+    if ( !defined $text ) {
+        croak "text required";
+    }
+    return $self->_matches( 'plain', $text );
+}
+
+sub matches_html {
+    my $self = shift;
+    my $html = shift;
+    if ( !defined $html ) {
+        croak "html required";
+    }
+    return $self->_matches( 'html', $html );
+}
 
 =head2 terms_as_regex([I<treat_phrases_as_singles>])
 

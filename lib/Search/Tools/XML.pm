@@ -5,7 +5,7 @@ use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 
-our $VERSION = '0.52';
+our $VERSION = '0.53';
 
 =pod
 
