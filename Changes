@@ -274,4 +274,4 @@ Revision history for Perl extension Search::HiLiter.
 
 0.52   xxx
     * tweek locale tests because some OSes (linux) use 'UTF8' instead of 'UTF-8' naming.
-
+    * small optimizations to HiLiter

@@ -395,10 +395,6 @@ Q: for my $query (@kworder) {
         my $c             = $self->close_tag($query);
         my $length_we_add = length( $o . $c ) - 1;
 
-        unless ( $text =~ m/$term_re/ ) {
-            next Q;
-        }
-
         # cache this
         my $query_re = $self->{_compiled_query_regex}->{"$query"}
             || quotemeta($query);
@@ -417,8 +413,8 @@ Q: for my $query (@kworder) {
         # in repeated match on nonwordchar: > (since we just added a tag)
 
         if ($debug) {
-            if ( $text =~ m/\b\Q$query\E\b/i && $text !~ m/$re/i ) {
-                my ($snip) = ( $text =~ m/(.....\Q$query\E.....)/gi );
+            if ( $text =~ m/\b$query_re\b/i && $text !~ m/$re/i ) {
+                my ($snip) = ( $text =~ m/(.....$query_re.....)/gi );
                 croak "bad regex for '$query' [$snip]: $re";
             }
         }
