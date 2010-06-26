@@ -276,6 +276,6 @@ Revision history for Perl extension Search::HiLiter.
     * tweek locale tests because some OSes (linux) use 'UTF8' instead of 'UTF-8' naming.
     * small optimizations to HiLiter
 
-0.53   xxx
+0.53   26 June 2010
     * add ->matches_text and ->matches_html methods to Query class
 
