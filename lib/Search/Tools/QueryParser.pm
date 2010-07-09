@@ -359,8 +359,7 @@ sub _get_value_from_tree {
         for my $leaf (@branches) {
             my $v = $leaf->{value};
             if ( !defined $v ) {
-                $self->_get_value_from_tree( $uniq, $leaf, $c );
-                next;
+                croak "undefined value in query tree: " . dump($leaf);
             }
             if ( defined $leaf->{field}
                 and exists $self->ignore_fields->{ $leaf->{field} } )
