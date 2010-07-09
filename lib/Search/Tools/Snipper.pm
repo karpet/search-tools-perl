@@ -12,7 +12,7 @@ use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.53';
+our $VERSION = '0.54';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';

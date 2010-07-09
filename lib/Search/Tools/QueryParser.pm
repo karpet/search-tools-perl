@@ -12,7 +12,7 @@ use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
 
-our $VERSION = '0.53';
+our $VERSION = '0.54';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;
@@ -349,11 +349,19 @@ sub _get_value_from_tree {
     my $c         = shift;
 
     # we only want the values from non minus queries
-    for my $node ( grep { $_ eq '+' || $_ eq '' } keys %$parseTree ) {
+    for my $node ( '+', '' ) {
+        next unless exists $parseTree->{$node};
+
         my @branches = @{ $parseTree->{$node} };
+
+        #warn dump \@branches;
 
         for my $leaf (@branches) {
             my $v = $leaf->{value};
+            if ( !defined $v ) {
+                $self->_get_value_from_tree( $uniq, $leaf, $c );
+                next;
+            }
             if ( defined $leaf->{field}
                 and exists $self->ignore_fields->{ $leaf->{field} } )
             {

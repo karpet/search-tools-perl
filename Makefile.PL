@@ -19,7 +19,7 @@ WriteMakefile(
     ABSTRACT_FROM => 'lib/Search/Tools.pm',
     PL_FILES      => {},
     PREREQ_PM     => {
-        'Search::Query'      => '0.14',
+        'Search::Query'      => '0.18',
         'Encode'             => '0',
         'Rose::ObjectX::CAF' => '0.03',
         'Data::Dump'         => 0,
