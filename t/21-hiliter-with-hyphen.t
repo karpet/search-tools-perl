@@ -1,6 +1,6 @@
 use Search::Tools::HiLiter;
 use Search::Tools::RegExp;
-use Test::More tests => 10;
+use Test::More tests => 9;
 
 my $parser
     = Search::Tools->parser( word_characters => q/\w/ . quotemeta(q/'./) );
@@ -76,10 +76,12 @@ like(
     "plain match with no hyphen"
 );
 
-is( $kennedy_re,
-    $hiliter->query->regex_for('kennedy')->plain,
-    "plain regex match"
-);
+# perl >= 5.14 changes how qr// serializes
+# so just ignore this test. it's arrived at via above tests anyway.
+#is( $kennedy_re,
+#    $hiliter->query->regex_for('kennedy')->plain,
+#    "plain regex match"
+#);
 
 #is( $kennedy_re, $re, "simple re cmp");
 is( $old_re, $re, "before vs after" );
