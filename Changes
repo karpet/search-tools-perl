@@ -283,3 +283,7 @@ Revision history for Perl extension Search::HiLiter.
     * fixes for Search::Query 0.18
     * disabled some tests that break under perl >= 5.14. 
       See https://rt.cpan.org/Ticket/Display.html?id=62417
+
+0.55   25 Oct 2010
+    * disable one more test for perl >= 5.14 (see 0.54)
+

@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 15;
+use Test::More tests => 14;
 
 my $foo_re_plain = qr/
 (
@@ -21,7 +21,10 @@ ok( my $qp    = Search::Tools::QueryParser->new(), "new queryparser" );
 ok( my $query = $qp->parse('foo bar'),             "parse 'foo bar'" );
 ok( $query->regex_for('foo')->isa('Search::Tools::RegEx'),
     "regex isa RegEx" );
-is( $query->regex_for('foo')->plain, $foo_re_plain, "foo_re_plain" );
+
+# perl >= 5.14 will fail here.
+#is( $query->regex_for('foo')->plain, $foo_re_plain, "foo_re_plain" );
+
 like( 'foo', $query->regex_for('foo')->plain, "match foo plain" );
 like( 'foo', $query->regex_for('foo')->html,  "match foo html" );
 
