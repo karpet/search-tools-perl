@@ -18,6 +18,11 @@ our $VERSION = '0.55';
 our $ellip          = ' ... ';
 our $DefaultSnipper = 'offset';
 
+#
+#   TODO allow for returning an array ref of
+#   extracts instead of joining them all with $ellip
+#
+
 __PACKAGE__->mk_accessors(
     qw(
         query

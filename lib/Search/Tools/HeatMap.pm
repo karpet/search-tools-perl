@@ -7,7 +7,7 @@ use base qw( Search::Tools::Object );
 
 our $VERSION = '0.55';
 
-# debuggin only
+# debugging only
 my $OPEN  = '[';
 my $CLOSE = ']';
 eval { require Term::ANSIColor; };
