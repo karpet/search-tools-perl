@@ -6,7 +6,7 @@ use Carp;
 use Search::Tools::XML;
 use Search::Tools::UTF8;
 
-our $VERSION = '0.56';
+our $VERSION = '0.57';
 
 my $XML = Search::Tools::XML->new;
 
@@ -399,8 +399,8 @@ Q: for my $query (@kworder) {
         # use open/close markers rather than actual html tags
         # because we do not want to get double matches on text
         # like 'span' or 'style'
-        my $o             = "$i\002";
-        my $c             = "$i\003";
+        my $o             = chr($i) . "\002";
+        my $c             = chr($i) . "\003";
         my $length_we_add = length( $o . $c ) - 1;
         push @markers, [ $open, $close ];
 
@@ -472,8 +472,9 @@ Q: for my $query (@kworder) {
     # now our markers replaced with actual tags
     $i = 0;
     for my $set (@markers) {
-        $text =~ s/$i\002/$set->[0]/g;
-        $text =~ s/$i\003/$set->[1]/g;
+        my $ichr = chr($i);
+        $text =~ s/$ichr\002/$set->[0]/g;
+        $text =~ s/$ichr\003/$set->[1]/g;
         $i++;
     }
 

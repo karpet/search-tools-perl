@@ -4,7 +4,7 @@ use strict;
 use warnings::register;
 use Carp;
 
-our $VERSION = '0.56';
+our $VERSION = '0.57';
 
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
