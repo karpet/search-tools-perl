@@ -287,3 +287,6 @@ Revision history for Perl extension Search::HiLiter.
 0.55   25 Oct 2010
     * disable one more test for perl >= 5.14 (see 0.54)
 
+0.56   10 Feb 2011
+    * fix bug where query terms 'span' or 'style' were breaking hiliting by "double-dipping"
+

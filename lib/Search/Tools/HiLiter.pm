@@ -6,7 +6,7 @@ use Carp;
 use Search::Tools::XML;
 use Search::Tools::UTF8;
 
-our $VERSION = '0.55';
+our $VERSION = '0.56';
 
 my $XML = Search::Tools::XML->new;
 
@@ -387,13 +387,22 @@ sub plain {
     my $query_obj = $self->{query};
     my @kworder   = $self->_kworder;
 
+    my $i = 0;
+    my @markers;
 Q: for my $query (@kworder) {
-        my $regex         = $self->_regex_for($query);
-        my $re            = $regex->plain;
-        my $term_re       = $regex->term_re;
-        my $o             = $self->open_tag($query);
-        my $c             = $self->close_tag($query);
+        my $regex   = $self->_regex_for($query);
+        my $re      = $regex->plain;
+        my $term_re = $regex->term_re;
+        my $open    = $self->open_tag($query);
+        my $close   = $self->close_tag($query);
+
+        # use open/close markers rather than actual html tags
+        # because we do not want to get double matches on text
+        # like 'span' or 'style'
+        my $o             = "$i\002";
+        my $c             = "$i\003";
         my $length_we_add = length( $o . $c ) - 1;
+        push @markers, [ $open, $close ];
 
         # cache this
         my $query_re = $self->{_compiled_query_regex}->{"$query"}
@@ -432,8 +441,9 @@ Q: for my $query (@kworder) {
 
             # use substr to do what s/// would normally do
             # if pos() wasn't an issue -- is this a big speed diff?
-            my $len       = length( $s . $m . $e );
-            my $pos       = pos($text);
+            my $len = length( $s . $m . $e );
+            my $pos = pos($text);
+            $debug > 1 and carp "pos==$pos  len==$len";
             my $newstring = $s . $o . $m . $c . $e;
             substr( $text, $pos - $len, $len, $newstring );
 
@@ -441,6 +451,8 @@ Q: for my $query (@kworder) {
 
             # need to account for all the new chars we just added
             pos($text) = $pos + $length_we_add;
+            $debug > 1
+                and carp "length_we_add==$length_we_add  pos==" . pos($text);
 
         }
 
@@ -452,6 +464,17 @@ Q: for my $query (@kworder) {
             $text = $self->html($text);
         }
 
+        # increment the marker
+        $i++;
+
+    }
+
+    # now our markers replaced with actual tags
+    $i = 0;
+    for my $set (@markers) {
+        $text =~ s/$i\002/$set->[0]/g;
+        $text =~ s/$i\003/$set->[1]/g;
+        $i++;
     }
 
     #warn "plain done";
