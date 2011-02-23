@@ -290,7 +290,7 @@ Revision history for Perl extension Search::HiLiter.
 0.56   10 Feb 2011
     * fix bug where query terms 'span' or 'style' were breaking hiliting by "double-dipping"
 
-0.57   xxx
+0.57   22 Feb 2011
     * extend bug-fix from 0.56 to prevent false matches on match markers.
 
 
