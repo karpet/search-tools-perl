@@ -472,7 +472,7 @@ Q: for my $query (@kworder) {
     # now our markers replaced with actual tags
     $i = 0;
     for my $set (@markers) {
-        my $ichr = chr($i);
+        my $ichr = quotemeta(chr($i));
         $text =~ s/$ichr\002/$set->[0]/g;
         $text =~ s/$ichr\003/$set->[1]/g;
         $i++;
