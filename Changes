@@ -293,4 +293,5 @@ Revision history for Perl extension Search::HiLiter.
 0.57   22 Feb 2011
     * extend bug-fix from 0.56 to prevent false matches on match markers.
 
-
+0.58   xxx
+    * fix unescaped string in regex in HiLiter
