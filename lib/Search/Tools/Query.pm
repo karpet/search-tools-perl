@@ -9,6 +9,7 @@ use overload
 use Carp;
 use Data::Dump qw( dump );
 use Search::Tools::RegEx;
+use Search::Tools::UTF8;
 
 our $VERSION = '0.58';
 
@@ -187,7 +188,7 @@ sub _matches {
     my $count = 0;
     for my $term ( @{ $self->{terms} } ) {
         my $regex = $self->{regex}->{$term}->{$style};
-        $count += $_[0] =~ m/$regex/;
+        $count += to_utf8($_[0]) =~ m/$regex/;
     }
     return $count;
 }
