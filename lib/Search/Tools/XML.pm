@@ -5,7 +5,7 @@ use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 
-our $VERSION = '0.58';
+our $VERSION = '0.59';
 
 =pod
 
@@ -70,8 +70,16 @@ Complete map of all named HTML entities to their decimal values.
 # the 'x' flag in our regexp.
 
 my @whitesp = (
-    '&\#0020;', '&\#0009;', '&\#000C;', '&\#200B;', '&\#2028;', '&\#2029;',
-    '&nbsp;',   '&\#32;',   '&\#160;',  '\s',       '\xa0',     '\x20',
+    '&\#0020;',  '&\#0009;',  '&\#x000C;', '&\#x200B;',
+    '&\#x2000;', '&\#x2001;', '&\#x2002;', '&\#x2003;',
+    '&\#x2004;', '&\#x2005;', '&\#x2006;', '&\#x2007;',
+    '&\#x2008;', '&\#x2009;', '&\#x200A;', '&\#x205F;',
+    '&\#x2028;', '&\#x2029;', '&\#8192;',  '&\#8193;',
+    '&\#8194;',  '&\#8195;',  '&\#8196;',  '&\#8197;',
+    '&\#8198;',  '&\#8199;',  '&\#8200;',  '&\#8201;',
+    '&\#8202;',  '&\#8232;',  '&\#8233;',  '&nbsp;',
+    '&\#32;',    '&\#160;',   '\s',        '\xa0',
+    '\x20',
 );
 
 my $whitespace = join( '|', @whitesp );
@@ -501,7 +509,7 @@ sub utf8_safe {
     return $t;
 }
 
-=head2 no_html( I<text> )
+=head2 no_html( I<text> [, I<normalize_whitespace>] )
 
 no_html() is a brute-force method for removing all tags and entities
 from I<text>. A simple regular expression is used, so things like
@@ -511,16 +519,25 @@ HTML::Parser or similar.
 
 I<text> is returned with no markup in it.
 
+If I<normalize_whitespace> is true (defaults to false) then
+all whitespace is normalized away to ASCII space (U+0020).
+This can be helpful if you have Unicode entities representing 
+line breaks or other layout instructions.
+
 =cut
 
 sub no_html {
-    my $class = shift;
-    my $text  = shift;
+    my $class                = shift;
+    my $text                 = shift;
+    my $normalize_whitespace = shift || 0;
     if ( !defined $text ) {
         croak "text required";
     }
     my $re = $class->tag_re;
     $text =~ s,$re,,g;
+    if ($normalize_whitespace) {
+        $text =~ s/$whitespace/ /g;
+    }
     $text = $class->unescape($text);
     return $text;
 }

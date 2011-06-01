@@ -13,7 +13,7 @@ __PACKAGE__->mk_ro_accessors(
         )
 );
 
-our $VERSION = '0.58';
+our $VERSION = '0.59';
 
 sub keywords {
     my $self = shift;
