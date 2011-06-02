@@ -65,24 +65,47 @@ Complete map of all named HTML entities to their decimal values.
 
 # regexp for what constitutes whitespace in an HTML doc
 # it's not as simple as \s|&nbsp; so we define it separately
+my @white_hex_pts = qw(
+    0009
+    000a
+    000b
+    000c
+    000d
+    0020
+    00a0
+    2000
+    2001
+    2002
+    2003
+    2004
+    2005
+    2006
+    2007
+    2008
+    2009
+    200a
+    200b
+    2028
+    2029
+    202f
+    205f
+    3000
+    feff
+);
+
+my @whitesp = ('\s');
 
 # NOTE that the pound sign # needs escaping because we use
 # the 'x' flag in our regexp.
 
-my @whitesp = (
-    '&\#0020;',  '&\#0009;',  '&\#x000C;', '&\#x200B;',
-    '&\#x2000;', '&\#x2001;', '&\#x2002;', '&\#x2003;',
-    '&\#x2004;', '&\#x2005;', '&\#x2006;', '&\#x2007;',
-    '&\#x2008;', '&\#x2009;', '&\#x200A;', '&\#x205F;',
-    '&\#x2028;', '&\#x2029;', '&\#8192;',  '&\#8193;',
-    '&\#8194;',  '&\#8195;',  '&\#8196;',  '&\#8197;',
-    '&\#8198;',  '&\#8199;',  '&\#8200;',  '&\#8201;',
-    '&\#8202;',  '&\#8232;',  '&\#8233;',  '&nbsp;',
-    '&\#32;',    '&\#160;',   '\s',        '\xa0',
-    '\x20',
-);
+for my $w (@white_hex_pts) {
+    push @whitesp, sprintf( "&\\#x%s;", $w );                # hex entity
+    push @whitesp, sprintf( "&\\#%s;",  hex($w) );           # dec entity
+    push @whitesp, sprintf( "%s",       chr( hex($w) ) );    # byte value
+}
 
-my $whitespace = join( '|', @whitesp );
+my $HTML_WHITESPACE = join( '|', @whitesp );
+my $WHITESPACE = join( '|', map { chr( hex($_) ) } @white_hex_pts );
 
 # HTML entity table
 # this just removes a dependency on another module...
@@ -382,7 +405,7 @@ HTML whitespace entities.
 
 =cut
 
-sub html_whitespace {$whitespace}
+sub html_whitespace {$HTML_WHITESPACE}
 
 =head2 char2ent_map
 
@@ -535,10 +558,10 @@ sub no_html {
     }
     my $re = $class->tag_re;
     $text =~ s,$re,,g;
-    if ($normalize_whitespace) {
-        $text =~ s/$whitespace/ /g;
-    }
     $text = $class->unescape($text);
+    if ($normalize_whitespace) {
+        $text =~ s/\s+/ /g;
+    }
     return $text;
 }
 

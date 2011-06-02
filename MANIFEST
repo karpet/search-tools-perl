@@ -74,6 +74,7 @@ t/31-snip-phrases.t
 t/32-pre-existing.t
 t/33-matches.t
 t/34-style-hilite.t
+t/35-whitespace.t
 t/90-leaktrace.t
 t/91-valgrind.t
 t/99-0.24-back-compat.t
