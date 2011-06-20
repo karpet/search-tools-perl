@@ -296,7 +296,7 @@ Revision history for Perl extension Search::HiLiter.
 0.58   27 May 2011
     * fix unescaped string in regex in HiLiter
 
-0.59   xxx
+0.59   19 June 2011
     * add normalize_whitespace feature to XML->no_html() method.
     * add several Unicode whitespace defs to $whitespace regex in XML class
       per http://en.wikipedia.org/wiki/Mapping_of_Unicode_characters
