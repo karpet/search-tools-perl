@@ -300,3 +300,7 @@ Revision history for Perl extension Search::HiLiter.
     * add normalize_whitespace feature to XML->no_html() method.
     * add several Unicode whitespace defs to $whitespace regex in XML class
       per http://en.wikipedia.org/wiki/Mapping_of_Unicode_characters
+
+0.60  13 July 2011
+    * fix whitespace def to include &nbsp; (broke HTML::HiLiter)
+

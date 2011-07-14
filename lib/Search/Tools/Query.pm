@@ -11,7 +11,7 @@ use Data::Dump qw( dump );
 use Search::Tools::RegEx;
 use Search::Tools::UTF8;
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 
 __PACKAGE__->mk_ro_accessors(
     qw(

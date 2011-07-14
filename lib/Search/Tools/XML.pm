@@ -5,7 +5,7 @@ use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 
 =pod
 
@@ -93,7 +93,7 @@ my @white_hex_pts = qw(
     feff
 );
 
-my @whitesp = ('\s');
+my @whitesp = ( '\s', '&nbsp;' );
 
 # NOTE that the pound sign # needs escaping because we use
 # the 'x' flag in our regexp.
