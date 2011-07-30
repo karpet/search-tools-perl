@@ -1,9 +1,8 @@
 #!/usr/bin/env perl
 use strict;
-use Test::More tests => 7;
+use Test::More tests => 6;
 
-use_ok('Search::Tools::Snipper');
-use_ok('Search::Tools::HiLiter');
+use_ok('Search::Tools');
 
 my $text = <<EOF;
 when in the course of human events
@@ -17,7 +16,7 @@ EOF
 
 my @q = ( 'a', 'in', '"human events"' );
 
-ok( my $s = Search::Tools::Snipper->new(
+ok( my $s = Search::Tools->snipper(
         query           => join( ' ', @q ),
         max_chars       => length($text) - 1,
         term_min_length => 2,
@@ -26,7 +25,7 @@ ok( my $s = Search::Tools::Snipper->new(
 );
 
 ok( my $snip = $s->snip($text), "snip" );
-ok( my $h = Search::Tools::HiLiter->new( query => $s->query ), "hiliter" );
+ok( my $h = Search::Tools->hiliter( query => $s->query ), "hiliter" );
 ok( my $lit = $h->light($snip), "hilite" );
 
 #diag($snip);
