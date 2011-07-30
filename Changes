@@ -304,3 +304,8 @@ Revision history for Perl extension Search::HiLiter.
 0.60  13 July 2011
     * fix whitespace def to include &nbsp; (broke HTML::HiLiter)
 
+0.61  29 July 2011
+    * add term_min_length option to QueryParser, to ignore terms unless then are
+      N chars or longer. Useful for skipping single-character words when Snipping
+      or HiLiting. For backwards compatibility the default is 1.
+
