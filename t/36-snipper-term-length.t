@@ -11,15 +11,17 @@ your code isn't just a silly mishmash
 of squiggle this and squiggle that,
 type man! type! until you've reached
 enough words to justify your paltry existence.
+and 9/11 was a bad day.
 amen.
 EOF
 
-my @q = ( 'a', 'in', '"human events"' );
+my @q = ( 'a', 'in', '"9/11"', '"human events"' );
 
 ok( my $s = Search::Tools->snipper(
-        query           => join( ' ', @q ),
-        max_chars       => length($text) - 1,
-        term_min_length => 2,
+        query                   => join( ' ', @q ),
+        max_chars               => length($text) - 1,
+        term_min_length         => 2,
+        treat_uris_like_phrases => 1,
     ),
     "snipper"
 );
@@ -32,6 +34,6 @@ ok( my $lit = $h->light($snip), "hilite" );
 #diag($lit);
 
 is( $snip,
-    qq/ ... in the course of human events you need to create ... /,
+    qq( ... in the course of human events you need to create ... your paltry existence. and 9/11 was a bad day ... ),
     "snip excludes terms less than 2 chars long"
 );

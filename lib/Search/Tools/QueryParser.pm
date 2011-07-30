@@ -180,10 +180,6 @@ sub _extract_terms {
 
 U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
-        if ( length $u < $min_length ) {
-            next U;
-        }
-
         my $n = $uniq{$u};
 
         # only phrases have space
@@ -194,7 +190,7 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
         if ( $self->treat_uris_like_phrases ) {
 
             # special case: treat email addresses, uris, as phrase
-            $isphrase ||= $u =~ m/[$wordchar][\@\.\\][$wordchar]/ || 0;
+            $isphrase ||= $u =~ m/[$wordchar][\@\.\\\/][$wordchar]/ || 0;
         }
 
         $self->debug && carp "$u -> isphrase = $isphrase";
@@ -272,6 +268,12 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
             # since the * will match both
             delete( $words{$copy} );
         }
+
+        if ( length $_ < $min_length ) {
+            $self->debug and carp "token too short: '$_'";
+            delete $words{$_};
+        }
+
     }
 
     $self->debug && carp "wildcards removed: " . Data::Dump::dump( \%words );
