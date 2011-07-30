@@ -25,23 +25,24 @@ our $DefaultSnipper = 'offset';
 
 __PACKAGE__->mk_accessors(
     qw(
-        query
-        occur
+        as_sentences
+        collapse_whitespace
         context
+        count
+        escape
+        force
         ignore_length
         max_chars
-        word_len
+        occur
+        query
         show
-        escape
         snipper
-        type_used
-        force
-        type
-        count
-        collapse_whitespace
-        use_pp
-        as_sentences
         treat_phrases_as_singles
+        type
+        type_used
+        use_pp
+        word_len
+
         )
 );
 
@@ -205,7 +206,7 @@ sub _token {
         my $snips_end_with_query   = $_[0] =~ m/\Q$snip\E$/;
         if ( $self->{as_sentences} ) {
             $snips_start_with_query = 1;
-            $snips_end_with_query   = $snip =~ m/[\.\?\!]\s*$/;
+            $snips_end_with_query = $snip =~ m/[\.\?\!]\s*$/;
         }
         my $extract = join( '',
             ( $snips_start_with_query ? '' : $ellip ),
