@@ -949,11 +949,7 @@ st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
             case '!':
                 return 1;
                 break;
-                
-            case ';':   /* TODO ? */
-                return 1;
-                break;
-                
+                                
             default:
                 continue;
                 

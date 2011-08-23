@@ -76,6 +76,7 @@ t/33-matches.t
 t/34-style-hilite.t
 t/35-whitespace.t
 t/36-snipper-term-length.t
+t/37-heatmap-long-sentences.t
 t/90-leaktrace.t
 t/91-valgrind.t
 t/99-0.24-back-compat.t
@@ -88,6 +89,7 @@ t/docs/domestic-accounts.html
 t/docs/dot.com.txt
 t/docs/findaprofessional.txt
 t/docs/greek_and_ojibwe.txt
+t/docs/having-trouble-paying.html
 t/docs/linux-user-group.html
 t/docs/little-c-child-abuse.html
 t/docs/pre-existing.txt

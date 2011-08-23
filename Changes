@@ -310,3 +310,7 @@ Revision history for Perl extension Search::HiLiter.
       or HiLiting. For backwards compatibility the default is 1.
     * fix treat_uris_like_phrases regex to add / character in addition to @.\
 
+0.62  xxx
+    * remove ';' as sentence boundary character (it was marked as TODO in search-tools.c)
+      because character entities use it (e.g. &amp;).
+
