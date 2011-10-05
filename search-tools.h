@@ -8,7 +8,7 @@
  * Search::Tools C helpers
  */
 
-#define ST_CROAK(args, ...) st_croak(__FILE__, __LINE__, __func__, args)
+#define ST_CROAK(args, ...) st_croak(__FILE__, __LINE__, FUNCTION__, args)
 
 #define ST_CLASS_TOKEN      "Search::Tools::Token"
 #define ST_CLASS_TOKENLIST  "Search::Tools::TokenList"
