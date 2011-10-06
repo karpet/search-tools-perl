@@ -314,3 +314,8 @@ Revision history for Perl extension Search::HiLiter.
     * remove ';' as sentence boundary character (it was marked as TODO in search-tools.c)
       because character entities use it (e.g. &amp;).
 
+0.63  06 Oct 2011
+    * change __func__ macro to use FUNCION__ instead since Perl core implements
+      that portable macro.
+
+
