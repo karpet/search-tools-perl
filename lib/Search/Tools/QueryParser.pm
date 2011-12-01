@@ -124,6 +124,7 @@ TERM: for my $term ( @{ $extracted->{terms} } ) {
     return $self->{query_class}->new(
         dialect => $extracted->{dialect},
         terms   => $extracted->{terms},
+        fields  => $extracted->{fields},
         str     => to_utf8( $query_str, $self->charset ),
         regex   => \%regex,
         qp      => $self,
@@ -167,7 +168,8 @@ sub _extract_terms {
     $baked_query = to_utf8( $baked_query, $self->charset );
     my $dialect = $parser->parse($baked_query) or croak $parser->error;
     $self->debug && carp "parsetree: " . Data::Dump::dump( $dialect->tree );
-    $self->_get_value_from_tree( \%uniq, $dialect->tree, $c );
+    my $fields_searched
+        = $self->_get_value_from_tree( \%uniq, $dialect->tree, $c );
 
     $self->debug && carp "parsed: " . Data::Dump::dump( \%uniq );
 
@@ -324,7 +326,8 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
     # sort keeps query in same order as we entered
     return {
-        terms   => [ sort { $words{$a} <=> $words{$b} } keys %words ],
+        terms => [ sort { $words{$a} <=> $words{$b} } keys %words ],
+        fields  => [ keys %$fields_searched ],
         dialect => $dialect,
         query   => $raw_query,
     };
@@ -355,6 +358,7 @@ sub _get_value_from_tree {
     my $uniq      = shift;
     my $parseTree = shift;
     my $c         = shift;
+    my %fields    = ();
 
     # we only want the values from non minus queries
     for my $node ( '+', '' ) {
@@ -374,9 +378,13 @@ sub _get_value_from_tree {
             {
                 next;
             }
-
+            my $field = $leaf->{field};
+            if ( defined $field ) {
+                $fields{$field}++;
+            }
             if ( ref $v eq 'HASH' ) {
-                $self->_get_value_from_tree( $uniq, $v, $c );
+                my $f = $self->_get_value_from_tree( $uniq, $v, $c );
+                $fields{$_} = $f->{$_} for (keys %$f);
             }
             elsif ( ref $v eq 'ARRAY' ) {
                 for my $value (@$v) {
@@ -404,7 +412,7 @@ sub _get_value_from_tree {
             }
         }
     }
-
+    return \%fields;
 }
 
 sub _setup_regex_builder {

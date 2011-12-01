@@ -323,4 +323,5 @@ Revision history for Perl extension Search::HiLiter.
     * according to Unicode spect \xfeff (BOM) is deprecated as whitespace character
       in favor of \x2060. HTML whitespace definition changed accordingly.
     * fix edge case in HiLiter where match on single letter could cause infinite loop.
+    * add Query->fields method to see the fields searched for.
 

@@ -10,7 +10,7 @@ use_ok('Search::Tools');
 ok( my $parser = Search::Tools->parser(), "new parser" );
 
 my $html = qq{a fancy word for <b>detox</b>? <br />demythylation is not.};
-my $str  = qq{a fancy word for detox demyth* "is not"};
+my $str  = qq{foo:a fancy word for detox demyth* "is not"};
 
 ok( my $query = $parser->parse($str), "parse $str" );
 

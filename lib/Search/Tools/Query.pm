@@ -16,6 +16,7 @@ our $VERSION = '0.64';
 __PACKAGE__->mk_ro_accessors(
     qw(
         terms
+        fields
         dialect
         str
         regex
@@ -32,7 +33,8 @@ Search::Tools::Query - objectified string for highlighting, snipping, etc.
  use Search::Tools::QueryParser;
  my $qparser  = Search::Tools::QueryParser->new;
  my $query    = $qparser->parse(q(the quick color:brown "fox jumped"));
- my $terms    = $query->terms; # ['quick', 'brown', '"fox jumped"']
+ my $fields   = $query->fields; # ['color']
+ my $terms    = $query->terms;  # ['quick', 'brown', '"fox jumped"']
  my $regex    = $query->regex_for($terms->[0]); # S::T::RegEx
  my $tree     = $query->tree; # the Search::Query::Dialect tree()
  print "$query\n";  # the quick color:brown "fox jumped"
@@ -43,6 +45,11 @@ Search::Tools::Query - objectified string for highlighting, snipping, etc.
 
 
 =head1 METHODS
+
+=head2 fields
+
+Array ref of fields from the original query string.
+See Search::Tools::QueryParser for controls over ignore_fields().
 
 =head2 terms
 
