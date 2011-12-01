@@ -185,10 +185,11 @@ Returns the number of matches for the query against I<html>.
 sub _matches {
     my $self  = shift;
     my $style = shift;
+    my $text  = to_utf8( $_[0] );
     my $count = 0;
     for my $term ( @{ $self->{terms} } ) {
         my $regex = $self->{regex}->{$term}->{$style};
-        $count += to_utf8($_[0]) =~ m/$regex/;
+        $count += $text =~ m/$regex/;
     }
     return $count;
 }
