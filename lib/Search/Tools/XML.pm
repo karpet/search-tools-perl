@@ -89,8 +89,8 @@ my @white_hex_pts = qw(
     2029
     202f
     205f
+    2060
     3000
-    feff
 );
 
 my @whitesp = ( '\s', '&nbsp;' );

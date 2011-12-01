@@ -191,14 +191,19 @@ sub _get_real_html {
     # since the $re is the bottleneck.
     while ( $$text =~ m/$re/g ) {
 
+        my $pos = pos($$text);
+
         if ($debug) {
             carp "$2 matches $re";
+            carp "\$1='$1'\n\$2='$2'\n\$3='$3'\npos=$pos";
         }
 
         $m->{$2}++;
-        pos($$text) = pos($$text) - 1;
 
         # move back and consider $3 again as possible $1 for next match
+        if ( length($3) ) {
+            pos($$text) = $pos - 1;
+        }
 
     }
 
@@ -472,7 +477,7 @@ Q: for my $query (@kworder) {
     # now our markers replaced with actual tags
     $i = 0;
     for my $set (@markers) {
-        my $ichr = quotemeta(chr($i));
+        my $ichr = quotemeta( chr($i) );
         $text =~ s/$ichr\002/$set->[0]/g;
         $text =~ s/$ichr\003/$set->[1]/g;
         $i++;
