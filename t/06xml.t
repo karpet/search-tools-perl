@@ -1,4 +1,4 @@
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Data::Dump;
 
 BEGIN
@@ -42,4 +42,7 @@ is($utf8_safe, $lowesc, "utf8_safe with low chars");
 ok( my $xml_w_attr = $class->start_tag('foo', { bar => '"><& chars' }),
     "xml with attr");
 is( $xml_w_attr, '<foo bar="&quot;&gt;&lt;&amp; chars">', "start tag with attr");
+
+# https://rt.cpan.org/Ticket/Display.html?id=72904
+is( $class->unescape_named('&frAc14;'), chr(188), 'unescaped_name includes \d and /i');
  
