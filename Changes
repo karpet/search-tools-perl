@@ -327,4 +327,6 @@ Revision history for Perl extension Search::HiLiter.
     * fix XML->unescape_named to support entities with \d in them, and case-insensitive.
       https://rt.cpan.org/Ticket/Display.html?id=72904
 
+0.65  02 Dec 2011
+    * lowercase named entity matches. patch from Adam Lesperance.
 
