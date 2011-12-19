@@ -15,6 +15,150 @@
 #define ST_BAD_UTF8 "str must be UTF-8 encoded and flagged by Perl. \
 See the Search::Tools::to_utf8() function."
 
+static char *en_abbrevs[] = {
+"adm",
+"al",
+"ala",
+"alta",
+"apr",
+"arc",
+"ariz",
+"ark",
+"assn",
+"attys",
+"attys",
+"aug",
+"ave",
+"bld",
+"blvd",
+"brig",
+"bros",
+"cal",
+"calif",
+"capt",
+"cl",
+"cmdr",
+"co",
+"col",
+"col",
+"colo",
+"conn",
+"corp",
+"cpl",
+"cres",
+"ct",
+"dak",
+"dec",
+"del",
+"dept",
+"det",
+"dist",
+"dr",
+"esp",
+"esq",
+"etc",
+"exp",
+"expy",
+"feb",
+"fed",
+"fla",
+"ft",
+"fwy",
+"fy",
+"ga",
+"gen",
+"gov",
+"hway",
+"hwy",
+"ia",
+"id",
+"ida",
+"ill",
+"inc",
+"ind",
+"is",
+"jan",
+"jr",
+"jul",
+"jun",
+"kan",
+"kans",
+"ken",
+"ky",
+"la",
+"la",
+"lt",
+"ltd",
+"maj",
+"man",
+"mar",
+"mass",
+"may",
+"md",
+"me",
+"mex",
+"mfg",
+"mich",
+"minn",
+"miss",
+"mo",
+"mont",
+"mr",
+"mrs",
+"ms",
+"mssrs",
+"mt",
+"mtn",
+"neb",
+"nebr",
+"nev",
+"no",
+"nov",
+"oct",
+"ok",
+"okla",
+"ont",
+"ore",
+"pa",
+"pd",
+"pde",
+"penn",
+"penna",
+"ph.d",
+"pl",
+"plz",
+"prof",
+"que",
+"rd",
+"rep",
+"reps",
+"rev",
+"sask",
+"sen",
+"sens",
+"sep",
+"sept",
+"sgt",
+"sr",
+"st",
+"supt",
+"tce",
+"tenn",
+"tex",
+"univ",
+"usafa",
+"ut",
+"va",
+"vs",
+"vt",
+"wash",
+"wis",
+"wisc",
+"wy",
+"wyo",
+"yuk",
+NULL    // must be last
+};
 
 typedef char    boolean;
 typedef struct  st_token st_token;
@@ -27,6 +171,7 @@ struct st_token {
     I32             is_hot;     /* interesting token flag */
     boolean         is_sentence_start;  /* looks like the start of a sentence */
     boolean         is_sentence_end;    /* looks like the end of a sentence */
+    boolean         is_abbreviation;    /* looks like abbreviation */
     boolean         is_match;   /* matched regex */
     IV              ref_cnt;    /* reference counter */
 };
@@ -57,10 +202,11 @@ static st_token_list* st_new_token_list(
 );
 static void     st_dump_token_list(st_token_list *tl);
 static void     st_dump_token(st_token *tok);
-/* UNUSED
+
 static SV*      st_hv_store( HV* h, const char* key, SV* val );
 static SV*      st_hv_store_char( HV* h, const char* key, char *val );
 static SV*      st_hv_store_int( HV* h, const char* key, int i);
+/* UNUSED
 static SV*      st_hvref_store_int( SV* h, const char* key, int i);
 static SV*      st_hvref_store( SV* h, const char* key, SV* val );
 static SV*      st_hvref_store_char( SV* h, const char* key, char *val );
@@ -103,6 +249,8 @@ static boolean  st_is_ascii( SV* str );
 static boolean  st_char_is_ascii( unsigned char* str, STRLEN len );
 static SV*      st_find_bad_utf8( SV* str );
 static SV*      st_escape_xml(char *s);
+static IV       st_is_abbreviation(const unsigned char *ptr, IV len);
 static IV       st_looks_like_sentence_start(const unsigned char *ptr, IV len);
 static IV       st_looks_like_sentence_end(const unsigned char *ptr, IV len);
 static IV       st_utf8_codepoint(const unsigned char *utf8, IV len);
+static U8*      st_string_to_lower(const unsigned char *ptr, IV len);

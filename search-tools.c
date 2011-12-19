@@ -13,6 +13,7 @@
 
 /* global debug var */
 static boolean ST_DEBUG = 0;
+static HV* ST_ABBREVS = NULL;
 
 /* perl versions < 5.8.8 do not have this */
 #ifndef is_utf8_string_loclen
@@ -68,7 +69,6 @@ is_utf8_string_loclen(const U8 *s, STRLEN len, const U8 **ep, STRLEN *el)
 #endif
  
 
-/* UNUSED
 static SV*
 st_hv_store( HV* h, const char* key, SV* val) {
     dTHX;
@@ -79,8 +79,7 @@ st_hv_store( HV* h, const char* key, SV* val) {
     }
     return *ok;
 }
-*/
-/* UNUSED
+
 static SV*
 st_hv_store_char( HV* h, const char *key, char *val) {
     dTHX;
@@ -90,8 +89,7 @@ st_hv_store_char( HV* h, const char *key, char *val) {
     SvREFCNT_dec(value);
     return value;
 }
-*/
-/* UNUSED
+
 static SV*      
 st_hv_store_int( HV* h, const char* key, int i) {
     dTHX;
@@ -101,7 +99,7 @@ st_hv_store_int( HV* h, const char* key, int i) {
     SvREFCNT_dec(value);
     return value;
 }
-*/
+
 /* UNUSED
 static SV*
 st_hvref_store( SV* h, const char* key, SV* val) {
@@ -235,6 +233,7 @@ st_new_token(
     tok->is_match = is_match;
     tok->is_sentence_start = 0;
     tok->is_sentence_end = 0;
+    tok->is_abbreviation = 0;
     tok->str = newSVpvn(ptr, len); /* newSVpvn_utf8 not available in some perls? */
     SvUTF8_on(tok->str);
     tok->ref_cnt = 1;
@@ -336,6 +335,7 @@ st_dump_token(st_token *tok) {
     warn(" is_match = %d\n", tok->is_match);
     warn(" is_sentence_start = %d\n", tok->is_sentence_start);
     warn(" is_sentence_end   = %d\n", tok->is_sentence_end);
+    warn(" is_abbreviation   = %d\n", tok->is_abbreviation);
     warn(" is_hot   = %d\n", tok->is_hot);
     warn(" ref_cnt  = %ld\n", (unsigned long)tok->ref_cnt);
 }
@@ -608,7 +608,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
     AV              *heat;
     AV              *sentence_starts;
     SV              *tok;
-    boolean          heat_seeker_is_CV;
+    boolean          heat_seeker_is_CV, inside_sentence, prev_was_abbrev;
 
 /* initialize */
     num_tokens      = 0;
@@ -625,7 +625,9 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
     heat            = newAV();
     sentence_starts = newAV();
     prev_sentence_start = 0;
-    heat_seeker_is_CV  = 0;
+    inside_sentence     = 0;    // assume we start with a sentence start
+    heat_seeker_is_CV   = 0;
+    prev_was_abbrev     = 0;
     if (heat_seeker != NULL && (SvTYPE(SvRV(heat_seeker))==SVt_PVCV)) {
          heat_seeker_is_CV = 1;
     }
@@ -662,12 +664,31 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                                 utf8_distance((U8*)start_ptr, (U8*)prev_end),
                                 prev_end, 0, 0);
             token_str = SvPV_nolen(token->str);
-            if (st_looks_like_sentence_start((unsigned char*)token_str, token->len)) {
-                token->is_sentence_start = 1;
+            
+            if (!inside_sentence) {
+                if (num_tokens == 1
+                    ||
+                    st_looks_like_sentence_start((unsigned char*)token_str, token->len)
+                ) {
+                    token->is_sentence_start = 1;
+                    inside_sentence          = 1;
+                }
             }
-            else if (st_looks_like_sentence_end((unsigned char*)token_str, token->len)) {
+            else if (!prev_was_abbrev
+                    &&
+                    st_looks_like_sentence_end((unsigned char*)token_str, token->len)
+            ) {
                 token->is_sentence_end = 1;
+                inside_sentence        = 0;
             }
+            if (st_is_abbreviation((unsigned char*)token_str, token->len)) {
+                token->is_abbreviation = 1;
+                prev_was_abbrev = 1;
+            }
+            else {
+                prev_was_abbrev = 0;
+            }
+            
             if (ST_DEBUG > 1) {
                 warn("prev [%d] [%d] [%d] [%s] [%d] [%d]", 
                     token->pos, token->len, token->u8len, token_str,
@@ -689,12 +710,31 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                             start_ptr,
                             0, 1);
         token_str = SvPV_nolen(token->str);
-        if (st_looks_like_sentence_start((unsigned char*)token_str, token->len)) {
-            token->is_sentence_start = 1;
+        
+        if (!inside_sentence) {
+            if (num_tokens == 1
+                ||
+                st_looks_like_sentence_start((unsigned char*)token_str, token->len)
+            ) {
+                token->is_sentence_start = 1;
+                inside_sentence          = 1;
+            }
         }
-        else if (st_looks_like_sentence_end((unsigned char*)token_str, token->len)) {
+        else if (!prev_was_abbrev 
+                && 
+                st_looks_like_sentence_end((unsigned char*)token_str, token->len)
+        ) {
             token->is_sentence_end = 1;
+            inside_sentence        = 0;
         }
+        if (st_is_abbreviation((unsigned char*)token_str, token->len)) {
+            token->is_abbreviation = 1;
+            prev_was_abbrev = 1;
+        }
+        else {
+            prev_was_abbrev = 0;
+        }
+        
         if (ST_DEBUG > 1) {
             warn("main [%d] [%d] [%d] [%s] [%d] [%d]", 
                 token->pos, token->len, token->u8len, token_str,
@@ -866,7 +906,8 @@ st_utf8_codepoint(
 }
 
 static IV
-st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
+st_looks_like_sentence_start(const unsigned char *ptr, IV len) 
+{
     dTHX;
     
     I32 u8len, u32pt;
@@ -923,10 +964,12 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len) {
 
 /* does any char in the string look like a sentence ending? */
 static IV
-st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
+st_looks_like_sentence_end(const unsigned char *ptr, IV len) 
+{
     dTHX;
     
     IV i;
+    IV num_dots = 0;
     
     /* right now this assumes ASCII sentence punctuation.
      * if we ever wanted utf8 support we'd need to iterate
@@ -934,12 +977,13 @@ st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
      */
     
     if (ST_DEBUG > 1)
-        warn("%s: %c\n", FUNCTION__, ptr[0]);
-    
+        warn("%s: %s\n", FUNCTION__, ptr);
+                    
     for (i=0; i<len; i++) {
         switch (ptr[i]) {
             case '.':
-                return 1;
+                /* if abbrev like e.g. U.S.A. then check before and after */
+                num_dots++;
                 break;
             
             case '?':
@@ -955,6 +999,61 @@ st_looks_like_sentence_end(const unsigned char *ptr, IV len) {
                 
         }
     }
+    if (num_dots > 1 && num_dots < len) {
+        return 0;
+    }
+    else if (num_dots == 1) {
+        return 1;
+    }
     return 0;
 }
 
+static U8*
+st_string_to_lower(const unsigned char *ptr, IV len)
+{
+    U8 *lc, *d;
+    U8 *s = (U8*)ptr;
+    const U8 *const send = s + len;
+    U8 tmpbuf[UTF8_MAXBYTES_CASE+1];
+    lc = st_malloc((UTF8_MAXBYTES_CASE*len)+1);
+    d  = lc;
+    while (s < send) {
+        const STRLEN u = UTF8SKIP(s);
+        STRLEN ulen;
+        const UV uv = to_utf8_lower(s, tmpbuf, &ulen);
+        Copy(tmpbuf, lc, ulen, U8);
+        lc += ulen;
+        s += u; 
+    }
+    *lc = '\0';
+    return d;
+}
+
+static IV
+st_is_abbreviation(const unsigned char *ptr, IV len) 
+{
+    dTHX;
+
+    IV i;
+    unsigned char *ptr_lc;
+
+    /* only consider strings of abbreviation-like length */
+    if (len < 2 || len > 5) {
+        return 0;
+    }
+    
+    if (ST_ABBREVS == NULL) {
+        //warn("ST_ABBREVS not yet built\n");
+        i = 0;
+        ST_ABBREVS = newHV();
+        while(en_abbrevs[i] != NULL) {
+            st_hv_store_int( ST_ABBREVS, en_abbrevs[i], i);
+            i++;
+        }
+    }
+    ptr_lc = (unsigned char*)st_string_to_lower(ptr, len);
+    //warn("ptr=%s ptr_lc=%s\n", ptr, ptr_lc);
+    i = hv_fetch(ST_ABBREVS, ptr_lc, len, 0) ? 1 : 0;
+    free(ptr_lc);
+    return i;
+}

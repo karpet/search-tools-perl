@@ -9,7 +9,7 @@ use overload
 
 use Search::Tools;    # XS required
 
-our $VERSION = '0.66';
+our $VERSION = '0.67';
 
 1;
 
@@ -82,6 +82,11 @@ UTF8 character or other common sentence-starting character.
 
 Returns true value if the Token matches common sentence-ending
 punctuation.
+
+=head2 is_abbreviation
+
+Returns true value of the Token looks like a common English
+abbreviation.
 
 =head2 dump
 

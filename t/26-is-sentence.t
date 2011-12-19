@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 17;
 use Search::Tools::Tokenizer;
 use Search::Tools::UTF8;
 use Search::Tools::Snipper;
@@ -20,11 +20,22 @@ ok( $tokens->get_token( $tokens->num - 1 )->is_sentence_end,
 
 #dump( $tokens->get_sentence_starts );
 
+ok( $tokens
+        = $tokenizer->tokenize( "r-o-c-k in the U.S.A. Mr. Smith!", qr/\w/ ),
+    "parse abbrev"
+);
+ok( $tokens->get_token(11)->is_sentence_end, "smith is sentence ender" );
+
+#dump( $tokens->get_sentence_starts );
+#$tokens->dump;
+
 # harder
-ok( $tokens = $tokenizer->tokenize( 'lo! how a rose ere bloometh', qr/\w/ ),
-    "tokenize rose" );
-ok( !$tokens->get_token(0)->is_sentence_start,
-    "first token not starts sentence"
+ok( $tokens
+        = $tokenizer->tokenize( qq/lo! how a rose 'ere bloometh/, qr/\w/ ),
+    "tokenize rose"
+);
+ok( $tokens->get_token(0)->is_sentence_start,
+    "first token starts sentence even though lowercase"
 );
 ok( $tokens->get_token(1)->is_sentence_end, "second token is sentence end" );
 

@@ -632,7 +632,16 @@ is_sentence_end(self)
     OUTPUT:
         RETVAL
 
-
+IV
+is_abbreviation(self)
+    st_token *self;
+    
+    CODE:
+        RETVAL = self->is_abbreviation;
+    
+    OUTPUT:
+        RETVAL
+        
 IV
 set_match(self, val)
     st_token *self;
