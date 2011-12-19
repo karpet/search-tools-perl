@@ -85,7 +85,7 @@ punctuation.
 
 =head2 is_abbreviation
 
-Returns true value of the Token looks like a common English
+Returns true value if the Token looks like a common English
 abbreviation.
 
 =head2 dump
