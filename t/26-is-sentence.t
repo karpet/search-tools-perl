@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use strict;
-use Test::More tests => 17;
+use Test::More tests => 19; 
 use Search::Tools::Tokenizer;
 use Search::Tools::UTF8;
 use Search::Tools::Snipper;
@@ -87,3 +87,21 @@ ok( my $long_snip = $long_snipper->snip($long_text), "snip long text" );
 
 #diag($long_snip);
 is( $long_snip, $long_text_snip, "long text snip" );
+
+#########
+# straight up sentence detection
+ok( my $sent_tokens = $tokenizer->tokenize($long_text),
+    "tokenize long text" );
+my $nstarts = 0;
+while ( my $t = $sent_tokens->next ) {
+
+    if ( $t->is_sentence_start ) {
+
+        #print "\nSTART: ";
+        $nstarts++;
+    }
+
+    #print "$t";
+
+}
+is( $nstarts, 4, "4 sentences detected" );
