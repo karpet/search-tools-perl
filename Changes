@@ -336,3 +336,4 @@ Revision history for Perl extension Search::HiLiter.
 0.67  xxx
     * bolster Tokenizer sentence detection, adding list of abbreviations from Linga::EN::Tagger.
     * fix missing 'lang' param for SpellCheck
+    * fix placement of dSP macro in tokenize() C func to properly scope stack variables.

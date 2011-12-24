@@ -142,7 +142,12 @@ Returns a TokenList object representin the Tokens in I<string>.
 I<string> is "split" according to the regex in re().
 
 I<heat_seeker> can be either a CODE reference or a regex object (qr//)
-to use for testing is_hot per token.
+to use for testing is_hot per token. An example CODE reference:
+
+ my $tokens = $tokenizer->tokenize('foo bar', sub { 
+    my ($token) = @_;
+    # do something with token during initial iteration
+ },);
 
 I<match_num> is the parentheses number to consider the matching token
 in the re() value. The default is 0 (the entire matching pattern).

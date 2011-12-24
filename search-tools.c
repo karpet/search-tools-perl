@@ -593,7 +593,6 @@ st_heat_seeker_offsets( SV *str, SV *re ) {
 static SV*
 st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
     dTHX;   /* thread-safe perlism */
-    dSP;    /* callback macro */
     
 /* declare */
     IV               num_tokens, prev_sentence_start;
@@ -745,6 +744,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
         tok = st_bless_ptr(ST_CLASS_TOKEN, token);
         if (heat_seeker != NULL) {
             if (heat_seeker_is_CV) {
+                dSP;
                 PUSHMARK(SP);
                 XPUSHs(tok);
                 PUTBACK;
