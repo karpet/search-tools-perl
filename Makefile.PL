@@ -26,6 +26,8 @@ WriteMakefile(
         'File::Slurp'        => 0,
         'Test::More'         => 0.94,
         'Encoding::FixLatin' => 0,
+        'File::Basename'     => 0,
+        'Scalar::Util'       => 0,
 
         #'Text::Aspell'          => '0.06',  # optional
 

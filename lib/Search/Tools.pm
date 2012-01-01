@@ -3,6 +3,8 @@ use 5.008_003;
 use strict;
 use warnings::register;
 use Carp;
+use Scalar::Util qw( openhandle );
+use File::Basename;
 
 our $VERSION = '0.67';
 
@@ -21,7 +23,7 @@ sub regexp {
     warnings::warn(
         "as of version 0.24 you should use parser() instead of regexp()")
         if warnings::enabled();
-        
+
     my %extra = @_;
     my $q = delete( $extra{query} ) || croak "query required";
     return $class->parser(%extra)->parse($q);
@@ -49,6 +51,33 @@ sub spellcheck {
     my $class = shift;
     require Search::Tools::SpellCheck;
     return Search::Tools::SpellCheck->new(@_);
+}
+
+sub slurp {
+    my ( $self, $file ) = @_;
+    my ( $buf, $fh );
+    my ( $name, $path, $suffix ) = fileparse( $file, qr/\.[^.]*/ );
+    $suffix = lc($suffix);
+    if ( $suffix eq '.gz' ) {
+        require IO::Uncompress::Gunzip;
+        $fh = IO::Uncompress::Gunzip->new($file);
+    }
+    elsif ( $suffix eq '.bz2' ) {
+        require IO::Uncompress::Bunzip2;
+        $fh = IO::Uncompress::Bunzip2->new($file)
+            or die "bunzip2 failed: $IO::Uncompress::Bunzip2::Bunzip2Error\n";
+
+    }
+    else {
+        require IO::File;
+        $fh = openhandle($file) || IO::File->new( $file, '<' );
+    }
+
+    while ( my $ln = $fh->getline ) {
+        $buf .= $ln;
+    }
+
+    return $buf;
 }
 
 1;
@@ -154,6 +183,12 @@ Same as:
 =head2 spellcheck( I<args> )
 
 Returns a Search::Tools::SpellCheck object, passing I<args> to new().
+
+=head2 slurp( I<filename> )
+
+Reads contents of I<filename> into a scalar variable. Similar to File::Slurp,
+but will handle compressed files (.gz or .bz2) transparently
+using IO::Uncompress.
 
 =cut
 
