@@ -338,3 +338,7 @@ Revision history for Perl extension Search::HiLiter.
     * fix missing 'lang' param for SpellCheck
     * fix placement of dSP macro in tokenize() C func to properly scope stack variables.
     * add slurp() method to Search::Tools
+
+0.68  15 Jan 2012
+    * add missing dTHX macro per https://rt.cpan.org/Ticket/Display.html?id=74022
+

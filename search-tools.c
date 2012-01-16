@@ -1011,6 +1011,8 @@ st_looks_like_sentence_end(const unsigned char *ptr, IV len)
 static U8*
 st_string_to_lower(const unsigned char *ptr, IV len)
 {
+    dTHX;
+    
     U8 *lc, *d;
     U8 *s = (U8*)ptr;
     const U8 *const send = s + len;
