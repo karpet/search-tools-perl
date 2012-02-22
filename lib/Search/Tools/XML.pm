@@ -4,8 +4,9 @@ use warnings;
 use Carp;
 use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
+use Search::Tools::UTF8;
 
-our $VERSION = '0.68';
+our $VERSION = '0.69';
 
 =pod
 
@@ -596,7 +597,9 @@ As of version 0.27 escape() is written in C/XS for speed.
 sub escape {
     my $text = pop;
     return unless defined $text;
-    return _escape_xml($text);
+    my $esc = _escape_xml($text);
+    return to_utf8($esc) if is_valid_utf8($text);
+    return $esc;
 }
 
 =head2 unescape( I<text> )
@@ -637,7 +640,7 @@ sub unescape_named {
                 my $dec = $HTML_ents{$e};
                 if ( my $n = $t =~ s/&$e;/chr($dec)/eg ) {
 
-                    #warn "replaced $e ($dec) -> $HTML_ents{$e} $n times in text";
+                #warn "replaced $e ($dec) -> $HTML_ents{$e} $n times in text";
                 }
             }
         }

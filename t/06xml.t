@@ -60,5 +60,6 @@ my $utf8_str = to_utf8( "Ay\xFAdenos reportar sobre educaci\xF3n" );
 ok( is_sane_utf8( $utf8_str, 1 ), "sane utf8 to start");
 my $utf8_str_esc = $class->escape( $utf8_str );
 ok( is_sane_utf8( $utf8_str_esc, 1 ), "escaped string is still sane utf8");
-debug_bytes( $utf8_str );
-debug_bytes( $utf8_str_esc );
+
+#debug_bytes( $utf8_str );
+#debug_bytes( $utf8_str_esc );

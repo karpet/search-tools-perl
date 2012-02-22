@@ -8,7 +8,7 @@ use Search::Tools::TokenList;
 use Search::Tools::UTF8;
 use Carp;
 
-our $VERSION = '0.68';
+our $VERSION = '0.69';
 
 __PACKAGE__->mk_accessors(qw( re ));
 

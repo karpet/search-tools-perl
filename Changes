@@ -342,3 +342,6 @@ Revision history for Perl extension Search::HiLiter.
 0.68  15 Jan 2012
     * add missing dTHX macro per https://rt.cpan.org/Ticket/Display.html?id=74022
 
+0.69  xxx
+    * fix XML->escape() to preserve UTF-8 flag on the returned SV*
+
