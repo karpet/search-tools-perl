@@ -1,8 +1,9 @@
-use Test::More tests => 10;
+use Test::More tests => 13;
 use Data::Dump;
 
 BEGIN {
     use_ok('Search::Tools::XML');
+    use_ok('Search::Tools::UTF8');
 }
 
 my $class = 'Search::Tools::XML';
@@ -53,3 +54,11 @@ is( $class->unescape_named('&frac14;'),
     chr(188), 'unescaped_name includes \d' );
 is( $class->unescape_named('&Ntilde;'),
     chr(209), 'unescaped_name case insensitive' );
+
+# encoding tests
+my $utf8_str = to_utf8( "Ay\xFAdenos reportar sobre educaci\xF3n" );
+ok( is_sane_utf8( $utf8_str, 1 ), "sane utf8 to start");
+my $utf8_str_esc = $class->escape( $utf8_str );
+ok( is_sane_utf8( $utf8_str_esc, 1 ), "escaped string is still sane utf8");
+debug_bytes( $utf8_str );
+debug_bytes( $utf8_str_esc );
