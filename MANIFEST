@@ -13,15 +13,11 @@ example/utf8re.pl
 lib/Search/Tools.pm
 lib/Search/Tools/HeatMap.pm
 lib/Search/Tools/HiLiter.pm
-lib/Search/Tools/Keywords.pm
 lib/Search/Tools/MethodMaker.pm
 lib/Search/Tools/Object.pm
 lib/Search/Tools/Query.pm
 lib/Search/Tools/QueryParser.pm
 lib/Search/Tools/RegEx.pm
-lib/Search/Tools/RegExp.pm
-lib/Search/Tools/RegExp/Keyword.pm
-lib/Search/Tools/RegExp/Keywords.pm
 lib/Search/Tools/Snipper.pm
 lib/Search/Tools/SpellCheck.pm
 lib/Search/Tools/Token.pm
@@ -80,7 +76,6 @@ t/37-heatmap-long-sentences.t
 t/38-hiliter-multiple-terms.t
 t/90-leaktrace.t
 t/91-valgrind.t
-t/99-0.24-back-compat.t
 t/docs/ascii.txt
 t/docs/big-C-Child-abuse.html
 t/docs/bigfile.html.gz

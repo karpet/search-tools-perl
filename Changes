@@ -345,3 +345,7 @@ Revision history for Perl extension Search::HiLiter.
 0.69  22 Feb 201x2
     * fix XML->escape() to preserve UTF-8 flag on the returned SV*
 
+0.70  xxx
+    * refactor XML->escape for some performance gain
+    * remove long-deprecated Keywords classes
+

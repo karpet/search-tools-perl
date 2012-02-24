@@ -6,7 +6,7 @@ use Carp;
 use Scalar::Util qw( openhandle );
 use File::Basename;
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
@@ -20,13 +20,7 @@ sub parser {
 sub regexp {
     my $class = shift;
 
-    warnings::warn(
-        "as of version 0.24 you should use parser() instead of regexp()")
-        if warnings::enabled();
-
-    my %extra = @_;
-    my $q = delete( $extra{query} ) || croak "query required";
-    return $class->parser(%extra)->parse($q);
+    croak("as of version 0.24 you should use parser() instead of regexp()");
 }
 
 sub hiliter {
@@ -236,7 +230,7 @@ See also the specific module documentation for individual requirements.
 =head1 HISTORY
 
 The public API has changed as of version 0.24. The following classes
-are now deprecated:
+are now removed:
 
  Search::Tools::Keywords
  Search::Tools::RegExp

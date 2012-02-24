@@ -5,7 +5,7 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 
 # debugging only
 my $OPEN  = '[';

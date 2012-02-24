@@ -11,7 +11,7 @@ use Data::Dump qw( dump );
 use Search::Tools::RegEx;
 use Search::Tools::UTF8;
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
@@ -85,39 +85,6 @@ and str_clean() which delegate to the dialect object.
 =head2 qp
 
 The Search::Tools::QueryParser object used to generate the Query.
-
-=head2 from_regexp_keywords( I<RegExp_Keywords_object> )
-
-Class method for easing backwards compatability with the pre-0.24 API.
-
-=cut
-
-# backcompat
-sub from_regexp_keywords {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $rekw  = shift or croak "RegExp::Keywords required";
-
-    #dump $rekw;
-
-    my $regex = {};
-    for ( $rekw->keywords ) {
-        my $rek = $rekw->{hash}->{$_} or croak "no Keyword object for $_";
-        $regex->{$_} = Search::Tools::RegEx->new(
-            plain     => $rek->plain,
-            html      => $rek->html,
-            is_phrase => $rek->phrase,
-            term      => $rek->word,
-        );
-    }
-    my $self = $class->new(
-        terms => $rekw->{array},
-        regex => $regex,
-        str   => $rekw->{kw}->{query},
-        qp    => $rekw->{kw},
-    );
-    return $self;
-}
 
 =head2 num_terms
 

@@ -5,14 +5,13 @@ use warnings;
 use Carp;
 use Data::Dump qw( dump );
 use Search::Tools::XML;
-use Search::Tools::RegExp;
 use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';

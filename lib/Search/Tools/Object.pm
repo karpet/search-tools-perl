@@ -6,7 +6,7 @@ use base qw( Rose::ObjectX::CAF );
 use Scalar::Util qw( blessed );
 use Search::Tools::MethodMaker;
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 
 __PACKAGE__->mk_accessors(qw( debug ));
 
@@ -118,16 +118,11 @@ sub _normalize_args {
     elsif ( blessed($q) and $q->isa('Search::Tools::Query') ) {
         $args{query} = $q;
     }
-    elsif ( blessed($q) and $q->isa('Search::Tools::RegExp::Keywords') ) {
-
-        # backcompat
-        $args{query} = Search::Tools::Query->from_regexp_keywords($q);
-    }
     else {
         croak
             "query param required to be a scalar string or Search::Tools::Query object";
     }
-    $args{debug} = $debug;  # restore so it can be passed on
+    $args{debug} = $debug;    # restore so it can be passed on
     return %args;
 }
 

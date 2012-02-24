@@ -12,7 +12,7 @@ use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;
@@ -147,10 +147,7 @@ sub _extract_terms {
     my $esc_wildcard  = quotemeta($wildcard);
     my $word_re       = qr/(($esc_wildcard)?[$wordchar]+($esc_wildcard)?)/;
     my $min_length    = $self->term_min_length;
-
-    # backcompat allows for query to be array ref.
-    # this called only from S::T::Keywords
-    my $raw_query = ref $query ? join( ' ', @$query ) : $query;
+    my $raw_query     = $query;
 
     $stopwords = [ split( /\s+/, $stopwords ) ] unless ref $stopwords;
     my %stophash = map { to_utf8( lc($_), $self->charset ) => 1 } @$stopwords;
@@ -384,7 +381,7 @@ sub _get_value_from_tree {
             }
             if ( ref $v eq 'HASH' ) {
                 my $f = $self->_get_value_from_tree( $uniq, $v, $c );
-                $fields{$_} = $f->{$_} for (keys %$f);
+                $fields{$_} = $f->{$_} for ( keys %$f );
             }
             elsif ( ref $v eq 'ARRAY' ) {
                 for my $value (@$v) {
@@ -660,10 +657,6 @@ Search::Tools::QueryParser - convert string queries into objects
 Search::Tools::QueryParser turns search queries into objects that can
 be applied for highlighting, spelling, and extracting matching snippets
 from source documents.
-
-This is a new class in Search::Tools version 0.24. It supercedes
-the Search::Tools::RegExp and Search::Tools::Keywords public API, but
-backwords compatability is preserved except where noted.
 
 =head1 METHODS
 

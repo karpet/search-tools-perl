@@ -6,7 +6,7 @@ use Carp;
 use Search::Tools::XML;
 use Search::Tools::UTF8;
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 
 my $XML = Search::Tools::XML->new;
 
