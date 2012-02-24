@@ -703,11 +703,15 @@ MODULE = Search::Tools       PACKAGE = Search::Tools::XML
 PROTOTYPES: enable
 
 SV*
-_escape_xml(text)
+_escape_xml(text, is_flagged_utf8)
     char *text;
+    int   is_flagged_utf8;
 
     CODE:
         RETVAL = st_escape_xml(text);
+        if (is_flagged_utf8) {
+            SvUTF8_on(RETVAL);
+        }
     
     OUTPUT:
         RETVAL

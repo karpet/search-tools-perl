@@ -495,7 +495,8 @@ sub attr_safe {
     }
     my @xml = ('');    # force space at start in return
     for my $name ( sort keys %$attr ) {
-        my $val = _escape_xml( $attr->{$name} );
+        my $val = _escape_xml( $attr->{$name},
+            is_flagged_utf8( $attr->{$name} ) );
         push @xml, tag_safe($name) . qq{="$val"};
     }
     return join( ' ', @xml );
@@ -597,9 +598,7 @@ As of version 0.27 escape() is written in C/XS for speed.
 sub escape {
     my $text = pop;
     return unless defined $text;
-    my $esc = _escape_xml($text);
-    return to_utf8($esc) if is_valid_utf8($text);
-    return $esc;
+    return _escape_xml( $text, is_flagged_utf8($text) );
 }
 
 =head2 unescape( I<text> )
