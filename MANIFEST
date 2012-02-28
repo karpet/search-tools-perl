@@ -36,7 +36,6 @@ README
 search-tools.c
 search-tools.h
 t/00-load.t
-t/01keywords.t
 t/02regexp.t
 t/03snip.t
 t/04hilite.t

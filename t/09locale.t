@@ -1,16 +1,16 @@
 use Test::More tests => 2;
 
-use Search::Tools::Keywords;
-
 BEGIN {
     use POSIX qw(locale_h);
     use locale;
     setlocale( LC_ALL, 'en_US.UTF-8' );
 }
 
-ok( my $kw = Search::Tools::Keywords->new(), "new keywords" );
+use Search::Tools::QueryParser;
 
-#diag( 'queryparser (keywords) locale: ' . $kw->locale );
+ok( my $qp = Search::Tools::QueryParser->new(), "new QueryParser" );
+
+#diag( 'queryparser locale: ' . $qp->locale );
 
 SKIP: {
 
@@ -21,6 +21,6 @@ SKIP: {
 
     skip "UTF-8 charset not supported", 1 if $locale_ctype ne 'en_US.UTF-8';
 
-    like( uc($kw->charset), qr/UTF-?8/, "UTF-8 charset" );
+    like( uc($qp->charset), qr/UTF-?8/, "UTF-8 charset" );
 }
 

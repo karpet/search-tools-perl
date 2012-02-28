@@ -1,5 +1,4 @@
 use Search::Tools::HiLiter;
-use Search::Tools::RegExp;
 use Test::More tests => 9;
 
 my $parser

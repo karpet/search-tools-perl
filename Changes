@@ -349,3 +349,6 @@ Revision history for Perl extension Search::HiLiter.
     * refactor XML->escape for some performance gain
     * remove long-deprecated Keywords classes
 
+0.71  28 Feb 2012
+    * fix failing tests due to removed classes in 0.70
+

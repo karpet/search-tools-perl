@@ -1,6 +1,9 @@
+#!/usr/bin/env perl
+
+use strict;
 use Test::More tests => 6;
 
-use_ok('Search::Tools::RegExp');
+use_ok('Search::Tools');
 
 # http://code.google.com/p/test-more/issues/detail?id=46
 binmode Test::More->builder->output,         ":utf8";
