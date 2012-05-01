@@ -1,4 +1,4 @@
-use Test::More tests => 10;
+use Test::More tests => 9;
 
 BEGIN {
     use POSIX qw(locale_h);
@@ -10,11 +10,10 @@ SKIP: {
 
     eval "require Text::Aspell";
     if ($@) {
-        skip "Text::Aspell required for SpellCheck", 10;
+        skip "Text::Aspell required for SpellCheck", 9;
     }
 
     use Data::Dump qw(dump);
-    use_ok('Search::Tools::Keywords');
     use_ok('Search::Tools::SpellCheck');
 
     my $query

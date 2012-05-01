@@ -352,3 +352,6 @@ Revision history for Perl extension Search::HiLiter.
 0.71  28 Feb 2012
     * fix failing tests due to removed classes in 0.70
 
+0.72  30 April 2012
+    * more fixes, similar to 0.71 (for now missing Keywords class)
+
