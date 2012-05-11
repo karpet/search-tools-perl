@@ -6,7 +6,7 @@ use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
 
-our $VERSION = '0.72';
+our $VERSION = '0.73';
 
 =pod
 
