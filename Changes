@@ -342,7 +342,7 @@ Revision history for Perl extension Search::HiLiter.
 0.68  15 Jan 2012
     * add missing dTHX macro per https://rt.cpan.org/Ticket/Display.html?id=74022
 
-0.69  22 Feb 201x2
+0.69  22 Feb 2012
     * fix XML->escape() to preserve UTF-8 flag on the returned SV*
 
 0.70  23 Feb 2012
@@ -355,3 +355,6 @@ Revision history for Perl extension Search::HiLiter.
 0.72  30 April 2012
     * more fixes, similar to 0.71 (for now missing Keywords class)
 
+0.73  xxx
+    * fix edge case with snipping phrases that contain non-word characters other than spaces.
+ 

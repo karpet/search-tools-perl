@@ -173,6 +173,8 @@ sub _token {
     $qre_ORd =~ s/(\\ )+/\|/g;
     my $tokens = $self->{_tokenizer}->$method( $_[0], qr/^$qre_ORd$/ );
 
+    $self->debug and $tokens->dump;
+
     my $heatmap = Search::Tools::HeatMap->new(
         tokens                    => $tokens,
         window_size               => $self->{context},

@@ -211,7 +211,15 @@ sub terms_as_regex {
         # treat phrases like OR'd words
         # since that will just create more matches.
         # if hiliting later, the phrase will be treated as such.
-        $q =~ s/(\\ )+/\|/g if $treat_phrases_as_singles;
+        if ($treat_phrases_as_singles) {
+            $q =~ s/(\\ )+/\|/g;
+        }
+
+        # if keeping phrases together use a less-naive regex instead of a space.
+        else {
+            #$q = $self->regex_for($term)->plain();
+            #$q =~ s/(\\ )+/[^$wc]+/g;
+        }
 
         push( @re, $q );
     }

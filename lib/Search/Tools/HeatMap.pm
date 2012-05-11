@@ -141,7 +141,7 @@ sub _build {
 # currently _as_sentences() is mostly identical to _no_sentences()
 # with slightly fewer gymnastics.
 # Since we already know via sentence_starts where our boundaries are,
-# we not have to call $tokens->get_window().
+# we do not have to call $tokens->get_window().
 # Who knows how we might improve the sentence algorithm in future,
 # so already having it in its own method seems like a win.
 sub _as_sentences {
@@ -155,6 +155,13 @@ sub _as_sentences {
     my %heatmap         = ();
     my $token_list_heat = $tokens->get_heat;
     my $sentence_starts = $tokens->get_sentence_starts;
+
+    # this regex is a sanity check for phrases. we replace the \ with a
+    # more promiscuous check because the single space is too naive
+    # for real text (e.g. st. john's)
+    my $qre = $self->{_qre};
+    $qre =~ s/(\\ )+/.+/g;
+
     my @starts_ends;
     my $i = 0;
     for (@$token_list_heat) {
@@ -179,10 +186,15 @@ sub _as_sentences {
         # if we didn't yet set the actual hot token,
         # include everything up to it.
         if ( $end < $token_pos ) {
+            $self->debug
+                and warn
+                "start=$start max_end=$max_end sentence_length=$sentence_length end=$end token_pos=$token_pos -- resetting end=$token_pos\n";
             $end = $token_pos;
         }
         push( @starts_ends, [ $start, $token_pos, $end ] );
     }
+
+    $self->debug and warn "starts_ends: " . dump( \@starts_ends );
 
     my @spans;
     my %seen_pos;
@@ -226,7 +238,10 @@ START_END:
         if ( !$self->{_treat_phrases_as_singles} ) {
 
             #warn "_treat_phrases_as_singles NOT true";
-            if ( $span{str} !~ m/$self->{_qre}/ ) {
+            if ( $span{str} !~ m/$qre/ ) {
+                $self->debug
+                    and warn
+                    "treat_phrases_as_singles=FALSE and $span{str} failed to match $qre\n";
                 next;
             }
         }
@@ -286,6 +301,12 @@ sub _no_sentences {
     my ( $self, $tokens, $window ) = @_;
     my $lhs_window = int( $window / 2 );
     my $debug = $self->debug || 0;
+
+    # this regex is a sanity check for phrases. we replace the \ with a
+    # more promiscuous check because the single space is too naive
+    # for real text (e.g. st. john's)
+    my $qre = $self->{_qre};
+    $qre =~ s/(\\ )+/.+/g;
 
     # build heatmap
     my $num_tokens      = $tokens->len;
@@ -387,7 +408,10 @@ CLUSTER:
         if ( !$self->{_treat_phrases_as_singles} ) {
 
             #warn "_treat_phrases_as_singles NOT true";
-            if ( $span{str} !~ m/$self->{_qre}/ ) {
+            if ( $span{str} !~ m/$qre/ ) {
+                $self->debug
+                    and warn
+                    "treat_phrases_as_singles=FALSE and $span{str} failed to match $qre\n";
                 next;
             }
         }
