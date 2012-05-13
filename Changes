@@ -355,6 +355,6 @@ Revision history for Perl extension Search::HiLiter.
 0.72  30 April 2012
     * more fixes, similar to 0.71 (for now missing Keywords class)
 
-0.73  xxx
+0.73  13 May 2012 (Happy Mothers Day)
     * fix edge case with snipping phrases that contain non-word characters other than spaces.
  
