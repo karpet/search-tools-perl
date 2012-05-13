@@ -10,6 +10,7 @@
 
 #define ST_CROAK(args, ...) st_croak(__FILE__, __LINE__, FUNCTION__, args)
 
+#define ST_DEBUG            SvIV(get_sv("Search::Tools::XS_DEBUG", GV_ADD))
 #define ST_CLASS_TOKEN      "Search::Tools::Token"
 #define ST_CLASS_TOKENLIST  "Search::Tools::TokenList"
 #define ST_BAD_UTF8 "str must be UTF-8 encoded and flagged by Perl. \

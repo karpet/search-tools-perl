@@ -11,8 +11,7 @@
 #include <wctype.h>
 #include "search-tools.h"
 
-/* global debug var */
-static boolean ST_DEBUG = 0;
+/* global vars */
 static HV* ST_ABBREVS = NULL;
 
 /* perl versions < 5.8.8 do not have this */
@@ -505,9 +504,11 @@ st_get_regex_from_sv( SV *regex_sv ) {
         if (SvMAGICAL(sv))
             mg = mg_find(sv, PERL_MAGIC_qr);
     }
-    if (!mg)
+    if (!mg) {
+        st_describe_object(regex_sv);
         ST_CROAK("regex is not a qr// entity");
-        
+    }
+    
     rx = (REGEXP*)mg->mg_obj;
 #endif
 
@@ -717,6 +718,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
             ) {
                 token->is_sentence_start = 1;
                 inside_sentence          = 1;
+                prev_sentence_start      = token->pos;
             }
         }
         else if (!prev_was_abbrev 

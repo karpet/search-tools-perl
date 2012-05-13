@@ -254,9 +254,18 @@ set_debug(self, val)
     boolean val;
     
     CODE:
-        ST_DEBUG = val;
-        //warn("ST_DEBUG set to %d", ST_DEBUG);
-        RETVAL = self;
+        SV* st_debug_var;
+        st_debug_var = get_sv("Search::Tools::XS_DEBUG", GV_ADD);
+        //warn(" st_debug_var before = '%s'\n", SvPV_nolen(st_debug_var));
+        SvIV_set(st_debug_var, val);
+        SvIOK_on(st_debug_var);
+        //warn("ST_DEBUG set to %d", val);
+        //warn(" st_debug_var set = '%d'\n", ST_DEBUG);
+        if (SvREFCNT(st_debug_var) == 1) {
+            // IMPORTANT because we access var from Perl and C
+            SvREFCNT_inc(st_debug_var);
+        }
+        RETVAL = st_debug_var;
     
     OUTPUT:
         RETVAL
@@ -442,8 +451,21 @@ SV*
 get_heat(self)
     st_token_list *self;
     
+    PREINIT:
+        AV *heat;
+        IV len;
+        IV pos;
+        SV* h;
+    
     CODE:
-        RETVAL = newRV_inc((SV*)self->heat);
+        heat = newAV();
+        pos = 0;
+        len = av_len(self->heat)+1;
+        while (pos < len) {
+            h = st_av_fetch(self->heat, pos++);
+            av_push(heat, h);
+        }
+        RETVAL = newRV((SV*)heat);    /* no _inc -- this is a copy */
     
     OUTPUT:
         RETVAL
@@ -453,8 +475,22 @@ SV*
 get_sentence_starts(self)
     st_token_list *self;
     
+    PREINIT:
+        AV *starts;
+        IV len;
+        IV pos;
+        SV* sstart;
+    
     CODE:
-        RETVAL = newRV_inc((SV*)self->sentence_starts);
+        starts = newAV();
+        pos = 0;
+        len = av_len(self->sentence_starts)+1;
+        while (pos < len) {
+            warn("fetch pos %d from len %d\n", pos, len);
+            sstart = st_av_fetch(self->sentence_starts, pos++);
+            av_push(starts, sstart);
+        }
+        RETVAL = newRV((SV*)starts);    /* no _inc -- this is a copy */
     
     OUTPUT:
         RETVAL
