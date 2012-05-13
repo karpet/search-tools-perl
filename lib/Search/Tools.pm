@@ -11,6 +11,8 @@ our $VERSION = '0.73';
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
 
+our $XS_DEBUG = 0;
+
 sub parser {
     my $class = shift;
     require Search::Tools::QueryParser;

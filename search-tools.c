@@ -712,14 +712,9 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
         token_str = SvPV_nolen(token->str);
         
         if (!inside_sentence) {
-            if (num_tokens == 1
-                ||
-                st_looks_like_sentence_start((unsigned char*)token_str, token->len)
-            ) {
-                token->is_sentence_start = 1;
-                inside_sentence          = 1;
-                prev_sentence_start      = token->pos;
-            }
+            token->is_sentence_start = 1;
+            inside_sentence          = 1;
+            prev_sentence_start      = token->pos;
         }
         else if (!prev_was_abbrev 
                 && 

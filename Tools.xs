@@ -486,7 +486,6 @@ get_sentence_starts(self)
         pos = 0;
         len = av_len(self->sentence_starts)+1;
         while (pos < len) {
-            warn("fetch pos %d from len %d\n", pos, len);
             sstart = st_av_fetch(self->sentence_starts, pos++);
             av_push(starts, sstart);
         }

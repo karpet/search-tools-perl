@@ -162,6 +162,12 @@ sub _as_sentences {
     my $qre = $self->{_qre};
     $qre =~ s/(\\ )+/.+/g;
 
+    if ( $self->debug ) {
+        warn "sentence_starts: " . dump($sentence_starts);
+        warn "token_list_heat: " . dump($token_list_heat);
+    }
+
+    # find the "sentence" that each hot token appears in.
     my @starts_ends;
     my $i = 0;
     for (@$token_list_heat) {
@@ -173,9 +179,17 @@ sub _as_sentences {
         my $max_end = $start + $sentence_length;
         $max_end = $num_tokens if $num_tokens < $max_end;
         while ( $end < $max_end ) {
-            my $tok = $tokens->get_token( $end++ ) or last;
+            my $tok = $tokens->get_token( $end++ );
+            if ( !$tok ) {
+                $self->debug and warn "No token at end=$end";
+                last;
+            }
             if ( $tok->is_sentence_end ) {
                 $end--;
+                if ( $self->debug ) {
+                    warn "tok $_ is_sentence_end end=$end";
+                    $tok->dump;
+                }
                 last;
             }
         }
