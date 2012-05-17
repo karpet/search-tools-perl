@@ -705,6 +705,12 @@ Obviously stripping the final C<s> will not always render sensical tag names.
 Pass a CODE ref instead, expecting one value (the tag name) and returning the
 tag name to use:
 
+ my $xml = $utils->perl_to_xml($data, 'data', sub {
+     my $tag = shift;
+     $tag =~ s/foo/BAR/;
+     return $tag;
+ });
+
 =cut
 
 sub _make_singular {
