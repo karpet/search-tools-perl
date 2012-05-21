@@ -6,7 +6,7 @@ use Carp;
 
 #use Data::Dump qw( dump );
 
-our $VERSION = '0.73';
+our $VERSION = '0.74';
 
 __PACKAGE__->mk_ro_accessors(
     qw(

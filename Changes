@@ -357,4 +357,7 @@ Revision history for Perl extension Search::HiLiter.
 
 0.73  13 May 2012 (Happy Mothers Day)
     * fix edge case with snipping phrases that contain non-word characters other than spaces.
+
+0.74  21 May 2012
+    * yank some meta data from a test doc to avoid security scan problems on CPAN
  
