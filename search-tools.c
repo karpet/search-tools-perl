@@ -606,7 +606,7 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
     const char      *prev_end, *prev_start;
     AV              *tokens;
     AV              *heat;
-    AV              *sentence_starts;
+    AV              *sentence_starts;   /* list of sentence start points for hot tokens */
     SV              *tok;
     boolean          heat_seeker_is_CV, inside_sentence, prev_was_abbrev;
 
@@ -664,6 +664,14 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
                                 utf8_distance((U8*)start_ptr, (U8*)prev_end),
                                 prev_end, 0, 0);
             token_str = SvPV_nolen(token->str);
+            
+            /* TODO
+            there is an edge case here where a token that ends a sentence
+            (e.g. punctuation) also matches the start of the next sentence
+            (e.g. more punctuation, inverted question mark).
+            Need to split that into 2 tokens in order to distinguish
+            the end and start
+            */
             
             if (!inside_sentence) {
                 if (num_tokens == 1
@@ -910,7 +918,7 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len)
     I32 u8len, u32pt;
     
     if (ST_DEBUG > 1)
-        warn("%s: %c\n", FUNCTION__, ptr[0]); 
+        warn("%s: >%s< %ld\n", FUNCTION__, ptr, len); 
     
     /* optimized for ASCII */
     if (st_char_is_ascii((char*)ptr, len)) {
@@ -932,31 +940,40 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len)
         }
     }
     
+    if (!len) {
+        return 0;
+    }
+    
     /* TODO if any char is UPPER in the string, consider it a start? */
     
     /* get first full UTF-8 char */
+#if (PERL_VERSION >= 16)
+    warn("WE HAVE utf8_char_buf\n");
+    u8len = is_utf8_char_buf((const U8*)ptr, (const U8*)ptr+UTF8SKIP(ptr));
+#else
+    warn("WE HAVE utf8_char\n");
     u8len = is_utf8_char((U8*)ptr);
+#endif
+
     if (ST_DEBUG > 1)
         warn("%s: %s is utf8 u8len %d\n", FUNCTION__, ptr, u8len);
     
-    if (len) {
-        u32pt = st_utf8_codepoint(ptr, u8len);
+    u32pt = st_utf8_codepoint(ptr, u8len);
         
-        if (ST_DEBUG > 1)
-            warn("%s: u32 code point %d\n", FUNCTION__, u32pt);
+    if (ST_DEBUG > 1)
+        warn("%s: u32 code point %d\n", FUNCTION__, u32pt);
         
-        if (iswupper((wint_t)u32pt)) {
-            return 1;
-        }
-        if (u32pt == 191) { /* INVERTED QUESTION MARK */
-            return 1;
-        }
-        
-        /* TODO more here? */
-        
-        return 0;
+    if (iswupper((wint_t)u32pt)) {
+        return 1;
     }
+    if (u32pt == 191) { /* INVERTED QUESTION MARK */
+        return 1;
+    }
+        
+    /* TODO more here? */
+    
     return 0;
+
 }
 
 /* does any char in the string look like a sentence ending? */
