@@ -360,4 +360,8 @@ Revision history for Perl extension Search::HiLiter.
 
 0.74  21 May 2012
     * yank some meta data from a test doc to avoid security scan problems on CPAN
+
+0.75  xxx
+    * add some tests for Perl 5.17.x test failures
+    * fix edge case where short snip generated spurious ellipses
  
