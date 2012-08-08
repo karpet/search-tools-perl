@@ -9,7 +9,7 @@ use overload
 
 use Search::Tools;    # XS required
 
-our $VERSION = '0.75';
+our $VERSION = '0.76';
 
 1;
 
