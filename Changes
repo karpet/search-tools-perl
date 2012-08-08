@@ -364,4 +364,7 @@ Revision history for Perl extension Search::HiLiter.
 0.75  6 Aug 2012
     * add some tests for Perl 5.17.x test failures
     * fix edge case where short snip generated spurious ellipses
- 
+
+0.76  7 Aug 2012
+    * finally(!) add real stemming tests and support to Snipper and HiLiter 
+

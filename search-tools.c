@@ -750,10 +750,20 @@ st_tokenize( SV* str, SV* token_re, SV* heat_seeker, I32 match_num ) {
         if (heat_seeker != NULL) {
             if (heat_seeker_is_CV) {
                 dSP;
+                ENTER;
+                SAVETMPS;
                 PUSHMARK(SP);
                 XPUSHs(tok);
                 PUTBACK;
-                call_sv(heat_seeker, G_DISCARD);
+                if (call_sv(heat_seeker, G_SCALAR) != 1) {
+                    croak("Invalid return value from heat_seeker SUB -- should be single integer");
+                }
+                SPAGAIN;
+                token->is_hot = POPi;
+                //warn("heat_seeker CV returned %d\n", token->is_hot);
+                PUTBACK;
+                FREETMPS;
+                LEAVE;
             }
             else {
                 st_heat_seeker(token, heat_seeker);

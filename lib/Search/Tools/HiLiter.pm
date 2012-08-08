@@ -3,8 +3,10 @@ use strict;
 use warnings;
 use base qw( Search::Tools::Object );
 use Carp;
+use Search::Tools::Tokenizer;
 use Search::Tools::XML;
 use Search::Tools::UTF8;
+use Data::Dump qw( dump );
 
 our $VERSION = '0.75';
 
@@ -32,6 +34,11 @@ sub init {
     if ( $self->debug ) {
         carp "debug level set at " . $self->debug;
     }
+
+    $self->{_tokenizer} = Search::Tools::Tokenizer->new(
+        re    => $self->query->qp->term_re,
+        debug => $self->debug,
+    );
 
     $self->{tag} ||= 'span';
     $self->{colors} ||= [ '#ffff99', '#99ffff', '#ffccff', '#ccccff' ];
@@ -173,6 +180,9 @@ sub light {
     else {
 
         #warn "running ->plain";
+        if ( $self->query->qp->stemmer ) {
+            return $self->plain_stemmer($text);
+        }
         return $self->plain($text);
     }
 }
@@ -384,6 +394,82 @@ sub _clean_up_hilites {
 
 }
 
+sub plain_stemmer {
+    my $self  = shift;
+    my $text  = shift or croak "need text";
+    my $debug = $self->debug;
+
+    my @kworder = $self->_kworder;
+
+    # if stemmer is on, we must stem each token to look for a match
+    my $qre = $self->query->terms_as_regex(1);
+    $qre =~ s/(\\ )+/\|/g;    # TODO OR phrases together if (0) above?
+
+    my $re          = qr/^$qre$/;
+    my $stemmer     = $self->query->qp->stemmer;
+    my $qp          = $self->query->qp;
+    my $wildcard    = $qp->wildcard;
+    my $heat_seeker = sub {
+        my ($token) = @_;
+        my $st = $stemmer->( $qp, $token->str );
+        return $st =~ m/$re/;
+    };
+
+    my $tokens = $self->{_tokenizer}->tokenize( $text, $heat_seeker );
+
+    # create a new string
+    my $buf;
+
+    # iterate over tokens, looking for any hot ones,
+    # and create a new string
+TOK: while ( my $tok = $tokens->next ) {
+        my $str = $tok->str;
+        if ( $tok->is_hot ) {
+
+            # find the matching query term
+
+            my $stemmed = $stemmer->( $qp, $str );
+            my $found_match = 0;
+        Q: for my $query (@kworder) {
+                my $regex = $self->_regex_for($query);
+                my @regex_to_try;
+
+                # if it is a phrase, try each term in the phrase
+                if ( $regex->is_phrase ) {
+                    @regex_to_try = @{ $regex->phrase_terms };
+                }
+                else {
+                    @regex_to_try = ($regex);
+                }
+            REGEX: for my $r (@regex_to_try) {
+                    my $term_re = $r->term_re;
+                    $debug
+                        and warn
+                        "testing '$stemmed' against '$query' with '$term_re'";
+                    if ( $stemmed =~ m/$term_re/ ) {
+                        my $open  = $self->open_tag($query);
+                        my $close = $self->close_tag($query);
+                        $debug and warn "$str is hot with match '$query'";
+                        $str         = $open . $str . $close;
+                        $found_match = 1;
+                        last Q;
+                    }
+
+                }
+            }
+
+            if ( !$found_match ) {
+
+                # common case is phrases?
+                $debug and warn "failed to find match for '$stemmed'";
+
+            }
+        }
+        $buf .= $str;
+    }
+    return $buf;
+}
+
 # based on HTML::HiLiter plaintext()
 sub plain {
     my $self      = shift;
@@ -583,7 +669,7 @@ Get the closing hilite tag for I<term>.
 
 =head2 light( I<text> )
 
-Add hiliting tags to I<text>. Calls plain() or html()
+Add hiliting tags to I<text>. Calls plain(), plain_stemmer() or html()
 based on whether I<text> contains markup (checked with
 Search::Tools::XML->looks_like_html()).
 
@@ -597,9 +683,24 @@ An alias for light().
 
 Add hiliting tags to plain I<text>.
 
+Called internally by light().
+
+=head2 plain_stemmer( I<text> )
+
+Add hiliting tags to plain I<text>, when B<query> has had
+stemming applied. See B<stemmer> option to L<Search::Tools::QueryParser>.
+
+Called internally by light().
+
+Note that stemming support for HTML I<text> is not yet supported.
+
 =head2 html( I<text> )
 
 Add hiliting tags to marked up I<text>.
+
+Called internally by light().
+
+Note that stemming support for HTML I<text> is not yet supported.
 
 =head2 class
 

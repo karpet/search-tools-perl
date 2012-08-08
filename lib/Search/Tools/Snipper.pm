@@ -172,7 +172,20 @@ sub _token {
     # must split phrases into OR'd regex or else no heat is generated.
     my $qre_ORd = $qre;
     $qre_ORd =~ s/(\\ )+/\|/g;
-    my $tokens = $self->{_tokenizer}->$method( $_[0], qr/^$qre_ORd$/ );
+    my $heat_seeker = qr/^$qre_ORd$/;
+
+    # if stemmer is on, we must stem each token to look for a match
+    if ( $self->query->qp->stemmer ) {
+        my $stemmer = $self->query->qp->stemmer;
+        my $qp      = $self->query->qp;
+        my $re      = $heat_seeker;
+        $heat_seeker = sub {
+            my ($token) = @_;
+            my $st = $stemmer->( $qp, $token->str );
+            return $st =~ m/$re/;
+        };
+    }
+    my $tokens = $self->{_tokenizer}->$method( $_[0], $heat_seeker );
 
     #$self->debug and $tokens->dump;
 
@@ -214,6 +227,7 @@ sub _token {
         # if we are pulling out something less than the entire
         # text, insert ellipses...
         if ( $_[0] ne $snip ) {
+            $self->debug and warn "extract is smaller than snip";
             my $extract = join( '',
                 ( $snips_start_with_query ? '' : $ellip ),
                 $snip, ( $snips_end_with_query ? '' : $ellip ) );

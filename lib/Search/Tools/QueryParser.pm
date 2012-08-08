@@ -113,13 +113,35 @@ sub parse {
     my %regex;
 TERM: for my $term ( @{ $extracted->{terms} } ) {
         my ( $plain, $html, $escaped ) = $self->_build_regex($term);
+        my $is_phrase = $term =~ m/\ /;
+        my @phrase_terms;
+
+        # if the term is a phrase,
+        # build regex for each term in the phrase
+        if ($is_phrase) {
+            my @pts = split( /\ /, $term );
+            for my $pt (@pts) {
+                my ( $pt_plain, $pt_html, $pt_esc )
+                    = $self->_build_regex($pt);
+                push @phrase_terms,
+                    Search::Tools::RegEx->new(
+                    plain     => $pt_plain,
+                    html      => $pt_html,
+                    term      => $pt,
+                    term_re   => qr/$pt_esc/i,
+                    is_phrase => 0,
+                    );
+            }
+        }
         $regex{$term} = Search::Tools::RegEx->new(
-            plain     => $plain,
-            html      => $html,
-            term      => $term,
-            term_re   => qr/$escaped/i,
-            is_phrase => ( $term =~ m/\ / ? 1 : 0 ),
+            plain        => $plain,
+            html         => $html,
+            term         => $term,
+            term_re      => qr/$escaped/i,
+            is_phrase    => $is_phrase,
+            phrase_terms => \@phrase_terms,
         );
+
     }
     return $self->{query_class}->new(
         dialect => $extracted->{dialect},
@@ -295,20 +317,9 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
 
                 #warn "w: $w\nf: $f\n";
 
-                if ( $f ne $w ) {
-
-                    my @stemmed = split //, $f;
-                    my @char    = split //, $w;
-                    $f = '';    #reset
-                    while ( @char && @stemmed && $stemmed[0] eq $char[0] ) {
-                        $f .= shift @stemmed;
-                        shift @char;
-                    }
-
-                }
-
                 # add wildcard to indicate chars were lost
                 $w = $f . $wildcard;
+
             }
             my $new = join ' ', @w;
             if ( $new ne $_ ) {
