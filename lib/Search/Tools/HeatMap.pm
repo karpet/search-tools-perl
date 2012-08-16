@@ -23,6 +23,7 @@ __PACKAGE__->mk_accessors(
         as_sentences
         _treat_phrases_as_singles
         _qre
+        _stemmer
         )
 );
 
@@ -249,13 +250,14 @@ START_END:
         $span{str}       = join( '', @strings );
 
         # no false phrase matches if !_treat_phrases_as_singles
-        if ( !$self->{_treat_phrases_as_singles} ) {
+        # stemmer check because regex will likely fail when stemmer is on
+        if ( !$self->{_treat_phrases_as_singles} && !$self->{_stemmer} ) {
 
             #warn "_treat_phrases_as_singles NOT true";
             if ( $span{str} !~ m/$qre/ ) {
                 $self->debug
                     and warn
-                    "treat_phrases_as_singles=FALSE and $span{str} failed to match $qre\n";
+                    "treat_phrases_as_singles=FALSE and '$span{str}' failed to match $qre\n";
                 next;
             }
         }
@@ -419,13 +421,14 @@ CLUSTER:
         $span{str}     = join( '', @strings );
 
         # no false phrase matches if !_treat_phrases_as_singles
-        if ( !$self->{_treat_phrases_as_singles} ) {
+        # stemmer check because regex will likely fail when stemmer is on
+        if ( !$self->{_treat_phrases_as_singles} && !$self->{_stemmer} ) {
 
             #warn "_treat_phrases_as_singles NOT true";
             if ( $span{str} !~ m/$qre/ ) {
                 $self->debug
                     and warn
-                    "treat_phrases_as_singles=FALSE and $span{str} failed to match $qre\n";
+                    "treat_phrases_as_singles=FALSE and '$span{str}' failed to match $qre\n";
                 next;
             }
         }

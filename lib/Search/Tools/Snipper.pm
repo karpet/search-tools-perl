@@ -98,6 +98,9 @@ sub init {
 sub _pick_snipper {
     my ( $self, $text ) = @_;
     my $snipper_name = $self->type || $DefaultSnipper;
+    if ( $self->query->qp->stemmer ) {
+        $snipper_name = 'token';
+    }
     my $method_name = '_' . $snipper_name;
     $self->type_used($snipper_name);
     my $func = sub { shift->$method_name(@_) };
@@ -196,6 +199,7 @@ sub _token {
         debug                     => $self->debug,
         _qre                      => $qre,
         _treat_phrases_as_singles => $self->{treat_phrases_as_singles},
+        _stemmer                  => $self->query->qp->stemmer,
     );
 
     $self->debug and warn "heatmap: " . dump $heatmap;
@@ -880,14 +884,14 @@ and (optionally) escaping the text.
 
 Fastest for single-word queries.
 
-=item token (default)
+=item token
 
 Most accurate, for both single-word and phrase queries, although it relies
 on a HeatMap in order to locate phrases.
 
 See also the B<use_pp> feature.
 
-=item offset
+=item offset (default)
 
 Same as C<re> but optimized slightly to look at a substr of text.
 
