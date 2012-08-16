@@ -175,6 +175,9 @@ sub light {
     if ( $XML->looks_like_html($text) && !$self->no_html ) {
 
         #warn "running ->html";
+        if ( $self->query->qp->stemmer ) {
+            return $self->html_stemmer($text);
+        }
         return $self->html($text);
     }
     else {
@@ -392,6 +395,12 @@ sub _clean_up_hilites {
 
     }
 
+}
+
+sub html_stemmer {
+    my $self = shift;
+    my $text = shift;
+    return $self->plain_stemmer($text);
 }
 
 sub plain_stemmer {
@@ -692,7 +701,13 @@ stemming applied. See B<stemmer> option to L<Search::Tools::QueryParser>.
 
 Called internally by light().
 
-Note that stemming support for HTML I<text> is not yet supported.
+Note that stemming support for HTML I<text> is not yet fully supported, 
+and plain_stemmer() is applied to both HTML and non-HTML when the B<query>
+has been stemmed.
+
+=head2 html_stemmer( I<text> )
+
+Currently calls plain_stemmer().
 
 =head2 html( I<text> )
 

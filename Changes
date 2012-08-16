@@ -370,4 +370,6 @@ Revision history for Perl extension Search::HiLiter.
 
 0.77  xxx
     * add stemming support for Query->matches_html and Query->matches_text
+    * add HiLiter->html_stemmer with passthrough to plain_stemmer until failing test cases
+      materialize.
 
