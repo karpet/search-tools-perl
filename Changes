@@ -368,8 +368,10 @@ Revision history for Perl extension Search::HiLiter.
 0.76  7 Aug 2012
     * finally(!) add real stemming tests and support to Snipper and HiLiter 
 
-0.77  xxx
+0.77  15 Aug 2012
     * add stemming support for Query->matches_html and Query->matches_text
     * add HiLiter->html_stemmer with passthrough to plain_stemmer until failing test cases
       materialize.
+    * some fixes for stemming support, mostly turning off optimizations based on regular
+      expressions.
 
