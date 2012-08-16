@@ -10,6 +10,8 @@ use Carp;
 use Data::Dump qw( dump );
 use Search::Tools::RegEx;
 use Search::Tools::UTF8;
+use Search::Tools::Tokenizer;
+use Search::Tools::XML;
 
 our $VERSION = '0.76';
 
@@ -156,6 +158,31 @@ Returns the number of matches for the query against I<html>.
 
 =cut
 
+sub _matches_stemmed {
+    my $self      = shift;
+    my $text      = to_utf8( $_[0] );
+    my $count     = 0;
+    my $qp        = $self->qp;
+    my $stemmer   = $qp->stemmer;
+    my $wildcard  = $qp->wildcard;
+    my $tokenizer = Search::Tools::Tokenizer->new(
+        re    => $qp->term_re,
+        debug => $self->debug,
+    );
+    for my $term ( @{ $self->{terms} } ) {
+        my $re          = $self->{regex}->{$term}->{plain};
+        my $heat_seeker = sub {
+            my ($token) = @_;
+            my $st = $stemmer->( $qp, $token->str );
+            return $st =~ m/$re/;
+        };
+        my $tokens = $tokenizer->tokenize( $text, $heat_seeker );
+        my $heat = $tokens->get_heat;
+        $count += scalar @$heat;
+    }
+    return $count;
+}
+
 sub _matches {
     my $self  = shift;
     my $style = shift;
@@ -174,6 +201,7 @@ sub matches_text {
     if ( !defined $text ) {
         croak "text required";
     }
+    return $self->_matches_stemmed($text) if $self->qp->stemmer;
     return $self->_matches( 'plain', $text );
 }
 
@@ -182,6 +210,9 @@ sub matches_html {
     my $html = shift;
     if ( !defined $html ) {
         croak "html required";
+    }
+    if ( $self->qp->stemmer ) {
+        return $self->_matches_stemmed( Search::Tools::XML->no_html($html) );
     }
     return $self->_matches( 'html', $html );
 }
@@ -215,8 +246,9 @@ sub terms_as_regex {
             $q =~ s/(\\ )+/\|/g;
         }
 
-        # if keeping phrases together use a less-naive regex instead of a space.
+      # if keeping phrases together use a less-naive regex instead of a space.
         else {
+
             #$q = $self->regex_for($term)->plain();
             #$q =~ s/(\\ )+/[^$wc]+/g;
         }
