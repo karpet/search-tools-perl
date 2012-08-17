@@ -375,3 +375,6 @@ Revision history for Perl extension Search::HiLiter.
     * some fixes for stemming support, mostly turning off optimizations based on regular
       expressions.
 
+0.78  xxx
+    * small optimizations to HeatMap
+
