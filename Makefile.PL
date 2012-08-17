@@ -15,7 +15,6 @@ WriteMakefile(
     NAME          => 'Search::Tools',
     VERSION_FROM  => 'lib/Search/Tools.pm',
     AUTHOR        => q{Peter Karman <karman@cpan.org>},
-    VERSION_FROM  => 'lib/Search/Tools.pm',
     ABSTRACT_FROM => 'lib/Search/Tools.pm',
     PL_FILES      => {},
     PREREQ_PM     => {
