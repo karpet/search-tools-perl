@@ -161,7 +161,7 @@ sub _as_sentences {
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
     my $qre = $self->{_qre};
-    $qre =~ s/(\\ )+/.+/g;
+    my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
 
     if ( $self->debug ) {
         warn "sentence_starts: " . dump($sentence_starts);
@@ -251,7 +251,10 @@ START_END:
 
         # no false phrase matches if !_treat_phrases_as_singles
         # stemmer check because regex will likely fail when stemmer is on
-        if ( !$self->{_treat_phrases_as_singles} && !$self->{_stemmer} ) {
+        if (    $query_has_phrase
+            and !$self->{_treat_phrases_as_singles}
+            and !$self->{_stemmer} )
+        {
 
             #warn "_treat_phrases_as_singles NOT true";
             if ( $span{str} !~ m/$qre/ ) {
@@ -322,7 +325,7 @@ sub _no_sentences {
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
     my $qre = $self->{_qre};
-    $qre =~ s/(\\ )+/.+/g;
+    my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
 
     # build heatmap
     my $num_tokens      = $tokens->len;
@@ -422,7 +425,10 @@ CLUSTER:
 
         # no false phrase matches if !_treat_phrases_as_singles
         # stemmer check because regex will likely fail when stemmer is on
-        if ( !$self->{_treat_phrases_as_singles} && !$self->{_stemmer} ) {
+        if (    $query_has_phrase
+            and !$self->{_treat_phrases_as_singles}
+            and !$self->{_stemmer} )
+        {
 
             #warn "_treat_phrases_as_singles NOT true";
             if ( $span{str} !~ m/$qre/ ) {
