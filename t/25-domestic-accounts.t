@@ -28,7 +28,7 @@ ok( my $snip = $snipper->snip($buf), 'snip buf' );
 
 #diag($snip);
 is( $snip,
-    q(Background Over a number of years, municipal accounts ol some domestic consumers that do not qualify for free basic services in terms of Council's Assistance to the Poor Policy, have been reflecting very high balances for water consumption. ),
+    q(Background Over a number of years, municipal accounts ol some domestic consumers that do not qualify for free basic services in terms of Council's Assistance to the Poor Policy, have been reflecting very high balances for water consumption.),
     "got snip"
 );
 

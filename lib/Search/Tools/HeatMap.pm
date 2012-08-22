@@ -281,6 +281,12 @@ START_END:
         }
         next unless $has_hot;
 
+        # the final string is a sentence end,
+        # but we only want the first char in it,
+        # and not any whitespace, stray punctuation or other
+        # non-word noise.
+        $strings[$#strings] =~ s/^([\.\?\!]).*/$1/;
+
         $span{start_end} = $start_end;
         $span{heat}      = $heat;
         $span{pos}       = \@cluster_pos;

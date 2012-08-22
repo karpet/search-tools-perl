@@ -78,7 +78,7 @@ there is a conclusion that ties it all together.
 EOF
 
 my $long_text_snip
-    = qq/This is a long section of text with foo. ... Second, there is an explanation about foo. ... Third, and finally for foo, there is a conclusion that ties it all together. /;
+    = qq/This is a long section of text with foo. ... Second, there is an explanation about foo. ... Third, and finally for foo, there is a conclusion that ties it all together./;
 
 my $long_snipper = Search::Tools->snipper(
     query => 'foo',

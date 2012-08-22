@@ -376,5 +376,5 @@ Revision history for Perl extension Search::HiLiter.
       expressions.
 
 0.78  xxx
-    * small optimizations to HeatMap
+    * optimizations to HeatMap and Snipper sentence detection
 
