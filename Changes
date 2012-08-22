@@ -375,6 +375,9 @@ Revision history for Perl extension Search::HiLiter.
     * some fixes for stemming support, mostly turning off optimizations based on regular
       expressions.
 
-0.78  xxx
-    * optimizations to HeatMap and Snipper sentence detection
+0.78  21 Aug 2012
+    * optimizations to HeatMap and Snipper sentence detection, which has the nice
+      side effect of avoiding breaking HTML entities in snipped HTML. To take
+      advantage, use as_sentences => 1.
+
 
