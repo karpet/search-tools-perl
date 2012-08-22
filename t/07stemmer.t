@@ -81,10 +81,9 @@ ok( my $snipper = Search::Tools->snipper(
     "new stemming snipper"
 );
 ok( my $snipped_naive = $snipper->snip($txt), "snip naive text" );
-is( $snipped_naive,
-    qq/ I lived as a prisoner must and I ... was slowly, inevitably, as all living things do, shuffling off the mortal coil, eating dust, scanning these crowds for the pale rider, in a word: dying ... /,
-    "snipped stemmed match"
-);
+my $txt_nonewlines = $txt;
+$txt_nonewlines =~ s/\n/ /g;
+is( $snipped_naive, $txt_nonewlines, "snipped stemmed match" );
 
 ok( my $stemming_hiliter = Search::Tools->hiliter(
         query => $naive,
@@ -98,7 +97,7 @@ ok( my $stemming_hiliter = Search::Tools->hiliter(
 ok( my $hilited_naive = $stemming_hiliter->hilite($snipped_naive),
     "hilite snipped_naive" );
 is( $hilited_naive,
-    qq( I lived as a <span style="background:#ffff99">prisoner</span> <span style="background:#ffff99">must</span> and I ... was slowly, inevitably, as all living things do, shuffling off the mortal coil, eating dust, scanning these crowds for the pale rider, in a word: <span style="background:#99ffff">dying</span> ... ),
+    qq( I lived as a <span style="background:#ffff99">prisoner</span> <span style="background:#ffff99">must</span> and I was slowly, inevitably, as all living things do, shuffling off the mortal coil, eating dust, scanning these crowds for the pale rider, in a word: <span style="background:#99ffff">dying</span>. ),
     "hiliter stems"
 );
 
