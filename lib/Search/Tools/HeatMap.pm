@@ -176,9 +176,24 @@ sub _as_sentences {
         my $token_pos = $token->pos;
         my $start     = $sentence_starts->[ $i++ ];
         $heatmap{$token_pos} = $token->is_hot;
-        my $end     = $start;
-        my $max_end = $start + $sentence_length;
-        $max_end = $num_tokens if $num_tokens < $max_end;
+
+        # find the outermost limit of where this sentence might end
+        my $max_end;
+        if ( defined $sentence_starts->[$i]
+            and $sentence_starts->[$i] != $start )
+        {
+
+            # this token is unique in this non-final sentence
+            $max_end = $sentence_starts->[$i] - 1;
+        }
+        else {
+
+            # this is the final sentence
+            $max_end = $num_tokens - 1;
+        }
+        my $end = $start;
+
+        # find the nearest sentence end to the start
         while ( $end < $max_end ) {
             my $tok = $tokens->get_token( $end++ );
             if ( !$tok ) {
@@ -186,7 +201,7 @@ sub _as_sentences {
                 last;
             }
             if ( $tok->is_sentence_end ) {
-                $end--;
+                $end--;    # move back one position
                 if ( $self->debug ) {
                     warn "tok $_ is_sentence_end end=$end";
                     $tok->dump;
@@ -195,15 +210,20 @@ sub _as_sentences {
             }
         }
 
-        # back up one if we've exceeded the 0-based tokens array.
-        $end-- if $end >= $num_tokens;
+        # back up if we've exceeded the 0-based tokens array.
+        $end = $num_tokens if $end > $num_tokens;
+
+        $self->debug
+            and warn "start=$start max_end=$max_end "
+            . "sentence_length=$sentence_length end=$end "
+            . "token_pos=$token_pos\n";
 
         # if we didn't yet set the actual hot token,
         # include everything up to it.
         if ( $end < $token_pos ) {
             $self->debug
-                and warn
-                "start=$start max_end=$max_end sentence_length=$sentence_length end=$end token_pos=$token_pos -- resetting end=$token_pos\n";
+                and warn "resetting end=$token_pos\n";
+
             $end = $token_pos;
         }
         push( @starts_ends, [ $start, $token_pos, $end ] );
