@@ -151,11 +151,11 @@ sub _as_sentences {
     my $sentence_length = $window * 2;
 
     # build heatmap with sentence starts
-    my $num_tokens      = $tokens->len;
-    my $tokens_arr      = $tokens->as_array;
-    my %heatmap         = ();
-    my $token_list_heat = $tokens->get_heat;
-    my $sentence_starts = $tokens->get_sentence_starts;
+    my $num_tokens           = $tokens->len;
+    my $tokens_arr           = $tokens->as_array;
+    my %heatmap              = ();
+    my $token_list_heat      = $tokens->get_heat;
+    my $heat_sentence_starts = $tokens->get_sentence_starts;
 
     # this regex is a sanity check for phrases. we replace the \ with a
     # more promiscuous check because the single space is too naive
@@ -164,27 +164,42 @@ sub _as_sentences {
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
 
     if ( $self->debug ) {
-        warn "sentence_starts: " . dump($sentence_starts);
+        warn "heat_sentence_starts: " . dump($heat_sentence_starts);
         warn "token_list_heat: " . dump($token_list_heat);
     }
 
     # find the "sentence" that each hot token appears in.
     my @starts_ends;
-    my $i = 0;
+    my $i                  = 0;
+    my %heat_sentence_ends = ();    # cache
     for (@$token_list_heat) {
         my $token     = $tokens->get_token($_);
         my $token_pos = $token->pos;
-        my $start     = $sentence_starts->[ $i++ ];
+        my $start     = $heat_sentence_starts->[ $i++ ];
         $heatmap{$token_pos} = $token->is_hot;
+
+        # a little optimization for when we've got
+        # multiple hot tokens in the same sentence
+        if ( exists $heat_sentence_ends{$start} ) {
+            $self->debug
+                and warn "found cached end $heat_sentence_ends{$start} "
+                . "for start $start token $token_pos\n";
+
+            push( @starts_ends,
+                [ $start, $token_pos, $heat_sentence_ends{$start} ] );
+            next;
+        }
 
         # find the outermost limit of where this sentence might end
         my $max_end;
-        if ( defined $sentence_starts->[$i]
-            and $sentence_starts->[$i] != $start )
+
+        # is there a "next" start?
+        if ( defined $heat_sentence_starts->[$i]
+            and $heat_sentence_starts->[$i] != $start )
         {
 
             # this token is unique in this non-final sentence
-            $max_end = $sentence_starts->[$i] - 1;
+            $max_end = $heat_sentence_starts->[$i] - 1;
         }
         else {
 
@@ -227,6 +242,9 @@ sub _as_sentences {
             $end = $token_pos;
         }
         push( @starts_ends, [ $start, $token_pos, $end ] );
+
+        # cache
+        $heat_sentence_ends{$start} = $end;
     }
 
     $self->debug and warn "starts_ends: " . dump( \@starts_ends );
@@ -304,7 +322,7 @@ START_END:
         my $i    = 0;
         for (@cluster_pos) {
             if ( exists $heatmap{$_} ) {
-                $uniq{ $strings[$i] } += $heatmap{$_};
+                $uniq{ lc $strings[$i] } += $heatmap{$_};
             }
             $i++;
         }

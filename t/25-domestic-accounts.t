@@ -1,3 +1,5 @@
+#!/usr/bin/env perl
+
 use strict;
 use Search::Tools;
 use Search::Tools::XML;
@@ -9,6 +11,8 @@ use Data::Dump qw( dump );
 
 ok( my $buf = read_file('t/docs/domestic-accounts.html'), "read buf" );
 ok( $buf = Search::Tools::XML->strip_markup($buf), "strip markup" );
+
+#diag( $buf );
 
 ok( my $snipper = Search::Tools->snipper(
         query        => q(+domestic +accounts),
@@ -24,7 +28,7 @@ ok( my $snip = $snipper->snip($buf), 'snip buf' );
 
 #diag($snip);
 is( $snip,
-    q(Background Over a number of years, municipal accounts ol some domestic consumers that do not qualify for free basic services in terms of Council's Assistance to ... ),
+    q(Background Over a number of years, municipal accounts ol some domestic consumers that do not qualify for free basic services in terms of Council's Assistance to the Poor Policy, have been reflecting very high balances for water consumption. ),
     "got snip"
 );
 
