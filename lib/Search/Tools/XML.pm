@@ -6,7 +6,7 @@ use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
 
-our $VERSION = '0.78';
+our $VERSION = '0.79';
 
 =pod
 
@@ -669,6 +669,20 @@ Similar to the XML::Simple XMLout() feature, perl_to_xml()
 will take a Perl data structure I<ref> and convert it to XML,
 using I<root_element> as the top-level element.
 
+If I<root_element> is a hashref, two keys are required:
+
+=over
+
+=item tag
+
+String indicating the element name.
+
+=item attrs
+
+Hash ref of attribute key/value pairs (see start_tag()).
+
+=back
+
 If I<strip_plural> is a true value and not a CODE ref,
 any trailing C<s> character will be stripped from the enclosing tag name
 whenever an array of hashrefs is found. Example:
@@ -736,16 +750,26 @@ sub perl_to_xml {
         $strip_plural = \&_make_singular;
     }
 
-    if ( !ref $perl ) {
-        return
-              $self->start_tag($root)
-            . ( $do_not_escape ? $perl : $self->utf8_safe($perl) )
-            . $self->end_tag($root);
+    my ( $root_tag, $attrs );
+    if ( ref $root ) {
+        $root_tag = delete $root->{tag} or croak 'tag key required in root';
+        $attrs = delete $root->{attrs} or croak 'attrs key required in root';
+    }
+    else {
+        $root_tag = $root;
+        $attrs    = {};
     }
 
-    my $xml = $self->start_tag($root);
+    if ( !ref $perl ) {
+        return
+              $self->start_tag( $root_tag, $attrs )
+            . ( $do_not_escape ? $perl : $self->utf8_safe($perl) )
+            . $self->end_tag($root_tag);
+    }
+
+    my $xml = $self->start_tag( $root_tag, $attrs );
     $self->_ref_to_xml( $perl, '', \$xml, $strip_plural, $do_not_escape );
-    $xml .= $self->end_tag($root);
+    $xml .= $self->end_tag($root_tag);
     return $xml;
 }
 
@@ -868,8 +892,14 @@ sub tidy {
 
         #warn "el: $el\n";
 
+        # singletons get special treatment
+        if ( $el =~ m/^<([\w])+[^>]*\/>$/ ) {
+
+            push @tidy, ( ' ' x $indent ) . $el;
+        }
+
         # match opening tag
-        if ( $el =~ m/^<([\w])+[^>\/]*>$/ ) {
+        elsif ( $el =~ m/^<([\w])+[^>]*>$/ ) {
 
             #warn "open $indent\n";
             push @tidy, ( ' ' x $indent ) . $el;
