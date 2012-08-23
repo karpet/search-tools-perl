@@ -380,5 +380,6 @@ Revision history for Perl extension Search::HiLiter.
       side effect of avoiding breaking HTML entities in snipped HTML. To take
       advantage, use as_sentences => 1.
 
-0.79  xxx
+0.79  22 Aug 2012
     * allow XML->perl_to_xml to support root_element as a hashref with tag and attrs
+
