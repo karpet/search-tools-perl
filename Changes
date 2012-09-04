@@ -383,3 +383,6 @@ Revision history for Perl extension Search::HiLiter.
 0.79  22 Aug 2012
     * allow XML->perl_to_xml to support root_element as a hashref with tag and attrs
 
+0.80  3 Sept 2012
+    * fix Query->matches_* stemming support to work with phrases.
+

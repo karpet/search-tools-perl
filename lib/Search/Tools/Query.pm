@@ -13,7 +13,7 @@ use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::XML;
 
-our $VERSION = '0.79';
+our $VERSION = '0.80';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
@@ -169,16 +169,20 @@ sub _matches_stemmed {
         re    => $qp->term_re,
         debug => $self->debug,
     );
+
+    # stem the whole text, creating a new buffer to
+    # match against. This covers both the cases where
+    # a term is a phrase and where it is not.
+    my @buf;
+    my $buf_maker = sub {
+        push @buf, $stemmer->( $qp, $_[0]->str );
+    };
+    $tokenizer->tokenize( $text, $buf_maker );
+    my $new_text = join( " ", @buf );
+
     for my $term ( @{ $self->{terms} } ) {
-        my $re          = $self->{regex}->{$term}->{plain};
-        my $heat_seeker = sub {
-            my ($token) = @_;
-            my $st = $stemmer->( $qp, $token->str );
-            return $st =~ m/$re/;
-        };
-        my $tokens = $tokenizer->tokenize( $text, $heat_seeker );
-        my $heat = $tokens->get_heat;
-        $count += scalar @$heat;
+        my $re = $self->{regex}->{$term}->{plain};
+        $count += $new_text =~ m/$re/;
     }
     return $count;
 }

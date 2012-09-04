@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 18;
 use Data::Dump qw( dump );
 
 use_ok('Search::Tools');
@@ -103,3 +103,16 @@ is( $hilited_naive,
 );
 
 #diag($hilited_naive);
+
+ok( my $quirky_query = $qp->parse('"the quirky 7th district"'),
+    "create phrase query" );
+ok( $quirky_query->matches_html(
+        qq(I live in the <b>quirky 7th district</b> of my town.)),
+    "phrase matches_html"
+);
+ok( $quirky_query->matches_text(
+        qq(I live in the quirky 7th district of my town.)),
+    "phrase matches_html"
+);
+
+#diag( dump $quirky_query->terms );
