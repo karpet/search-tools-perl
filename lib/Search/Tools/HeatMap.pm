@@ -160,15 +160,25 @@ sub _as_sentences {
     # this regex is a sanity check for phrases. we replace the \ with a
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
-    my $qre              = $self->{_qre};
+    my $qre           = $self->{_qre};
+    my @n_terms       = split( m/[\|\ ]/, $qre );
+    my @phrases       = split( m/\|/, $qre );
+    my $min_proximate = 0;
+    for my $p (@phrases) {
+        my $len = $p =~ s/\\ /\\ /g;
+        next unless $len;
+        $min_proximate += ( $len + 1 );    # +1 because terms = spaces+1
+    }
+    my $n_terms = scalar @n_terms;
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
-    my @n_terms          = split( m/[\|\ ]/, $qre );
-    my $n_terms          = scalar @n_terms;
 
-    if ( $self->debug ) {
+    if ($debug) {
         warn "heat_sentence_starts: " . dump($heat_sentence_starts);
         warn "token_list_heat: " . dump($token_list_heat);
         warn "n_terms: $n_terms";
+        warn "phrases: " . dump( \@phrases );
+        warn "query_has_phrase: $query_has_phrase";
+        warn "min_proximate: $min_proximate";
     }
 
     # find the "sentence" that each hot token appears in.
@@ -184,7 +194,7 @@ sub _as_sentences {
         # a little optimization for when we've got
         # multiple hot tokens in the same sentence
         if ( exists $heat_sentence_ends{$start} ) {
-            $self->debug
+            $debug
                 and warn "found cached end $heat_sentence_ends{$start} "
                 . "for start $start token $token_pos\n";
 
@@ -215,12 +225,12 @@ sub _as_sentences {
         while ( $end < $max_end ) {
             my $tok = $tokens->get_token( $end++ );
             if ( !$tok ) {
-                $self->debug and warn "No token at end=$end";
+                $debug and warn "No token at end=$end";
                 last;
             }
             if ( $tok->is_sentence_end ) {
                 $end--;    # move back one position
-                if ( $self->debug ) {
+                if ($debug) {
                     warn "tok $_ is_sentence_end end=$end";
                     $tok->dump;
                 }
@@ -231,7 +241,7 @@ sub _as_sentences {
         # back up if we've exceeded the 0-based tokens array.
         $end = $num_tokens if $end > $num_tokens;
 
-        $self->debug
+        $debug
             and warn "start=$start max_end=$max_end "
             . "sentence_length=$sentence_length end=$end "
             . "token_pos=$token_pos\n";
@@ -239,7 +249,7 @@ sub _as_sentences {
         # if we didn't yet set the actual hot token,
         # include everything up to it.
         if ( $end < $token_pos ) {
-            $self->debug
+            $debug
                 and warn "resetting end=$token_pos\n";
 
             $end = $token_pos;
@@ -250,7 +260,7 @@ sub _as_sentences {
         $heat_sentence_ends{$start} = $end;
     }
 
-    $self->debug and warn "starts_ends: " . dump( \@starts_ends );
+    $debug and warn "starts_ends: " . dump( \@starts_ends );
 
     my @spans;
     my %seen_pos;
@@ -264,7 +274,7 @@ START_END:
 
         my ( $start, $hot_pos, $end ) = @$start_end;
     POS: for my $pos ( $start .. $end ) {
-            next if $seen_pos{$pos}++;
+            next POS if $seen_pos{$pos}++;
             $heat += ( exists $heatmap{$pos} ? $heatmap{$pos} : 0 );
             push( @cluster_tokens, $tokens->get_token($pos) );
         }
@@ -276,7 +286,7 @@ START_END:
         my $has_hot = 0;
         my @cluster_pos;
         my @strings;
-        for (@cluster_tokens) {
+    TOK: for (@cluster_tokens) {
             my $pos = $_->pos;
             $has_hot++ if exists $heatmap{$pos};
             push @strings,     $_->str;
@@ -297,18 +307,25 @@ START_END:
         $span{str}       = join( '', @strings );
 
         # spans with more *unique* hot tokens in a single span rank higher
-        my %uniq = ();
-        my $i    = 0;
+        # spans with more *proximate* hot tokens in a single span rank higher
+        my %uniq          = ();
+        my $i             = 0;
+        my $num_proximate = 0;
         for (@cluster_pos) {
             if ( exists $heatmap{$_} ) {
                 $uniq{ lc $strings[$i] } += $heatmap{$_};
+                if ( $i && exists $heatmap{ $cluster_pos[ $i - 2 ] } ) {
+                    $num_proximate++;
+                }
             }
             $i++;
         }
-        $span{unique} = scalar keys %uniq;
+        $span{unique}    = scalar keys %uniq;
+        $span{proximate} = $num_proximate;
 
         # no false phrase matches if !_treat_phrases_as_singles
-        # stemmer check because regex will likely fail when stemmer is on
+        # stemmer check because regex will likely fail
+        # when stemmer is on
         if ( $query_has_phrase
             and !$self->{_treat_phrases_as_singles} )
         {
@@ -316,7 +333,7 @@ START_END:
 
                 #warn "_treat_phrases_as_singles NOT true";
                 if ( $span{str} !~ m/$qre/ ) {
-                    $self->debug
+                    $debug
                         and warn
                         "treat_phrases_as_singles=FALSE and '$span{str}' failed to match $qre\n";
                     next START_END;
@@ -329,10 +346,21 @@ START_END:
 
                 if ( $n_terms > $span{unique} ) {
 
-                    $self->debug
+                    $debug
                         and warn
                         "treat_phrases_as_singles=FALSE and '$span{str}' "
                         . "expected $n_terms unique terms, got $span{unique}\n";
+                    next START_END;
+                }
+
+                # edge case: lots of uniques (as for common stem)
+                # but none of them consecutive
+
+                if ( !$num_proximate || $num_proximate < $min_proximate ) {
+                    $debug
+                        and warn
+                        "treat_phrases_as_singles=FALSE and '$span{str}' "
+                        . "num_proximate=$num_proximate, min_proximate=$min_proximate\n";
                     next START_END;
                 }
 
@@ -367,11 +395,13 @@ sub _sort_spans {
     return [
 
         # sort by unique,
+        # then by proximity
         # then by heat
         # then by pos
 
         sort {
                    $b->{unique} <=> $a->{unique}
+                || $b->{proximate} <=> $a->{proximate}
                 || $b->{heat} <=> $a->{heat}
                 || $a->{pos}->[0] <=> $b->{pos}->[0]
             } @{ $_[1] }
@@ -384,19 +414,35 @@ sub _no_sentences {
     my $lhs_window = int( $window / 2 );
     my $debug = $self->debug || 0;
 
-    # this regex is a sanity check for phrases. we replace the \ with a
-    # more promiscuous check because the single space is too naive
-    # for real text (e.g. st. john's)
-    my $qre              = $self->{_qre};
-    my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
-    my @n_terms          = split( m/[\|\ ]/, $qre );
-    my $n_terms          = scalar @n_terms;
-
-    # build heatmap
     my $num_tokens      = $tokens->len;
     my $tokens_arr      = $tokens->as_array;
     my %heatmap         = ();
     my $token_list_heat = $tokens->get_heat;
+
+    # this regex is a sanity check for phrases. we replace the \ with a
+    # more promiscuous check because the single space is too naive
+    # for real text (e.g. st. john's)
+    my $qre           = $self->{_qre};
+    my @n_terms       = split( m/[\|\ ]/, $qre );
+    my @phrases       = split( m/\|/, $qre );
+    my $min_proximate = 0;
+    for my $p (@phrases) {
+        my $len = $p =~ s/\\ /\\ /g;
+        next unless $len;
+        $min_proximate += ( $len + 1 );    # +1 because terms = spaces+1
+    }
+    my $n_terms = scalar @n_terms;
+    my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
+
+    if ($debug) {
+        warn "token_list_heat: " . dump($token_list_heat);
+        warn "n_terms: $n_terms";
+        warn "phrases: " . dump( \@phrases );
+        warn "query_has_phrase: $query_has_phrase";
+        warn "min_proximate: $min_proximate";
+    }
+
+    # build heatmap
     for (@$token_list_heat) {
         my $token = $tokens->get_token($_);
         $heatmap{ $token->pos } = $token->is_hot;
@@ -490,15 +536,21 @@ CLUSTER:
         $span{str}     = join( '', @strings );
 
         # spans with more *unique* hot tokens in a single span rank higher
-        my %uniq = ();
-        my $i    = 0;
+        # spans with more *proximate* hot tokens in a single span rank higher
+        my %uniq          = ();
+        my $i             = 0;
+        my $num_proximate = 0;
         for (@cluster_pos) {
             if ( exists $heatmap{$_} ) {
-                $uniq{ $strings[$i] } += $heatmap{$_};
+                $uniq{ lc $strings[$i] } += $heatmap{$_};
+                if ( $i && exists $heatmap{ $cluster_pos[ $i - 2 ] } ) {
+                    $num_proximate++;
+                }
             }
             $i++;
         }
-        $span{unique} = scalar keys %uniq;
+        $span{unique}    = scalar keys %uniq;
+        $span{proximate} = $num_proximate;
 
         # no false phrase matches if !_treat_phrases_as_singles
         # stemmer check because regex will likely fail when stemmer is on
@@ -523,6 +575,17 @@ CLUSTER:
                         and warn
                         "treat_phrases_as_singles=FALSE and '$span{str}' "
                         . "expected $n_terms but got $span{unique}\n";
+                    next CLUSTER;
+                }
+
+                # edge case: lots of uniques (as for common stem)
+                # but none of them consecutive
+
+                if ( !$num_proximate || $num_proximate < $min_proximate ) {
+                    $debug
+                        and warn
+                        "treat_phrases_as_singles=FALSE and '$span{str}' "
+                        . "num_proximate=$num_proximate, min_proximate=$min_proximate\n";
                     next CLUSTER;
                 }
 
