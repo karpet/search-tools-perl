@@ -5,7 +5,7 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.80';
+our $VERSION = '0.80_01';
 
 # debugging only
 my $OPEN  = '[';
@@ -160,12 +160,14 @@ sub _as_sentences {
     # this regex is a sanity check for phrases. we replace the \ with a
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
-    my $qre = $self->{_qre};
+    my $qre              = $self->{_qre};
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
+    my $n_terms          = scalar split( m/\|/, $qre );
 
     if ( $self->debug ) {
         warn "heat_sentence_starts: " . dump($heat_sentence_starts);
         warn "token_list_heat: " . dump($token_list_heat);
+        warn "n_terms: $n_terms";
     }
 
     # find the "sentence" that each hot token appears in.
@@ -267,7 +269,7 @@ START_END:
         }
 
         # if we had already seen_pos all positions.
-        next unless @cluster_tokens;
+        next START_END unless @cluster_tokens;
 
         # sanity: make sure we still have something hot
         my $has_hot = 0;
@@ -279,7 +281,7 @@ START_END:
             push @strings,     $_->str;
             push @cluster_pos, $pos;
         }
-        next unless $has_hot;
+        next START_END unless $has_hot;
 
         # the final string is a sentence end,
         # but we only want the first char in it,
@@ -293,19 +295,46 @@ START_END:
         $span{tokens}    = \@cluster_tokens;
         $span{str}       = join( '', @strings );
 
+        # spans with more *unique* hot tokens in a single span rank higher
+        my %uniq = ();
+        my $i    = 0;
+        for (@cluster_pos) {
+            if ( exists $heatmap{$_} ) {
+                $uniq{ lc $strings[$i] } += $heatmap{$_};
+            }
+            $i++;
+        }
+        $span{unique} = scalar keys %uniq;
+
         # no false phrase matches if !_treat_phrases_as_singles
         # stemmer check because regex will likely fail when stemmer is on
-        if (    $query_has_phrase
-            and !$self->{_treat_phrases_as_singles}
-            and !$self->{_stemmer} )
+        if ( $query_has_phrase
+            and !$self->{_treat_phrases_as_singles} )
         {
+            if ( !$self->{_stemmer} ) {
 
-            #warn "_treat_phrases_as_singles NOT true";
-            if ( $span{str} !~ m/$qre/ ) {
-                $self->debug
-                    and warn
-                    "treat_phrases_as_singles=FALSE and '$span{str}' failed to match $qre\n";
-                next;
+                #warn "_treat_phrases_as_singles NOT true";
+                if ( $span{str} !~ m/$qre/ ) {
+                    $self->debug
+                        and warn
+                        "treat_phrases_as_singles=FALSE and '$span{str}' failed to match $qre\n";
+                    next START_END;
+                }
+            }
+            else {
+
+                # if stemmer was on, we cannot rely on the regex,
+                # but we assume that number of uniq terms must match query
+
+                if ( $n_terms > $span{unique} ) {
+
+                    $self->debug
+                        and warn
+                        "treat_phrases_as_singles=FALSE and '$span{str}' "
+                        . "expected $n_terms unique terms, got $span{unique}\n";
+                    next START_END;
+                }
+
             }
         }
 
@@ -322,17 +351,6 @@ START_END:
                     } @cluster_pos
             );
         }
-
-        # spans with more *unique* hot tokens in a single span rank higher
-        my %uniq = ();
-        my $i    = 0;
-        for (@cluster_pos) {
-            if ( exists $heatmap{$_} ) {
-                $uniq{ lc $strings[$i] } += $heatmap{$_};
-            }
-            $i++;
-        }
-        $span{unique} = scalar keys %uniq;
 
         push @spans, \%span;
 
@@ -368,8 +386,9 @@ sub _no_sentences {
     # this regex is a sanity check for phrases. we replace the \ with a
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
-    my $qre = $self->{_qre};
+    my $qre              = $self->{_qre};
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
+    my $n_terms          = scalar split( m/\|/, $qre );
 
     # build heatmap
     my $num_tokens      = $tokens->len;
@@ -408,7 +427,8 @@ sub _no_sentences {
         $i++;
     }
 
-    $debug and warn "proximity: $proximity   clusters: " . dump \@clusters;
+    $debug
+        and warn "proximity: $proximity   clusters: " . dump \@clusters;
 
     # create spans from each cluster, each with a weight.
     # we do the initial sort so that clusters that overlap
@@ -447,7 +467,7 @@ CLUSTER:
             pop @cluster_tokens;
         }
 
-        next unless @cluster_tokens;
+        next CLUSTER unless @cluster_tokens;
 
         # sanity: make sure we still have something hot
         my $has_hot = 0;
@@ -459,7 +479,7 @@ CLUSTER:
             push @strings,     $_->str;
             push @cluster_pos, $pos;
         }
-        next unless $has_hot;
+        next CLUSTER unless $has_hot;
 
         $span{cluster} = $cluster;
         $span{heat}    = $heat;
@@ -467,19 +487,43 @@ CLUSTER:
         $span{tokens}  = \@cluster_tokens;
         $span{str}     = join( '', @strings );
 
+        # spans with more *unique* hot tokens in a single span rank higher
+        my %uniq = ();
+        my $i    = 0;
+        for (@cluster_pos) {
+            if ( exists $heatmap{$_} ) {
+                $uniq{ $strings[$i] } += $heatmap{$_};
+            }
+            $i++;
+        }
+        $span{unique} = scalar keys %uniq;
+
         # no false phrase matches if !_treat_phrases_as_singles
         # stemmer check because regex will likely fail when stemmer is on
-        if (    $query_has_phrase
-            and !$self->{_treat_phrases_as_singles}
-            and !$self->{_stemmer} )
+        if ( $query_has_phrase
+            and !$self->{_treat_phrases_as_singles} )
         {
+            if ( !$self->{_stemmer} ) {
 
-            #warn "_treat_phrases_as_singles NOT true";
-            if ( $span{str} !~ m/$qre/ ) {
-                $self->debug
-                    and warn
-                    "treat_phrases_as_singles=FALSE and '$span{str}' failed to match $qre\n";
-                next;
+                #warn "_treat_phrases_as_singles NOT true";
+                if ( $span{str} !~ m/$qre/ ) {
+                    $debug
+                        and warn
+                        "treat_phrases_as_singles=FALSE and '$span{str}' failed to match $qre\n";
+                    next CLUSTER;
+                }
+            }
+            else {
+
+                # stemmer used, so check unique term count against n_terms
+                if ( $n_terms > $span{unique} ) {
+                    $debug
+                        and warn
+                        "treat_phrases_as_singles=FALSE and '$span{str}' "
+                        . "expected $n_terms but got $span{unique}\n";
+                    next CLUSTER;
+                }
+
             }
         }
 
@@ -496,17 +540,6 @@ CLUSTER:
                     } @cluster_pos
             );
         }
-
-        # spans with more *unique* hot tokens in a single span rank higher
-        my %uniq = ();
-        my $i    = 0;
-        for (@cluster_pos) {
-            if ( exists $heatmap{$_} ) {
-                $uniq{ $strings[$i] } += $heatmap{$_};
-            }
-            $i++;
-        }
-        $span{unique} = scalar keys %uniq;
 
         push @spans, \%span;
 

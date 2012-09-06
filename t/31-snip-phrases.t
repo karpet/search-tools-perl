@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 14;
 use lib 't';
 use Data::Dump qw( dump );
 use_ok('Search::Tools::Snipper');
@@ -47,7 +47,7 @@ ok( length $snip, "snip has length" );
 #diag($snip);
 
 # snip a phrase with a dot
-diag("snip phrase with a dot");
+#diag("snip phrase with a dot");
 $q = qq/"st. john's"/;
 my $snipper2 = Search::Tools::Snipper->new(
 
@@ -67,5 +67,59 @@ my $snipper2 = Search::Tools::Snipper->new(
 ok( $snip = $snipper2->snip($buf), "snip buf" );
 ok( length $snip, "snip has length" );
 
-diag($snip);
+#diag($snip);
 
+######################################
+# phrases and stemming, oh my!
+
+ok( my $stemming_snipper = Search::Tools::Snipper->new(
+        stemmer => sub {
+            if ( $_[1] eq 'thing' ) { return 'thin'; }
+            return $_[1];
+        },
+        query                    => qq/"st. john's wort" thing good/,
+        occur                    => 1,
+        as_sentences             => 1,
+        treat_phrases_as_singles => 0,
+        show                     => 1,
+        ignore_length            => 1,
+        context                  => 50,
+
+        #debug                    => 1,
+    ),
+    "stemming snipper"
+);
+ok( my $stemmed_snip = $stemming_snipper->snip($buf), "stemmed snip buf" );
+
+#diag($stemmed_snip);
+like(
+    $stemmed_snip,
+    qr/st. john's wort is a good thing/,
+    "stemmed snip match, yes sentences"
+);
+
+ok( $stemming_snipper = Search::Tools::Snipper->new(
+        stemmer => sub {
+            if ( $_[1] eq 'thing' ) { return 'thin'; }
+            return $_[1];
+        },
+        query                    => qq/"st. john's wort" thing good/,
+        occur                    => 1,
+        as_sentences             => 0,
+        treat_phrases_as_singles => 0,
+        show                     => 1,
+        ignore_length            => 1,
+        context                  => 50,
+
+        #debug                    => 1,
+    ),
+    "stemming snipper"
+);
+ok( $stemmed_snip = $stemming_snipper->snip($buf), "stemmed snip buf" );
+
+#diag($stemmed_snip);
+like(
+    $stemmed_snip,
+    qr/st. john's wort is a good thing/,
+    "stemmed snip match, no sentences"
+);
