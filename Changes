@@ -386,7 +386,7 @@ Revision history for Perl extension Search::HiLiter.
 0.80  3 Sept 2012
     * fix Query->matches_* stemming support to work with phrases.
 
-0.81  xxx
+0.81  6 Sept 2012
     * refactor sanity check for HeatMap matches against phrases, to try and avoid
       false positives when stemmer is used.
     * HeatMap weight now includes term proximity when sorting likely snippets
