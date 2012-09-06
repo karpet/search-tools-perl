@@ -192,6 +192,8 @@ sub _token {
 
     #$self->debug and $tokens->dump;
 
+    return $self->_dumb( $_[0] ) unless scalar @{ $tokens->get_heat };
+
     my $heatmap = Search::Tools::HeatMap->new(
         tokens                    => $tokens,
         window_size               => $self->{context},
