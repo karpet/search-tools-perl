@@ -162,7 +162,8 @@ sub _as_sentences {
     # for real text (e.g. st. john's)
     my $qre              = $self->{_qre};
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
-    my $n_terms          = scalar split( m/\|/, $qre );
+    my @n_terms          = split( m/\|/, $qre );
+    my $n_terms          = scalar @n_terms;
 
     if ( $self->debug ) {
         warn "heat_sentence_starts: " . dump($heat_sentence_starts);
@@ -388,7 +389,8 @@ sub _no_sentences {
     # for real text (e.g. st. john's)
     my $qre              = $self->{_qre};
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
-    my $n_terms          = scalar split( m/\|/, $qre );
+    my @n_terms          = split( m/\|/, $qre );
+    my $n_terms          = scalar @n_terms;
 
     # build heatmap
     my $num_tokens      = $tokens->len;
