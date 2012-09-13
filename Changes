@@ -390,3 +390,6 @@ Revision history for Perl extension Search::HiLiter.
     * refactor sanity check for HeatMap matches against phrases, to try and avoid
       false positives when stemmer is used.
     * HeatMap weight now includes term proximity when sorting likely snippets
+
+0.82  xxx
+    * fix off-by-one bug in HeatMap proximity counting for phrases

@@ -5,7 +5,7 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.81';
+our $VERSION = '0.81_01';
 
 # debugging only
 my $OPEN  = '[';
@@ -310,7 +310,7 @@ START_END:
         # spans with more *proximate* hot tokens in a single span rank higher
         my %uniq          = ();
         my $i             = 0;
-        my $num_proximate = 0;
+        my $num_proximate = 1;    # one for the single hot token
         for (@cluster_pos) {
             if ( exists $heatmap{$_} ) {
                 $uniq{ lc $strings[$i] } += $heatmap{$_};
@@ -356,7 +356,7 @@ START_END:
                 # edge case: lots of uniques (as for common stem)
                 # but none of them consecutive
 
-                if ( !$num_proximate || $num_proximate < $min_proximate ) {
+                if ( $num_proximate < $min_proximate ) {
                     $debug
                         and warn
                         "treat_phrases_as_singles=FALSE and '$span{str}' "
@@ -539,7 +539,7 @@ CLUSTER:
         # spans with more *proximate* hot tokens in a single span rank higher
         my %uniq          = ();
         my $i             = 0;
-        my $num_proximate = 0;
+        my $num_proximate = 1;    # one for the single hot token
         for (@cluster_pos) {
             if ( exists $heatmap{$_} ) {
                 $uniq{ lc $strings[$i] } += $heatmap{$_};
@@ -581,7 +581,7 @@ CLUSTER:
                 # edge case: lots of uniques (as for common stem)
                 # but none of them consecutive
 
-                if ( !$num_proximate || $num_proximate < $min_proximate ) {
+                if ( $num_proximate < $min_proximate ) {
                     $debug
                         and warn
                         "treat_phrases_as_singles=FALSE and '$span{str}' "
