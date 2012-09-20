@@ -25,6 +25,8 @@ like( $hiliter->light($str_no_hyphen),
 like( $hiliter->light($str_with_hyphen),
     qr/<span/, 'hiliter ought to work with hyphens' );
 
+my $kennedy = to_utf8('kennedy');
+
 #####################################################
 ## regex hardcoded for comparison to what QueryParser generates
 
@@ -33,32 +35,12 @@ my $re = qr/
 \A|(?i-xsm:[\'\-]*)(?si-xm:(?:[\s\x20]|[^\w\'\.])+)(?i-xsm:[\'\-]?)
 )
 (
-kennedy
+$kennedy
 )
 (
 \Z|(?i-xsm:[\'\-]*)(?si-xm:(?:[\s\x20]|[^\w\'\.])+)(?i-xsm:[\'\-]?)
 )
 /xis;
-
-####################################################
-## use ^ and /u default flags if perl supports them
-## since that's what S::T will get by default
-if ( $perl_version >= '5.014' ) {
-
-    $re = qr/
-(
-\A|(?^i:[\'\-]*)(?^si:(?:[\s\x20]|[^\w\'\.])+)(?^i:[\'\-]?)
-)
-(
-kennedy
-)
-(
-\Z|(?^i:[\'\-]*)(?^si:(?:[\s\x20]|[^\w\'\.])+)(?^i:[\'\-]?)
-)
-/uxis;
-
-}
-####################################################
 
 #diag( "\$re: " . $re );
 
