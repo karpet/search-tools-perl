@@ -42,6 +42,26 @@ $kennedy
 )
 /xis;
 
+####################################################
+## use ^ and /u default flags if perl supports them
+## since that's what S::T will get by default
+if ( $perl_version >= '5.014' ) {
+
+    $re = qr/
+(
+\A|(?^i:[\'\-]*)(?^si:(?:[\s\x20]|[^\w\'\.])+)(?^i:[\'\-]?)
+)
+(
+$kennedy
+)
+(
+\Z|(?^i:[\'\-]*)(?^si:(?:[\s\x20]|[^\w\'\.])+)(?^i:[\'\-]?)
+)
+/xis;
+
+}
+####################################################
+
 #diag( "\$re: " . $re );
 
 my $plain_re = $query->regex_for('kennedy')->plain;
