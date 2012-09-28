@@ -67,13 +67,6 @@ $kennedy
 my $plain_re = $query->regex_for('kennedy')->plain;
 my $html_re  = $query->regex_for('kennedy')->html;
 
-Search::Tools::describe($plain_re);
-
-#Search::Tools::describe($html_re);
-Search::Tools::describe($re);
-
-#Search::Tools::describe($str_with_hyphen);
-
 like( $str_no_hyphen,   $re,       "hardcoded regex dumb match no hyphen" );
 like( $str_with_hyphen, $re,       "hardcoded dumb match with hyphen" );
 like( $str_with_hyphen, $html_re,  "html match with hyphen" );

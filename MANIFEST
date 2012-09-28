@@ -74,6 +74,7 @@ t/36-snipper-term-length.t
 t/37-heatmap-long-sentences.t
 t/38-hiliter-multiple-terms.t
 t/39-tokenizer-refcounts.t
+t/40-perl517-regex.t
 t/90-leaktrace.t
 t/91-valgrind.t
 t/docs/ascii.txt

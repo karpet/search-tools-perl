@@ -391,5 +391,5 @@ Revision history for Perl extension Search::HiLiter.
       false positives when stemmer is used.
     * HeatMap weight now includes term proximity when sorting likely snippets
 
-0.82  xxx
+0.82  28 Sept 2012
     * fix off-by-one bug in HeatMap proximity counting for phrases
