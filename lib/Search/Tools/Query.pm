@@ -13,7 +13,7 @@ use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::XML;
 
-our $VERSION = '0.82';
+our $VERSION = '0.82_01';
 
 __PACKAGE__->mk_ro_accessors(
     qw(

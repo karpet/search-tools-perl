@@ -393,3 +393,8 @@ Revision history for Perl extension Search::HiLiter.
 
 0.82  28 Sept 2012
     * fix off-by-one bug in HeatMap proximity counting for phrases
+
+0.83  xxx
+    * UTF8::is_sane_utf8() now runs through entire string instead of stopping at first
+      suspect sequence.
+

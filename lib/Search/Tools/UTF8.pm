@@ -27,7 +27,7 @@ our @EXPORT = qw(
 
 our $Debug = ( $ENV{PERL_DEBUG} && $ENV{PERL_DEBUG} > 2 ) ? 1 : 0;
 
-our $VERSION = '0.82';
+our $VERSION = '0.82_01';
 
 sub to_utf8 {
     my $str = shift;
@@ -75,7 +75,8 @@ sub is_sane_utf8 {
     my $string = shift;
     my $warnings = shift || $Debug || 0;
 
-    while ( $string =~ /($re_bit)/o ) {
+    my $is_insane = 0;
+    while ( $string =~ /($re_bit)/go ) {
 
         # work out what the double encoded string was
         my $bytes = $1;
@@ -105,9 +106,10 @@ sub is_sane_utf8 {
             );
 
         }
-        return 0;
+        $is_insane++;
     }
-    1;
+
+    return $is_insane ? 0 : 1;
 }
 
 sub is_valid_utf8 {
