@@ -5,7 +5,7 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.82_01';
+our $VERSION = '0.83';
 
 # debugging only
 my $OPEN  = '[';
@@ -23,6 +23,7 @@ __PACKAGE__->mk_accessors(
         as_sentences
         _treat_phrases_as_singles
         _qre
+        _query
         _stemmer
         )
 );
@@ -161,15 +162,13 @@ sub _as_sentences {
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
     my $qre           = $self->{_qre};
-    my @n_terms       = split( m/[\|\ ]/, $qre );
-    my @phrases       = split( m/\|/, $qre );
+    my @phrases       = @{ $self->{_query}->phrases };
     my $min_proximate = 0;
     for my $p (@phrases) {
-        my $len = $p =~ s/\\ /\\ /g;
-        next unless $len;
-        $min_proximate += ( $len + 1 );    # +1 because terms = spaces+1
+        my $n = scalar map { $_->term } @{ $p->phrase_terms };
+        $min_proximate = $n if $min_proximate < $n;
     }
-    my $n_terms = scalar @n_terms;
+    my $n_terms = $self->{_query}->num_terms;
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
 
     if ($debug) {
@@ -423,15 +422,13 @@ sub _no_sentences {
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
     my $qre           = $self->{_qre};
-    my @n_terms       = split( m/[\|\ ]/, $qre );
-    my @phrases       = split( m/\|/, $qre );
+    my @phrases       = @{ $self->{_query}->phrases };
     my $min_proximate = 0;
     for my $p (@phrases) {
-        my $len = $p =~ s/\\ /\\ /g;
-        next unless $len;
-        $min_proximate += ( $len + 1 );    # +1 because terms = spaces+1
+        my $n = scalar map { $_->term } @{ $p->phrase_terms };
+        $min_proximate = $n if $min_proximate < $n;
     }
-    my $n_terms = scalar @n_terms;
+    my $n_terms = $self->{_query}->num_terms;
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
 
     if ($debug) {

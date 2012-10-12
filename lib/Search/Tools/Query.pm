@@ -13,7 +13,7 @@ use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::XML;
 
-our $VERSION = '0.82_01';
+our $VERSION = '0.83';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
@@ -96,6 +96,79 @@ Returns the number of terms().
 
 sub num_terms {
     return scalar @{ shift->{terms} };
+}
+
+=head2 unique_terms
+
+Returns array ref of unique terms from query.
+If stemming was on in the QueryParser,
+all terms have already been stemmed as part
+of the parsing process.
+
+=cut
+
+sub unique_terms {
+    my $self = shift;
+    my @t    = @{ $self->{terms} };
+    my %uniq;
+    for my $t (@t) {
+        my $re = $self->regex_for($t);
+        if ( $re->is_phrase ) {
+            for my $pt ( @{ $re->phrase_terms } ) {
+                $uniq{ $pt->term }++;
+            }
+        }
+        else {
+            $uniq{ $re->term }++;
+        }
+    }
+    return [ keys %uniq ];
+}
+
+=head2 num_unique_terms
+
+Returns number of unique_terms().
+
+=cut
+
+sub num_unique_terms {
+    return scalar( @{ $_[0]->unique_terms } );
+}
+
+=head2 phrases
+
+Return array ref of RegEx objects for all terms where is_phrase
+is true.
+
+=cut
+
+sub phrases {
+    my $self = shift;
+    my @p;
+    for my $t ( keys %{ $self->{regex} } ) {
+        if ( $self->{regex}->{$t}->is_phrase ) {
+            push @p, $self->{regex}->{$t};
+        }
+    }
+    return \@p;
+}
+
+=head2 non_phrases
+
+Return array ref of RegEx objects for all terms where is_phrase
+is false.
+
+=cut
+
+sub non_phrases {
+    my $self = shift;
+    my @p;
+    for my $t ( keys %{ $self->{regex} } ) {
+        if ( !$self->{regex}->{$t}->is_phrase ) {
+            push @p, $self->{regex}->{$t};
+        }
+    }
+    return \@p;
 }
 
 =head2 tree

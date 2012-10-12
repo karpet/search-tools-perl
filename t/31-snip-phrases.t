@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 22;
 use lib 't';
 use Data::Dump qw( dump );
 use_ok('Search::Tools::Snipper');
@@ -122,4 +122,61 @@ like(
     $stemmed_snip,
     qr/st. john's wort is a good thing/,
     "stemmed snip match, no sentences"
+);
+
+#
+# duplicate terms in phrases
+#
+ok( $stemming_snipper = Search::Tools::Snipper->new(
+        stemmer => sub {
+            if ( $_[1] eq 'language' ) { return 'lang'; }
+            return $_[1];
+        },
+        query        => qq/"english language" or "second language"/,
+        occur        => 1,
+        as_sentences => 0,
+        treat_phrases_as_singles => 0,
+        show                     => 1,
+        ignore_length            => 1,
+        context                  => 50,
+
+        #debug => 1,
+    ),
+    "stemming snipper"
+);
+ok( $stemmed_snip = $stemming_snipper->snip($buf), "stemmed snip buf" );
+is( $stemming_snipper->query->num_unique_terms, 3, "3 unique terms" );
+
+#diag($stemmed_snip);
+like(
+    $stemmed_snip,
+    qr/english language/,
+    "stemmed snip match on duplicate terms"
+);
+
+ok( $stemming_snipper = Search::Tools::Snipper->new(
+        stemmer => sub {
+            if ( $_[1] eq 'language' ) { return 'lang'; }
+            return $_[1];
+        },
+        query        => qq/"english language" or "second language"/,
+        occur        => 1,
+        as_sentences => 1,
+        treat_phrases_as_singles => 0,
+        show                     => 1,
+        ignore_length            => 1,
+        context                  => 50,
+
+        #debug => 1,
+    ),
+    "stemming snipper"
+);
+ok( $stemmed_snip = $stemming_snipper->snip($buf), "stemmed snip buf" );
+is( $stemming_snipper->query->num_unique_terms, 3, "3 unique terms" );
+
+#diag($stemmed_snip);
+like(
+    $stemmed_snip,
+    qr/english language/,
+    "stemmed snip match on duplicate terms as sentences"
 );

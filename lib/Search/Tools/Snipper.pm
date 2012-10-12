@@ -11,7 +11,7 @@ use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.82_01';
+our $VERSION = '0.83';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';
@@ -199,10 +199,14 @@ sub _token {
         window_size               => $self->{context},
         as_sentences              => $self->{as_sentences},
         debug                     => $self->debug,
+        _query                    => $self->query,
         _qre                      => $qre,
         _treat_phrases_as_singles => $self->{treat_phrases_as_singles},
         _stemmer                  => $self->query->qp->stemmer,
     );
+    
+    # reduce noise in debug
+    delete $heatmap->{_query};
 
     $self->debug and warn "heatmap: " . dump $heatmap;
 

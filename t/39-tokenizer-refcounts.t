@@ -13,8 +13,9 @@ my $tokenizer       = Search::Tools::Tokenizer->new();
 my $tokens          = $tokenizer->tokenize( $buf, qr/john/ );
 my $sentence_starts = $tokens->get_sentence_starts();
 my $heat            = $tokens->get_heat();
-dump($sentence_starts);
-is_deeply( $sentence_starts, [100], "sentence_starts" );
+
+#dump($sentence_starts);
+is_deeply( $sentence_starts, [108], "sentence_starts" );
 
 #undef $tokens;
 
@@ -24,5 +25,6 @@ my $tokenizer2       = Search::Tools::Tokenizer->new();
 my $tokens2          = $tokenizer2->tokenize( $buf, qr/john/ );
 my $sentence_starts2 = $tokens2->get_sentence_starts();
 my $heat2            = $tokens2->get_heat();
-dump($sentence_starts2);
-is_deeply( $sentence_starts2, [100], "sentence_starts" );
+
+#dump($sentence_starts2);
+is_deeply( $sentence_starts2, [108], "sentence_starts" );

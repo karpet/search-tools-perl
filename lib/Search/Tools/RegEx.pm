@@ -3,10 +3,14 @@ use strict;
 use warnings;
 use base qw( Search::Tools::Object );
 use Carp;
+use overload
+    '""'     => sub { $_[0]->term; },
+    'bool'   => sub {1},
+    fallback => 1;
 
 #use Data::Dump qw( dump );
 
-our $VERSION = '0.82_01';
+our $VERSION = '0.83';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
