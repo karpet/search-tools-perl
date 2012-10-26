@@ -401,6 +401,6 @@ Revision history for Perl extension Search::HiLiter.
       in aid to HeatMap, which needed a refactor to fix a bug affecting duplicate terms
       in phrases when stemming was on.
 
-0.84  xxx
+0.84  25 Oct 2012
     * internal HeatMap refactor to relax sanity checks around stemmed phrase matching.
 
