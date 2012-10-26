@@ -5,7 +5,7 @@ use Carp;
 use Data::Dump qw( dump );
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.83';
+our $VERSION = '0.83_01';
 
 # debugging only
 my $OPEN  = '[';
@@ -161,14 +161,9 @@ sub _as_sentences {
     # this regex is a sanity check for phrases. we replace the \ with a
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
-    my $qre           = $self->{_qre};
-    my @phrases       = @{ $self->{_query}->phrases };
-    my $min_proximate = 0;
-    for my $p (@phrases) {
-        my $n = scalar map { $_->term } @{ $p->phrase_terms };
-        $min_proximate = $n if $min_proximate < $n;
-    }
-    my $n_terms = $self->{_query}->num_terms;
+    my $qre              = $self->{_qre};
+    my @phrases          = @{ $self->{_query}->phrases };
+    my $n_terms          = $self->{_query}->num_terms;
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
 
     if ($debug) {
@@ -177,7 +172,6 @@ sub _as_sentences {
         warn "n_terms: $n_terms";
         warn "phrases: " . dump( \@phrases );
         warn "query_has_phrase: $query_has_phrase";
-        warn "min_proximate: $min_proximate";
     }
 
     # find the "sentence" that each hot token appears in.
@@ -343,23 +337,14 @@ START_END:
                 # if stemmer was on, we cannot rely on the regex,
                 # but we assume that number of uniq terms must match query
 
-                if ( $n_terms > $span{unique} ) {
+                if (   $n_terms == $query_has_phrase
+                    && $n_terms > $span{unique} )
+                {
 
                     $debug
                         and warn
                         "treat_phrases_as_singles=FALSE and '$span{str}' "
                         . "expected $n_terms unique terms, got $span{unique}\n";
-                    next START_END;
-                }
-
-                # edge case: lots of uniques (as for common stem)
-                # but none of them consecutive
-
-                if ( $num_proximate < $min_proximate ) {
-                    $debug
-                        and warn
-                        "treat_phrases_as_singles=FALSE and '$span{str}' "
-                        . "num_proximate=$num_proximate, min_proximate=$min_proximate\n";
                     next START_END;
                 }
 
@@ -376,7 +361,7 @@ START_END:
                         . ( exists $heatmap{$_} ? $OPEN : '[' )
                         . $_
                         . ( exists $heatmap{$_} ? $CLOSE : ']' )
-                    } @cluster_pos
+                } @cluster_pos
             );
         }
 
@@ -421,14 +406,9 @@ sub _no_sentences {
     # this regex is a sanity check for phrases. we replace the \ with a
     # more promiscuous check because the single space is too naive
     # for real text (e.g. st. john's)
-    my $qre           = $self->{_qre};
-    my @phrases       = @{ $self->{_query}->phrases };
-    my $min_proximate = 0;
-    for my $p (@phrases) {
-        my $n = scalar map { $_->term } @{ $p->phrase_terms };
-        $min_proximate = $n if $min_proximate < $n;
-    }
-    my $n_terms = $self->{_query}->num_terms;
+    my $qre              = $self->{_qre};
+    my @phrases          = @{ $self->{_query}->phrases };
+    my $n_terms          = $self->{_query}->num_terms;
     my $query_has_phrase = $qre =~ s/(\\ )+/.+/g;
 
     if ($debug) {
@@ -436,7 +416,6 @@ sub _no_sentences {
         warn "n_terms: $n_terms";
         warn "phrases: " . dump( \@phrases );
         warn "query_has_phrase: $query_has_phrase";
-        warn "min_proximate: $min_proximate";
     }
 
     # build heatmap
@@ -567,22 +546,13 @@ CLUSTER:
             else {
 
                 # stemmer used, so check unique term count against n_terms
-                if ( $n_terms > $span{unique} ) {
+                if (   $n_terms == $query_has_phrase
+                    && $n_terms > $span{unique} )
+                {
                     $debug
                         and warn
                         "treat_phrases_as_singles=FALSE and '$span{str}' "
                         . "expected $n_terms but got $span{unique}\n";
-                    next CLUSTER;
-                }
-
-                # edge case: lots of uniques (as for common stem)
-                # but none of them consecutive
-
-                if ( $num_proximate < $min_proximate ) {
-                    $debug
-                        and warn
-                        "treat_phrases_as_singles=FALSE and '$span{str}' "
-                        . "num_proximate=$num_proximate, min_proximate=$min_proximate\n";
                     next CLUSTER;
                 }
 
@@ -599,7 +569,7 @@ CLUSTER:
                         . ( exists $heatmap{$_} ? $OPEN : '[' )
                         . $_
                         . ( exists $heatmap{$_} ? $CLOSE : ']' )
-                    } @cluster_pos
+                } @cluster_pos
             );
         }
 
