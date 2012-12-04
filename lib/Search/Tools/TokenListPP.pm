@@ -9,7 +9,7 @@ use overload
 use Carp;
 use base qw( Search::Tools::TokenListUtils );
 
-our $VERSION = '0.84';
+our $VERSION = '0.85';
 
 __PACKAGE__->mk_accessors(qw( pos num ));
 

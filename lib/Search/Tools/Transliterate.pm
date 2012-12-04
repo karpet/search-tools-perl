@@ -12,7 +12,7 @@ __PACKAGE__->mk_accessors(qw( ebit ));
 
 __PACKAGE__->mk_ro_accessors(qw( map ));
 
-our $VERSION = '0.84';
+our $VERSION = '0.85';
 
 =pod
 

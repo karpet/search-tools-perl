@@ -404,3 +404,7 @@ Revision history for Perl extension Search::HiLiter.
 0.84  25 Oct 2012
     * internal HeatMap refactor to relax sanity checks around stemmed phrase matching.
 
+0.85  03 Dec 2012
+    * fix failing test t/30-perl-to-xml.t from assuming predictable hash key order,
+      which in Perl >= 5.17.6 is random. See https://rt.cpan.org/Ticket/Display.html?id=81528.
+
