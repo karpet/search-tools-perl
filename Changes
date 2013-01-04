@@ -408,7 +408,7 @@ Revision history for Perl extension Search::HiLiter.
     * fix failing test t/30-perl-to-xml.t from assuming predictable hash key order,
       which in Perl >= 5.17.6 is random. See https://rt.cpan.org/Ticket/Display.html?id=81528.
 
-0.86  xxx
+0.86  04 Jan 2013
     * switch from " to ' marks in HiLiter tag attributes. This allows for compat with hiliting within
       JSON blobs.
 
