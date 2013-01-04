@@ -8,7 +8,7 @@ use Search::Tools::XML;
 use Search::Tools::UTF8;
 use Data::Dump qw( dump );
 
-our $VERSION = '0.85';
+our $VERSION = '0.86';
 
 my $XML = Search::Tools::XML->new;
 
@@ -117,20 +117,20 @@ sub _build_tags {
         $tags{open}  = '';
         $tags{close} = '';
         if ( $self->class ) {
-            $opener = qq/<$tag class="/ . $self->class . qq/">/;
+            $opener = qq/<$tag class='/ . $self->class . qq/'>/;
         }
         elsif ( $self->style ) {
-            $opener = qq/<$tag style="/ . $self->style . qq/">/;
+            $opener = qq/<$tag style='/ . $self->style . qq/'>/;
         }
         elsif ( $self->text_color ) {
             $opener
-                = qq/<$tag style="color:/
+                = qq/<$tag style='color:/
                 . $self->text_color
                 . qq/;background:/
-                . $colors[$n] . qq/">/;
+                . $colors[$n] . qq/'>/;
         }
         else {
-            $opener = qq/<$tag style="background:/ . $colors[$n] . qq/">/;
+            $opener = qq/<$tag style='background:/ . $colors[$n] . qq/'>/;
         }
 
         if ( $self->tty ) {

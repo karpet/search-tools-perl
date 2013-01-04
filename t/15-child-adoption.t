@@ -12,7 +12,7 @@ is( $snip,
     "snip"
 );
 is( $hilited,
-    q{ ... meaning and caring parent to display such a callous disregard for their <b class="x">child</b>. The safest place to wait is at the entrance closest to the ... },
+    q{ ... meaning and caring parent to display such a callous disregard for their <b class='x'>child</b>. The safest place to wait is at the entrance closest to the ... },
     "hilited"
 );
 done_testing( $num_tests + 2 );

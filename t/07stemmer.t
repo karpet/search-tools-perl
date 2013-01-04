@@ -98,7 +98,7 @@ ok( my $stemming_hiliter = Search::Tools->hiliter(
 ok( my $hilited_naive = $stemming_hiliter->hilite($snipped_naive),
     "hilite snipped_naive" );
 is( $hilited_naive,
-    qq( I lived as a <span style="background:#ffff99">prisoner</span> <span style="background:#ffff99">must</span> and I was slowly, inevitably, as all living things do, shuffling off the mortal coil, eating dust, scanning these crowds for the pale rider, in a word: <span style="background:#99ffff">dying</span>.),
+    qq( I lived as a <span style='background:#ffff99'>prisoner</span> <span style='background:#ffff99'>must</span> and I was slowly, inevitably, as all living things do, shuffling off the mortal coil, eating dust, scanning these crowds for the pale rider, in a word: <span style='background:#99ffff'>dying</span>.),
     "hiliter stems"
 );
 

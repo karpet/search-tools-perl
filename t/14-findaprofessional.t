@@ -12,7 +12,7 @@ is( $snip,
     "snip"
 );
 is( $hilited,
-    q{ ... astute members of the South African public needing professional services. Enquiries: info@<b class="x">findaprofessional</b>.co.za "The best executive is the one who has the sense ... },
+    q{ ... astute members of the South African public needing professional services. Enquiries: info@<b class='x'>findaprofessional</b>.co.za "The best executive is the one who has the sense ... },
     "hilited"
 );
 

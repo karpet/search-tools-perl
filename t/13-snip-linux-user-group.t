@@ -12,7 +12,7 @@ is( $snip,
     "snip"
 );
 is( $hilited,
-    qq{ ... Operating System Ubuntu Linux : The Friendly Linux Operating System The Western Cape <b class="x">Linux User Group</b> : Cape Town LUG Software Process Improvement Network (SPIN) : Software development user group ... },
+    qq{ ... Operating System Ubuntu Linux : The Friendly Linux Operating System The Western Cape <b class='x'>Linux User Group</b> : Cape Town LUG Software Process Improvement Network (SPIN) : Software development user group ... },
     "hilited"
 );
 

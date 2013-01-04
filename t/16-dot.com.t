@@ -13,7 +13,7 @@ is( $snip,
     "snip"
 );
 is( $hilited,
-    q{<b class="x">foobar@foo.com</b> <b class="x">google.com</b> <b class="x">bing.co</b>.uk .<b class="x">bashrc</b> <b class="x">hello world</b>. http://myfoo.net/<b class="x">foo/bar/index.html</b> this is a bunch more ... },
+    q{<b class='x'>foobar@foo.com</b> <b class='x'>google.com</b> <b class='x'>bing.co</b>.uk .<b class='x'>bashrc</b> <b class='x'>hello world</b>. http://myfoo.net/<b class='x'>foo/bar/index.html</b> this is a bunch more ... },
     "hilited"
 );
 

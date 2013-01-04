@@ -10,7 +10,7 @@ use overload
 
 #use Data::Dump qw( dump );
 
-our $VERSION = '0.85';
+our $VERSION = '0.86';
 
 __PACKAGE__->mk_ro_accessors(
     qw(
