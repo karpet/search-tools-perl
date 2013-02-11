@@ -6,7 +6,7 @@ use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
 
-our $VERSION = '0.86';
+our $VERSION = '0.87';
 
 =pod
 
@@ -474,6 +474,7 @@ sub tag_safe {
 
     return '_' unless length $t;
 
+    $t =~ s/::/_/g;  # single colons ok, but doubles are not
     $t =~ s/[^-\.\w:]/_/g;
     $t =~ s/^(\d)/_$1/;
 

@@ -8,7 +8,7 @@ use Search::Tools::XML;
 use Search::Tools::UTF8;
 use Data::Dump qw( dump );
 
-our $VERSION = '0.86';
+our $VERSION = '0.87';
 
 my $XML = Search::Tools::XML->new;
 
