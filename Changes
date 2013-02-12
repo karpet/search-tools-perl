@@ -415,4 +415,5 @@ Revision history for Perl extension Search::HiLiter.
 0.87  xxx
     * XML->tag_safe() now catches edge case where double colons (as in Perl package names)
       are properly escaped.
+    * add Snipper->strip_markup feature
 
