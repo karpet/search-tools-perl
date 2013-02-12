@@ -36,6 +36,7 @@ __PACKAGE__->mk_accessors(
         query
         show
         snipper
+        strip_markup
         treat_phrases_as_singles
         type
         type_used
@@ -58,6 +59,7 @@ my %Defaults = (
     as_sentences             => 0,
     ignore_length            => 0,
     treat_phrases_as_singles => 1,
+    strip_markup             => 0,
 );
 
 sub init {
@@ -132,6 +134,10 @@ sub snip {
         return '';
     }
 
+    if ( $self->strip_markup ) {
+        $text = Search::Tools::XML->no_html($text);
+    }
+
     if ( $self->collapse_whitespace ) {
         _normalize_whitespace($text);
     }
@@ -204,7 +210,7 @@ sub _token {
         _treat_phrases_as_singles => $self->{treat_phrases_as_singles},
         _stemmer                  => $self->query->qp->stemmer,
     );
-    
+
     # reduce noise in debug
     delete $heatmap->{_query};
 
@@ -687,7 +693,7 @@ RE: while ( $$text =~ m/$re/g ) {
                 @r = ( $prefix =~ /(>)/g );
                 last
                     if scalar @l
-                        == scalar @r;    # don't take any more than we need to
+                    == scalar @r;    # don't take any more than we need to
 
                 my $onemorechar = substr( $$text, $prefix_start--, 1 );
 
@@ -861,6 +867,14 @@ Available via new().
 
 Boolean flag indicating whether snip() should escape any HTML/XML markup in the resulting
 snippet or not. Default is 0 (false).
+
+Available via new().
+
+=head2 strip_markup
+
+Boolean flag indicating whether snip() should attempt to remove any
+HTML/XML markup in the original text before snipping is applied. Default 
+is 0 (false).
 
 Available via new().
 

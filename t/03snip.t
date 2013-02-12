@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use strict;
-use Test::More tests => 17;
+use Test::More tests => 20;
 use Data::Dump qw( dump );
 use File::Slurp;
 
@@ -91,12 +91,14 @@ like( $snip_excerpt->snip($text2), qr/$excerpt/, "excerpt context" );
 ok( $snip_excerpt->type('re'), "set re type" );
 like( $snip_excerpt->snip($text2), qr/$excerpt/,
     "re matches loop algorithm" );
+
 #diag( $snip_excerpt->type_used );
 
 is( $snip_title->snip($text2),
     qq{ ... justify your paltry existence. amen. consider the lilies. do ... },
     "8 context"
 );
+
 #diag( $snip_title->type_used );
 
 like( $snip_pp->snip($text2), qr/$excerpt/, "excerpt context" );
@@ -125,3 +127,22 @@ ok( my $phrased_snip = $loose_phrase_snipper->snip($text2),
 is( $phrased_snip,
     qq/ ... man! type! until you've reached enough words to justify ... /,
     "phrased_snip" );
+
+##############
+## markup
+my $text_with_markup
+    = '<a href="link">this text is cheap</a> and filler and otherwise unimpressive but <b>this</b> is important!';
+ok( my $no_markup_snipper = Search::Tools::Snipper->new(
+        strip_markup  => 1,
+        query         => 'this',
+        show          => 1,
+        ignore_length => 1,
+    ),
+    "new no_markup_snipper"
+);
+ok( my $stripped = $no_markup_snipper->snip($text_with_markup),
+    "snip marked up text" );
+is( $stripped,
+    ' ... this text is cheap and ... and otherwise unimpressive but this is important ... ',
+    "got markedup text stripped and snipped"
+);
