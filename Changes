@@ -412,7 +412,7 @@ Revision history for Perl extension Search::HiLiter.
     * switch from " to ' marks in HiLiter tag attributes. This allows for compat with hiliting within
       JSON blobs.
 
-0.87  xxx
+0.87  12 Feb 2013
     * XML->tag_safe() now catches edge case where double colons (as in Perl package names)
       are properly escaped.
     * add Snipper->strip_markup feature
