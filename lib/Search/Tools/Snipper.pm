@@ -11,7 +11,7 @@ use Search::Tools::HeatMap;
 
 use base qw( Search::Tools::Object );
 
-our $VERSION = '0.87';
+our $VERSION = '0.88';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';
@@ -130,7 +130,12 @@ sub snip {
 
     # don't snip if we're less than the threshold
     if ( length($text) < $self->max_chars && !$self->ignore_length ) {
-        return $text if $self->show;
+        if ( $self->show ) {
+            if ( $self->strip_markup ) {
+                return Search::Tools::XML->no_html($text);
+            }
+            return $text;
+        }
         return '';
     }
 

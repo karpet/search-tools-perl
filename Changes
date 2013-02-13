@@ -417,3 +417,6 @@ Revision history for Perl extension Search::HiLiter.
       are properly escaped.
     * add Snipper->strip_markup feature
 
+0.88  xxx
+    * fix bug in Snipper when strip_markup=>1 and show=>1 and length of text less than max_chars
+

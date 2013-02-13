@@ -6,7 +6,7 @@ use Carp;
 #use Data::Dump qw( dump );
 use base qw( Rose::ObjectX::CAF::MethodMaker );
 
-our $VERSION = '0.87';
+our $VERSION = '0.88';
 
 =head1 NAME
 
