@@ -6,7 +6,7 @@ use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
 
-our $VERSION = '0.89';
+our $VERSION = '0.90';
 
 =pod
 
@@ -782,7 +782,7 @@ sub perl_to_xml {
     my $perl = shift;
 
     my ( $root, $wrap_array, $strip_plural, $escape );
-    if ( ref $_[0] eq 'HASH' ) {
+    if ( ref $_[0] eq 'HASH' and !exists $_[0]->{tag} ) {
         my %opts = %{ $_[0] };
         $root         = delete $opts{root}         || '_root';
         $strip_plural = delete $opts{strip_plural} || 0;

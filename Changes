@@ -425,3 +425,6 @@ Revision history for Perl extension Search::HiLiter.
 0.89  14 Feb 2013
     * fix bug in refactor of perl_to_xml to preserve markup escaping for old syntax.
 
+0.90  14 Feb 2013
+    * fix bug in refactor of perl_to_xml where 2nd arg is hashref representing root element.
+
