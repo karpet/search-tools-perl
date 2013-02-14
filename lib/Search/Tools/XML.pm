@@ -474,7 +474,7 @@ sub tag_safe {
 
     return '_' unless length $t;
 
-    $t =~ s/::/_/g;  # single colons ok, but doubles are not
+    $t =~ s/::/_/g;          # single colons ok, but doubles are not
     $t =~ s/[^-\.\w:]/_/g;
     $t =~ s/^(\d)/_$1/;
 
@@ -664,13 +664,19 @@ sub unescape_decimal {
     return $t;
 }
 
-=head2 perl_to_xml( I<ref>, I<root_element> [, I<strip_plural> ][, I<do_not_escape>] )
+=head2 perl_to_xml( I<ref> [, I<options>] )
 
 Similar to the XML::Simple XMLout() feature, perl_to_xml()
-will take a Perl data structure I<ref> and convert it to XML,
-using I<root_element> as the top-level element.
+will take a Perl data structure I<ref> and convert it to XML.
 
-If I<root_element> is a hashref, two keys are required:
+I<options> should be a hashref with the following supported key/value pairs:
+
+=over
+
+=item root I<value>
+
+The root element. If I<value> is a string, it is used as the tag name. If
+I<value> is a hashref, two keys are required:
 
 =over
 
@@ -684,7 +690,18 @@ Hash ref of attribute key/value pairs (see start_tag()).
 
 =back
 
-If I<strip_plural> is a true value and not a CODE ref,
+=item wrap_array I<1|0>
+
+If B<wrap_array> is true (the default), arrayref items are wrapped
+in an additional XML tag, keeping the array items enclosed in a logical set.
+If B<wrap_array> is false, each item in the array is treated individually.
+See B<strip_plural> below for the naming convention for arrayref items.
+
+=item strip_plural I<1|0>
+
+The B<strip_plural> option interacts with the B<wrap_array> option.
+
+If B<strip_plural> is a true value and not a CODE ref,
 any trailing C<s> character will be stripped from the enclosing tag name
 whenever an array of hashrefs is found. Example:
 
@@ -699,7 +716,11 @@ whenever an array of hashrefs is found. Example:
     ],
  };
 
- my $xml = $utils->perl_to_xml($data, 'data', 1);
+ my $xml = $utils->perl_to_xml($data, {
+    root            => 'data',
+    wrap_array      => 1,
+    strip_plural    => 1,
+ });
 
  # $xml DOM will look like:
 
@@ -720,11 +741,30 @@ Obviously stripping the final C<s> will not always render sensical tag names.
 Pass a CODE ref instead, expecting one value (the tag name) and returning the
 tag name to use:
 
- my $xml = $utils->perl_to_xml($data, 'data', sub {
-     my $tag = shift;
-     $tag =~ s/foo/BAR/;
-     return $tag;
+ my $xml = $utils->perl_to_xml($data, {
+    root            => 'data',
+    wrap_array      => 1,
+    strip_plural    => sub {
+        my $tag = shift;
+        $tag =~ s/foo/BAR/;
+        return $tag;
+    },
  });
+
+=item escape I<1|0>
+
+If B<escape> is false, strings within the B<ref> value will not be passed
+through escape(). Default is true.
+
+=back
+
+=cut
+
+=head2 perl_to_xml( I<ref>, I<root_element> [, I<strip_plural> ][, I<do_not_escape>] )
+
+This second usage is deprecated and here for backwards compatability only.
+Use the named key/value I<options> instead. Readers of your code (including you!) will
+thank you.
 
 =cut
 
@@ -738,11 +778,25 @@ sub _make_singular {
 }
 
 sub perl_to_xml {
-    my $self          = shift;
-    my $perl          = shift;
-    my $root          = shift || '_root';
-    my $strip_plural  = shift || 0;
-    my $do_not_escape = shift || 0;
+    my $self = shift;
+    my $perl = shift;
+
+    my ( $root, $wrap_array, $strip_plural, $escape );
+    if ( ref $_[0] eq 'HASH' ) {
+        my %opts = %{ $_[0] };
+        $root         = delete $opts{root}         || '_root';
+        $strip_plural = delete $opts{strip_plural} || 0;
+        $wrap_array   = delete $opts{wrap_array};
+        $wrap_array = 1 unless defined $wrap_array;
+        $escape     = delete $opts{escape};
+        $escape     = 1 unless defined $escape;
+    }
+    else {
+        $root         = shift || '_root';
+        $strip_plural = shift || 0;
+        $escape       = shift || 0;
+        $wrap_array = 1;    # old behavior
+    }
     unless ( defined $perl ) {
         croak "perl data struct required";
     }
@@ -764,23 +818,25 @@ sub perl_to_xml {
     if ( !ref $perl ) {
         return
               $self->start_tag( $root_tag, $attrs )
-            . ( $do_not_escape ? $perl : $self->utf8_safe($perl) )
+            . ( $escape ? $self->utf8_safe($perl) : $perl )
             . $self->end_tag($root_tag);
     }
 
     my $xml = $self->start_tag( $root_tag, $attrs );
-    $self->_ref_to_xml( $perl, '', \$xml, $strip_plural, $do_not_escape );
+    $self->_ref_to_xml( $perl, '', \$xml, $strip_plural, $escape,
+        $wrap_array );
     $xml .= $self->end_tag($root_tag);
     return $xml;
 }
 
 sub _ref_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $escape, $wrap_array )
+        = @_;
     my $type = ref $perl;
     if ( !$type ) {
         ( $$xml_ref .= $self->start_tag($root) )
             if length($root);
-        $$xml_ref .= ( $do_not_escape ? $perl : $self->utf8_safe($perl) );
+        $$xml_ref .= ( $escape ? $self->utf8_safe($perl) : $perl );
         ( $$xml_ref .= $self->end_tag($root) )
             if length($root);
 
@@ -788,15 +844,15 @@ sub _ref_to_xml {
     }
     elsif ( $type eq 'SCALAR' ) {
         $self->_scalar_to_xml( $perl, $root, $xml_ref, $strip_plural,
-            $do_not_escape );
+            $escape, $wrap_array );
     }
     elsif ( $type eq 'ARRAY' ) {
         $self->_array_to_xml( $perl, $root, $xml_ref, $strip_plural,
-            $do_not_escape );
+            $escape, $wrap_array );
     }
     elsif ( $type eq 'HASH' ) {
-        $self->_hash_to_xml( $perl, $root, $xml_ref, $strip_plural,
-            $do_not_escape );
+        $self->_hash_to_xml( $perl, $root, $xml_ref, $strip_plural, $escape,
+            $wrap_array );
     }
     else {
         croak "unsupported ref type: $type";
@@ -805,21 +861,23 @@ sub _ref_to_xml {
 }
 
 sub _array_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $escape, $wrap_array )
+        = @_;
     for my $thing (@$perl) {
-        if ( ref $thing and length($root) ) {
+        if ( ref $thing and length($root) and $wrap_array ) {
             $$xml_ref .= $self->start_tag($root);
         }
-        $self->_ref_to_xml( $thing, $root, $xml_ref, $strip_plural,
-            $do_not_escape );
-        if ( ref $thing and length($root) ) {
+        $self->_ref_to_xml( $thing, $root, $xml_ref, $strip_plural, $escape,
+            $wrap_array );
+        if ( ref $thing and length($root) and $wrap_array ) {
             $$xml_ref .= $self->end_tag($root);
         }
     }
 }
 
 sub _hash_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $escape, $wrap_array )
+        = @_;
     for my $key ( keys %$perl ) {
         my $thing = $perl->{$key};
         if ( ref $thing ) {
@@ -829,25 +887,32 @@ sub _hash_to_xml {
                 $key_to_pass = $strip_plural->($key_to_pass);
                 $attr{count} = scalar @$thing;
             }
-            $$xml_ref .= $self->start_tag( $key, \%attr );
-            $self->_ref_to_xml( $thing, $key_to_pass, $xml_ref, $strip_plural,
-                $do_not_escape );
-            $$xml_ref .= $self->end_tag($key);
+            if ( ref $thing ne 'ARRAY' or $wrap_array ) {
+                $$xml_ref .= $self->start_tag( $key, \%attr );
+            }
+            $self->_ref_to_xml(
+                $thing,        $key_to_pass, $xml_ref,
+                $strip_plural, $escape,      $wrap_array
+            );
+            if ( ref $thing ne 'ARRAY' or $wrap_array ) {
+                $$xml_ref .= $self->end_tag($key);
+            }
 
             #$$xml_ref .= "\n";                  # just for debugging
         }
         else {
             $self->_ref_to_xml( $thing, $key, $xml_ref, $strip_plural,
-                $do_not_escape );
+                $escape, $wrap_array );
         }
     }
 }
 
 sub _scalar_to_xml {
-    my ( $self, $perl, $root, $xml_ref, $strip_plural, $do_not_escape ) = @_;
+    my ( $self, $perl, $root, $xml_ref, $strip_plural, $escape, $wrap_array )
+        = @_;
     $$xml_ref
         .= $self->start_tag($root)
-        . ( $do_not_escape ? $perl : $self->utf8_safe($perl) )
+        . ( $escape ? $self->utf8_safe($perl) : $perl )
         . $self->end_tag($root);
 
     #$$xml_ref .= "\n";    # just for debugging
@@ -939,7 +1004,7 @@ Originally based on the HTML::HiLiter regular expression building code,
 by the same author, copyright 2004 by Cray Inc.
 
 Thanks to Atomic Learning C<www.atomiclearning.com>
-for sponsoring the development of these modules.
+for sponsoring the original development of these modules.
 
 =head1 BUGS
 

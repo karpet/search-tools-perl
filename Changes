@@ -417,6 +417,8 @@ Revision history for Perl extension Search::HiLiter.
       are properly escaped.
     * add Snipper->strip_markup feature
 
-0.88  xxx
+0.88  13 Feb 2013
     * fix bug in Snipper when strip_markup=>1 and show=>1 and length of text less than max_chars
+    * XML->perl_to_xml now supports named key/value hashref as argument instead of C-style
+      method signature.
 

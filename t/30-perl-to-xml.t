@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 8;
 
 use Search::Tools::XML;
 my $utils = 'Search::Tools::XML';
@@ -37,8 +37,8 @@ my $data2 = {
                     more  => 'here',
                 }
             ],
-        }
-
+        },
+        'red', 'blue',
     ],
 };
 
@@ -46,5 +46,22 @@ my $data2 = {
 ok( my $data2_xml = $utils->perl_to_xml( $data2, 'data2', 1 ),
     "data2 to xml" );
 
-like( $data2_xml, qr(<arrays count="3">),       "data2 xml" );
+like( $data2_xml, qr(<arrays count="5">),       "data2 xml" );
 like( $data2_xml, qr(<foos count="1">.*?<foo>), "data2 xml" );
+
+################
+# new style
+ok( my $data2_xml_new = $utils->perl_to_xml(
+        $data2,
+        {   root         => 'data2',
+            wrap_array   => 0,
+            strip_plural => 1,
+        }
+    ),
+    "new style perl_to_xml with wrap_array=>0"
+);
+
+#diag( $utils->tidy($data2_xml_new) );
+like( $data2_xml_new, qr(<array>red</array>),
+    "plural stripped in new style" );
+unlike( $data2_xml_new, qr(<arrays ), "wrap_array respected" );
