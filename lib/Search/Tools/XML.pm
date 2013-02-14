@@ -6,7 +6,7 @@ use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
 
-our $VERSION = '0.88';
+our $VERSION = '0.89';
 
 =pod
 
@@ -794,7 +794,19 @@ sub perl_to_xml {
     else {
         $root         = shift || '_root';
         $strip_plural = shift || 0;
-        $escape       = shift || 0;
+        $escape       = shift;
+
+        # backcompat means we need to reverse logic
+        if ( defined $escape and $escape == 1 ) {
+            $escape = 0;
+        }
+        elsif ( defined $escape and $escape == 0 ) {
+            $escape = 1;
+        }
+        elsif ( !defined $escape ) {
+            $escape = 1;
+        }
+
         $wrap_array = 1;    # old behavior
     }
     unless ( defined $perl ) {

@@ -422,3 +422,6 @@ Revision history for Perl extension Search::HiLiter.
     * XML->perl_to_xml now supports named key/value hashref as argument instead of C-style
       method signature.
 
+0.89  14 Feb 2013
+    * fix bug in refactor of perl_to_xml to preserve markup escaping for old syntax.
+
