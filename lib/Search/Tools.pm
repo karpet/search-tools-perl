@@ -69,6 +69,8 @@ sub slurp {
         $fh = openhandle($file) || IO::File->new( $file, '<' );
     }
 
+    die "Failed to open $file: $!" unless $fh;
+
     while ( my $ln = $fh->getline ) {
         $buf .= $ln;
     }
