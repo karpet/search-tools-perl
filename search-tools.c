@@ -878,7 +878,7 @@ static SV *st_escape_xml(char *s) {
         j += 5;
     }
     else if (s[i] == '\'') {
-        memcpy(&SvPVX(x)[j], "&apos;", 6);
+        memcpy(&SvPVX(x)[j], "&#39;", 6);
         j += 5;
     }
     else

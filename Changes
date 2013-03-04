@@ -428,3 +428,7 @@ Revision history for Perl extension Search::HiLiter.
 0.90  14 Feb 2013
     * fix bug in refactor of perl_to_xml where 2nd arg is hashref representing root element.
 
+0.91  4 March 2013
+    * XML->escape() now converts single quote to &#39; instead of &apos; in order to conform with
+      both the HTML and XML specs.
+
