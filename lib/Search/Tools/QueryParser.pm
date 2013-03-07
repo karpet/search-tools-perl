@@ -535,7 +535,7 @@ ${escaped}
 CHAR: foreach my $c (@char) {
         $counter++;
 
-        my $ent = $C2E->{$c} || carp "no entity defined for >$c< !\n";
+        my $ent = $C2E->{$c} || undef;
         my $num = ord($c);
 
         # if this is a special regexp char, protect it
@@ -549,7 +549,13 @@ CHAR: foreach my $c (@char) {
             next CHAR;
         }
 
-        my $aka = $ent eq "&#$num;" ? $ent : "$ent|&#$num;";
+        my $aka;
+        if ($ent) {
+            $aka = $ent eq "&#$num;" ? $ent : "$ent|&#$num;";
+        }
+        else {
+            $aka = "&#$num;"
+        }
 
         # make $c into a regexp
         $c = qr/$c|$aka/i unless $c eq "[$wild]*";
