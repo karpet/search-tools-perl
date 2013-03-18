@@ -314,6 +314,10 @@ U: for my $u ( sort { $uniq{$a} <=> $uniq{$b} } keys %uniq ) {
         W: for my $w (@w) {
                 my $func = $self->stemmer;
                 my $f = &$func( $self, $w );
+                if ( !defined $f or !length $f ) {
+                    next W;
+                }
+                $f = to_utf8($f);
 
                 #warn "w: $w\nf: $f\n";
 
@@ -554,7 +558,7 @@ CHAR: foreach my $c (@char) {
             $aka = $ent eq "&#$num;" ? $ent : "$ent|&#$num;";
         }
         else {
-            $aka = "&#$num;"
+            $aka = "&#$num;";
         }
 
         # make $c into a regexp
