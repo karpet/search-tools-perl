@@ -432,3 +432,7 @@ Revision history for Perl extension Search::HiLiter.
     * XML->escape() now converts single quote to &#39; instead of &apos; in order to conform with
       both the HTML and XML specs.
 
+0.92  19 March 2013
+    * QueryParser->stemmer will now coerce return values through to_utf8() (RT #83771)
+    * fix off-by-one memory bug regression introduced in 0.91
+

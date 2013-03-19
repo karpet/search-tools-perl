@@ -31,11 +31,11 @@ ok( my $hiliter = Search::Tools->hiliter( tty => 1, query => $query ),
 my $html_copy = $html;
 ok( my $hilited = $hiliter->light($html_copy), "light query object" );
 
-diag($hilited);
+#diag($hilited);
 
 ok( my $str_hiliter = Search::Tools->hiliter( tty => 1, query => $str ),
     "hiliter->new with bare string" );
 
 ok( my $hilited_str = $str_hiliter->light($html_copy), "light string" );
 
-diag($hilited_str);
+#diag($hilited_str);
