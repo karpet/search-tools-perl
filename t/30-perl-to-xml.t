@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-use Test::More tests => 8;
-
+use Test::More tests => 9;
+use Data::Dump qw( dump );
 use Search::Tools::XML;
 my $utils = 'Search::Tools::XML';
 
@@ -65,3 +65,19 @@ ok( my $data2_xml_new = $utils->perl_to_xml(
 like( $data2_xml_new, qr(<array>red</array>),
     "plural stripped in new style" );
 unlike( $data2_xml_new, qr(<arrays ), "wrap_array respected" );
+
+ok( my $data3_xml_new = $utils->perl_to_xml(
+        $data2,
+        {   root => {
+                tag   => 'fields',
+                attrs => { xmlns => 'http://dezi.org/sos/schema' },
+            },
+            escape       => 0,
+            strip_plural => 0
+        },
+    ),
+    "root value == hashref"
+);
+
+#diag( dump $data3_xml_new );
+
