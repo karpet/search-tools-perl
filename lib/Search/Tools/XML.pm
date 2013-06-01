@@ -6,7 +6,7 @@ use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
 
-our $VERSION = '0.93';
+our $VERSION = '0.94';
 
 =pod
 
@@ -102,7 +102,7 @@ my @whitesp = ( '\s', '&nbsp;' );
 for my $w (@white_hex_pts) {
     push @whitesp, sprintf( "&\\#x%s;", $w );                # hex entity
     push @whitesp, sprintf( "&\\#%s;",  hex($w) );           # dec entity
-    push @whitesp, sprintf( "%s",       chr( hex($w) ) );    # byte value
+    push @whitesp, sprintf( "\\%s",     chr( hex($w) ) );    # byte value
 }
 
 my $HTML_WHITESPACE = join( '|', @whitesp );

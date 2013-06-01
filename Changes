@@ -438,3 +438,7 @@ Revision history for Perl extension Search::HiLiter.
 
 0.93  19 March 2013
     * (more) fix off-by-one memory bug regression introduced in 0.91
+
+0.94  31 May 2013
+    * quiet regex whitespace warning in Perl >= 5.18.0
+

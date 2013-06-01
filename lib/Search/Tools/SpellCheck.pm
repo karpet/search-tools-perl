@@ -6,7 +6,7 @@ use base qw( Search::Tools::Object );
 use Text::Aspell;
 use Search::Tools::QueryParser;
 
-our $VERSION = '0.93';
+our $VERSION = '0.94';
 
 __PACKAGE__->mk_accessors(
     qw(
