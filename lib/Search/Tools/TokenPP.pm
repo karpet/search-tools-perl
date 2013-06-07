@@ -8,7 +8,7 @@ use overload
     'bool'   => sub { $_[0]->len; },
     fallback => 1;
 
-our $VERSION = '0.94';
+our $VERSION = '0.95';
 
 __PACKAGE__->mk_accessors(
     qw( is_match is_hot pos str len u8len is_sentence_start is_sentence_end )
