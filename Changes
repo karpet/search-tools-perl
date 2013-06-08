@@ -442,6 +442,6 @@ Revision history for Perl extension Search::HiLiter.
 0.94  31 May 2013
     * quiet regex whitespace warning in Perl >= 5.18.0
 
-0.95  xxx
+0.95  7 June 2013
     * make POD tests optional with PERL_AUTHOR_TEST
 
