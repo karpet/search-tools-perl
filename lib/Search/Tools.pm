@@ -200,19 +200,21 @@ XS debugging help. Same as using Devel::Peek.
 
 Perl 5.8.3 or later is required. This is for full UTF-8 support.
 
-The following CPAN modules are required:
+The following non-core CPAN modules are required:
 
 =over
 
 =item Rose::Object
 
-=item Search::QueryParser
+=item Rose::ObjectX::CAF
+
+=item Search::Query
 
 =item Data::Dump
 
-=item File::Slurp
-
 =item Encode
+
+=item Encoding::FixLatin
 
 =item Carp
 
