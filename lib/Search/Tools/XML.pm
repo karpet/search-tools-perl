@@ -474,7 +474,7 @@ sub tag_safe {
 
     return '_' unless length $t;
 
-    $t =~ s/::/_/g;          # single colons ok, but doubles are not
+    $t =~ s/::/_/g;    # single colons ok, but doubles are not
     $t =~ s/[^-\.\w:]/_/g;
     $t =~ s/^(\d)/_$1/;
 
@@ -867,7 +867,9 @@ sub _ref_to_xml {
             $wrap_array );
     }
     else {
-        confess "unsupported ref type: $type";
+        # assume blessed object, force it to stringify as a scalar
+        $self->_scalar_to_xml( "$perl", $root, $xml_ref, $strip_plural,
+            $escape, $wrap_array );
     }
 
 }
