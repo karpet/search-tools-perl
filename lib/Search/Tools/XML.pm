@@ -867,7 +867,7 @@ sub _ref_to_xml {
             $wrap_array );
     }
     else {
-        croak "unsupported ref type: $type";
+        confess "unsupported ref type: $type";
     }
 
 }
