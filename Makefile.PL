@@ -48,7 +48,7 @@ WriteMakefile(
                     homepage => 'https://github.com/karpet/search-tools-perl',
                     bugtracker =>
                         'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
-                    repository => 'git@github.com:karpet/search-tools-perl.git',
+                    repository => 'https://github.com/karpet/search-tools-perl',
                 },
             }
             )
