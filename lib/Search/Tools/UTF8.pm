@@ -27,7 +27,7 @@ our @EXPORT = qw(
 
 our $Debug = ( $ENV{PERL_DEBUG} && $ENV{PERL_DEBUG} > 2 ) ? 1 : 0;
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 
 sub to_utf8 {
     my $str = shift;
@@ -191,8 +191,9 @@ sub fix_cp1252_codepoints_in_utf8 {
         croak "bad UTF-8 byte(s) at $badbyte [ " . dump($buf) . " ]";
     }
     $Debug and warn "converting $buf\n";
-    $buf =~ s/\xc2([\x80-\x9f])/$win1252{$1}/g;
-    return $buf;
+    my $bytes = Encode::encode_utf8( to_utf8($buf) );
+    $bytes =~ s/\xc2([\x80-\x9f])/$win1252{$1}/g;
+    return to_utf8($bytes);
 }
 
 1;
