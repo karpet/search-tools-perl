@@ -1,6 +1,6 @@
 Revision history for Perl extension Search::HiLiter.
 
-0.97 xxx
+0.97 4 Oct 2013
  - fix_cp1252_codepoints_in_utf8 now operates on bytes internally in regex
    substitution.
 
