@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use strict;
-use Test::More tests => 22;
+use Test::More tests => 25;
 use Search::Tools::Tokenizer;
 use Search::Tools::UTF8;
 use Search::Tools::Snipper;
@@ -119,3 +119,27 @@ while ( my $t = $sent_tokens->next ) {
 
 }
 is( $nstarts, 4, "4 sentences detected" );
+
+# as_sentences
+ok( my $sentences = $sent_tokens->as_sentences, "as_sentences" );
+for my $sentence (@$sentences) {
+
+    #    diag( join( "", map {"$_"} @$sentence ) );
+}
+ok( $sentences = $sent_tokens->as_sentences(1), "as_sentences stringed" );
+for my $sentence (@$sentences) {
+
+    #    diag($sentence);
+}
+
+#dump($sentences);
+is_deeply(
+    $sentences,
+    [   "This is a long section of text with foo.",
+        "First, there is an intro sentence.",
+        "Second, there is an explanation about foo.",
+        "Third, and finally for foo, there is a conclusion that ties it all together.",
+    ],
+    "sentence strings"
+);
+

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.97';
+our $VERSION = '0.98';
 
 =head1 NAME
 
@@ -39,7 +39,7 @@ by both Search::Tools::TokenList and Search::Tools::TokenListPP.
 
 Returns a serialized version of the TokenList. If you haven't
 altered the TokenList since you got it from tokenize(),
-then str() returns a scalar string identical to (but not the same)
+then str() returns a scalar string identical to (but not the same as)
 the string you passed to tokenize().
 
 Both Search::Tools::TokenList and TokenListPP are overloaded
@@ -171,6 +171,62 @@ sub get_window_tokens {
         push( @slice, $self->get_token($_) );
     }
     return \@slice;
+}
+
+=head2 as_sentences([I<stringified>])
+
+Returns a reference to an array of arrays,
+where each child array is a "sentence" worth of Token objects.
+You can stringify each sentence array like:
+
+ my $sentences = $tokenlist->as_sentences;
+ for my $s (@$sentences) {
+     printf("sentence: %s\n", join("", map {"$_"} @$s));
+ }
+
+If you pass a single true value to as_sentences(),
+then the array returned will consist of plain scalar strings
+with whitespace normalized.
+
+=cut
+
+sub as_sentences {
+    my $self = shift;
+    my $stringed = shift || 0;
+    my @sents;
+    my @s;
+
+    # use array method since we do not know the iterator position
+    for my $t ( @{ $self->as_array } ) {
+        if ( $t->is_sentence_start ) {
+
+            # if has any, add anonymous copy to master
+            if (@s) {
+                push @sents, [@s];
+            }
+
+            # reset
+            @s = ();
+        }
+
+        # add
+        push @s, $t;
+    }
+    if (@s) {
+        push @sents, [@s];
+    }
+    if ($stringed) {
+        my @stringed;
+        for my $s (@sents) {
+            my $str = join( "", map {"$_"} @$s );
+            $str =~ s/\s\s+/\ /g;
+            $str =~ s/\s+$//;
+            push @stringed, $str;
+        }
+        return \@stringed;
+    }
+
+    return \@sents;
 }
 
 1;
