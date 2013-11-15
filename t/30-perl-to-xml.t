@@ -2,10 +2,18 @@
 
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Data::Dump qw( dump );
 use Search::Tools::XML;
 my $utils = 'Search::Tools::XML';
+
+{
+
+    package My::Blessed::Object;
+    use overload
+        '""'     => sub { ref shift },
+        fallback => 1;
+}
 
 my $data1 = {
     foo   => 'bar',
@@ -38,6 +46,7 @@ my $data2 = {
                 }
             ],
         },
+        bless( {}, "My::Blessed::Object" ),
         'red', 'blue',
     ],
 };
@@ -46,8 +55,15 @@ my $data2 = {
 ok( my $data2_xml = $utils->perl_to_xml( $data2, 'data2', 1 ),
     "data2 to xml" );
 
-like( $data2_xml, qr(<arrays count="5">),       "data2 xml" );
+#diag( $utils->tidy($data2_xml) );
+
+like( $data2_xml, qr(<arrays count="6">),       "data2 xml" );
 like( $data2_xml, qr(<foos count="1">.*?<foo>), "data2 xml" );
+like(
+    $data2_xml,
+    qr(<array>My::Blessed::Object</array>),
+    "data2 xml blessed object"
+);
 
 ################
 # new style
