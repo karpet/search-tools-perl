@@ -958,10 +958,10 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len)
     
     /* get first full UTF-8 char */
 #if (PERL_VERSION >= 16)
-    warn("WE HAVE utf8_char_buf\n");
+    //warn("WE HAVE utf8_char_buf\n");
     u8len = is_utf8_char_buf((const U8*)ptr, (const U8*)ptr+UTF8SKIP(ptr));
 #else
-    warn("WE HAVE utf8_char\n");
+    //warn("WE HAVE utf8_char\n");
     u8len = is_utf8_char((U8*)ptr);
 #endif
 
