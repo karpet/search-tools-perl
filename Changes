@@ -1,5 +1,8 @@
 Revision history for Perl extension Search::HiLiter.
 
+0.99 xxx
+ - Snipper doc fixes
+
 0.98 14 Nov 2013
  - add new method as_sentences() to TokenListUtils
  - fix perl_to_xml for blessed objects
