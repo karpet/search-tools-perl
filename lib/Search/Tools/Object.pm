@@ -100,7 +100,8 @@ sub _normalize_args {
         )->parse($q);
     }
     elsif ( ref($q) eq 'ARRAY' ) {
-        warn "query ARRAY ref deprecated as of version 0.24";
+        carp "query ARRAY ref deprecated as of version 0.24";
+        require Search::Tools::QueryParser;
         $args{query} = Search::Tools::QueryParser->new(
             debug => $debug,
             map { $_ => delete $args{$_} }
