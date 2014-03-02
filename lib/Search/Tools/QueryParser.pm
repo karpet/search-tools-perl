@@ -103,7 +103,8 @@ sub init {
 
 sub parse {
     my $self = shift;
-    my $query_str = shift or croak "query required";
+    my $query_str = shift;
+    confess "query required" unless defined $query_str;
     if ( ref $query_str ) {
         croak "query must be a scalar string";
     }
@@ -155,7 +156,8 @@ TERM: for my $term ( @{ $extracted->{terms} } ) {
 
 sub _extract_terms {
     my $self          = shift;
-    my $query         = shift or croak "need query to extract terms";
+    my $query         = shift;
+    confess "need query to extract terms" unless defined $query;
     my $stopwords     = $self->stopwords;
     my $and_word      = $self->and_word;
     my $or_word       = $self->or_word;

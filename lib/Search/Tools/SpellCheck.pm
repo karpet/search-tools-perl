@@ -45,7 +45,8 @@ sub _check_err {
 
 sub suggest {
     my $self        = shift;
-    my $query_str   = shift or croak "query required";
+    my $query_str   = shift;
+    confess "query required" unless defined $query_str;
     my $suggest     = [];
     my $phr_del     = $self->query_parser->phrase_delim;
     my $ignore_case = $self->query_parser->ignore_case;

@@ -2,6 +2,7 @@ Revision history for Perl extension Search::HiLiter.
 
 0.99 xxx
  - Snipper doc fixes
+ - change !$query to !defined $query check in @_ unrolling
 
 0.98 14 Nov 2013
  - add new method as_sentences() to TokenListUtils
