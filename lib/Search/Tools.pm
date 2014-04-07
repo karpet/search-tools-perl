@@ -204,9 +204,7 @@ The following non-core CPAN modules are required:
 
 =over
 
-=item Rose::Object
-
-=item Rose::ObjectX::CAF
+=item Class::XSAccessor
 
 =item Search::Query
 
@@ -226,8 +224,6 @@ and for performance.
 =over
 
 =item Text::Aspell
-
-=item Class::XSAccessor
 
 =back
 
@@ -321,6 +317,6 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-HTML::HiLiter, SWISH::HiLiter, Rose::Object, Class::XSAccessor, Text::Aspell
+HTML::HiLiter, SWISH::HiLiter, Class::XSAccessor, Text::Aspell
 
 =cut

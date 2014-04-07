@@ -396,6 +396,6 @@ same terms as Perl itself.
 
 =head1 SEE ALSO
 
-HTML::HiLiter, SWISH::HiLiter, Rose::Object, Class::XSAccessor, Text::Aspell
+HTML::HiLiter, SWISH::HiLiter, Class::XSAccessor, Text::Aspell
 
 =cut
