@@ -1,5 +1,9 @@
 Revision history for Perl extension Search::HiLiter.
 
+1.00 xxx
+ - Drop Rose::ObjectX::CAF object system in favor of Class::XSAccessor
+   which was already being used via Rose::Object if it was installed.
+
 0.99 02 March 2014
  - Snipper doc fixes
  - change !$query to !defined $query check in @_ unrolling
