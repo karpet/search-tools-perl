@@ -2,13 +2,12 @@ package Search::Tools::Object;
 use strict;
 use warnings;
 use Carp;
-use base qw( Rose::ObjectX::CAF );
 use Scalar::Util qw( blessed );
-use Search::Tools::MethodMaker;
-
-our $VERSION = '0.99';
+use Class::XSAccessor;
 
 __PACKAGE__->mk_accessors(qw( debug ));
+
+our $VERSION = '0.99';
 
 =pod
 
@@ -42,10 +41,14 @@ Search::Tools::Object - base class for Search::Tools objects
 
 =head1 DESCRIPTION
 
-Search::Tools::Object is a subclass of Rose::Object. Prior to version 0.24
-STO was a subclass of Class::Accessor::Fast. Backwards compatability for
-the mk_accessors() and mk_ro_accessors() class methods are preserved
-via Search::Tools::MethodMaker.
+Search::Tools::Object uses Class::XSAccessor. 
+
+Prior to version 1.00 STO was a subclass of Rose::ObjectX::CAF.
+
+Prior to version 0.24 STO was a subclass of Class::Accessor::Fast. 
+
+Backwards compatability for the mk_accessors() and mk_ro_accessors() 
+class methods are preserved.
 
 =head1 METHODS
 
@@ -55,9 +58,22 @@ sub _init {
     croak "use init() instead";
 }
 
+=head2 new( I<args> )
+
+Constructor. Do not override this method. Override init() instead.
+
+=cut
+
+sub new {
+    my $class = shift;
+    my $self = bless {}, $class;
+    $self->init( @_ > 1 ? @_ : %{ $_[0] } );
+    return $self;
+}
+
 =head2 init
 
-Overrides base Rose::Object method. Rather than calling
+Initialize objects. Override init() instead of new(). Rather than calling
 the method name for each param passed in new(), the value
 is simply set in the object as a hash ref. This assumes
 every Search::Tools::Object is a blessed hash ref.
@@ -70,9 +86,57 @@ if init() tried to set values with them.
 
 sub init {
     my $self = shift(@_);
-    $self->SUPER::init(@_);
+    $self->__init(@_);
     $self->{debug} ||= $ENV{PERL_DEBUG} || 0;
     return $self;
+}
+
+sub __init {
+    my $self = shift;
+
+    # assume object is hash and set key
+    # rather than call method, since we have read-only methods.
+    while (@_) {
+        my $method = shift;
+        if ( !$self->can($method) ) {
+            croak "No such method $method";
+        }
+        $self->{$method} = shift;
+    }
+
+    return $self;
+}
+
+=head2 mk_accessors( I<names> )
+
+CAF-like method for back-compat with versions < 1.00.
+
+=cut
+
+sub mk_accessors {
+    my $class = shift;
+    for my $attr (@_) {
+        Class::XSAccessor->import(
+            accessors => { $attr => $attr },
+            class     => $class,
+        );
+    }
+}
+
+=head2 mk_ro_accessors( I<names> )
+
+CAF-like method for back-compat with versions < 1.00.
+
+=cut
+
+sub mk_ro_accessors {
+    my $class = shift;
+    for my $attr (@_) {
+        Class::XSAccessor->import(
+            getters => { $attr => $attr },
+            class   => $class,
+        );
+    }
 }
 
 =head2 debug( I<n> )
