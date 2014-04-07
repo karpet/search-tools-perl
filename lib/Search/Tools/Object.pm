@@ -7,7 +7,7 @@ use Class::XSAccessor;
 
 __PACKAGE__->mk_accessors(qw( debug ));
 
-our $VERSION = '0.99';
+our $VERSION = '0.99_01';
 
 =pod
 
