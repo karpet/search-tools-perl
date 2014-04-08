@@ -1,7 +1,6 @@
 package Search::Tools::Query;
-use strict;
-use warnings;
-use base qw( Search::Tools::Object );
+use Moo;
+extends 'Search::Tools::Object';
 use overload
     '""'     => sub { $_[0]->str; },
     'bool'   => sub {1},
@@ -13,18 +12,16 @@ use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::XML;
 
+use namespace::sweep;
+
 our $VERSION = '0.99_01';
 
-__PACKAGE__->mk_ro_accessors(
-    qw(
-        terms
-        fields
-        dialect
-        str
-        regex
-        qp
-        )
-);
+has 'terms'   => ( is => 'ro' );
+has 'fields'  => ( is => 'ro' );
+has 'dialect' => ( is => 'ro' );
+has 'str'     => ( is => 'ro' );
+has 'regex'   => ( is => 'ro' );
+has 'qp'      => ( is => 'ro' );
 
 =head1 NAME
 

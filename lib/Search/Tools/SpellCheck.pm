@@ -1,28 +1,21 @@
 package Search::Tools::SpellCheck;
-use strict;
-use warnings;
+use Moo;
 use Carp;
-use base qw( Search::Tools::Object );
+extends 'Search::Tools::Object';
 use Text::Aspell;
 use Search::Tools::QueryParser;
 
 our $VERSION = '0.99_01';
 
-__PACKAGE__->mk_accessors(
-    qw(
-        max_suggest
-        dict
-        lang
-        aspell
-        query_parser
-        )
-);
+has 'query_parser' =>
+    ( is => 'rw', default => sub { Search::Tools::QueryParser->new() } );
+has 'max_suggest' => ( is => 'rw', default => sub {4} );
+has 'dict'        => ( is => 'rw' );
+has 'lang'        => ( is => 'rw' );
+has 'aspell'      => ( is => 'rw' );
 
-sub init {
+sub BUILD {
     my $self = shift;
-    $self->SUPER::init(@_);
-    $self->{query_parser} ||= Search::Tools::QueryParser->new();
-    $self->{max_suggest}  ||= 4;
     $self->aspell(
                Text::Aspell->new
             or croak "can't get new() Text::Aspell"
@@ -44,8 +37,8 @@ sub _check_err {
 }
 
 sub suggest {
-    my $self        = shift;
-    my $query_str   = shift;
+    my $self      = shift;
+    my $query_str = shift;
     confess "query required" unless defined $query_str;
     my $suggest     = [];
     my $phr_del     = $self->query_parser->phrase_delim;

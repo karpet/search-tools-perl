@@ -1,16 +1,14 @@
 package Search::Tools::Transliterate;
-use strict;
-use warnings;
-use base qw( Search::Tools::Object );
+use Moo;
+extends 'Search::Tools::Object';
 use Search::Tools::UTF8;
 use Carp;
 use Encode;
 use Encoding::FixLatin qw( fix_latin );
 use Data::Dump qw( dump );
 
-__PACKAGE__->mk_accessors(qw( ebit ));
-
-__PACKAGE__->mk_ro_accessors(qw( map ));
+has 'ebit' => ( is => 'rw', default => sub {1} );
+has 'map' => ( is => 'ro' );
 
 our $VERSION = '0.99_01';
 
@@ -194,11 +192,8 @@ sub _Utag_to_chr {
     return $t;
 }
 
-sub init {
+sub BUILD {
     my $self = shift;
-    $self->SUPER::init(@_);
-
-    $self->{ebit} = 1 unless defined $self->{ebit};
 
     my $map = $self->_init_map;
 

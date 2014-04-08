@@ -1,18 +1,22 @@
 package Search::Tools::TokenPP;
-use strict;
-use warnings;
-use base qw( Search::Tools::Object );
+use Moo;
+extends 'Search::Tools::Object';
 use Carp;
 use overload
     '""'     => sub { $_[0]->str; },
     'bool'   => sub { $_[0]->len; },
     fallback => 1;
 
+use namespace::sweep;
+
 our $VERSION = '0.99_01';
 
-__PACKAGE__->mk_accessors(
-    qw( is_match is_hot pos str len u8len is_sentence_start is_sentence_end )
-);
+my @attrs
+    = qw( is_match is_hot pos str len u8len is_sentence_start is_sentence_end );
+
+for my $attr (@attrs) {
+    has $attr => ( is => 'rw' );
+}
 
 sub set_hot   { $_[0]->is_hot( $_[1] ); }
 sub set_match { $_[0]->is_match( $_[1] ); }

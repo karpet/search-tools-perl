@@ -1,9 +1,10 @@
 package Search::Tools::HeatMap;
-use strict;
-use warnings;
+use Moo;
 use Carp;
 use Data::Dump qw( dump );
-use base qw( Search::Tools::Object );
+extends 'Search::Tools::Object';
+
+use namespace::sweep;
 
 our $VERSION = '0.99_01';
 
@@ -16,17 +17,19 @@ if ( !$@ ) {
     $CLOSE = Term::ANSIColor::color('reset') . $CLOSE;
 }
 
-__PACKAGE__->mk_accessors(
-    qw( window_size
-        tokens
-        spans
-        as_sentences
-        _treat_phrases_as_singles
-        _qre
-        _query
-        _stemmer
-        )
+my @attrs = qw( window_size
+    tokens
+    spans
+    as_sentences
+    _treat_phrases_as_singles
+    _qre
+    _query
+    _stemmer
 );
+
+for my $attr (@attrs) {
+    has $attr => ( is => 'rw' );
+}
 
 =head1 NAME
 
@@ -82,9 +85,8 @@ Builds the HeatMap object. Called internally by new().
 
 =cut
 
-sub init {
+sub BUILD {
     my $self = shift;
-    $self->SUPER::init(@_);
     $self->_build;
     return $self;
 }

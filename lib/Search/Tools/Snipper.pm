@@ -1,7 +1,7 @@
 package Search::Tools::Snipper;
-use strict;
-use warnings;
-
+use Moo;
+extends 'Search::Tools::Object';
+with 'Search::Tools::ArgNormalizer';
 use Carp;
 use Data::Dump qw( dump );
 use Search::Tools::XML;
@@ -9,7 +9,7 @@ use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::HeatMap;
 
-use base qw( Search::Tools::Object );
+use namespace::sweep;
 
 our $VERSION = '0.99_01';
 
@@ -22,28 +22,25 @@ our $DefaultSnipper = 'offset';
 #   extracts instead of joining them all with $ellip
 #
 
-__PACKAGE__->mk_accessors(
-    qw(
-        as_sentences
-        collapse_whitespace
-        context
-        count
-        escape
-        force
-        ignore_length
-        max_chars
-        occur
-        query
-        show
-        snipper
-        strip_markup
-        treat_phrases_as_singles
-        type
-        type_used
-        use_pp
-        word_len
-
-        )
+my @attrs = qw(
+    as_sentences
+    collapse_whitespace
+    context
+    count
+    escape
+    force
+    ignore_length
+    max_chars
+    occur
+    query
+    show
+    snipper
+    strip_markup
+    treat_phrases_as_singles
+    type
+    type_used
+    use_pp
+    word_len
 );
 
 my %Defaults = (
@@ -62,14 +59,18 @@ my %Defaults = (
     strip_markup             => 0,
 );
 
-sub init {
-    my $self = shift;
-    my %args = $self->_normalize_args(@_);
-    $self->SUPER::init(%args);
-    for ( keys %Defaults ) {
-        next if defined $self->{$_};
-        $self->{$_} = $Defaults{$_};
+for my $attr (@attrs) {
+    my $def = $Defaults{$attr} || undef;
+    if ( defined $def ) {
+        has( $attr => ( is => 'rw', default => sub {$def} ) );
     }
+    else {
+        has( $attr => ( is => 'rw' ) );
+    }
+}
+
+sub BUILD {
+    my $self = shift;
 
     #dump $self;
 
@@ -115,7 +116,7 @@ sub _pick_snipper {
 # in either of the 2 than the 1.
 sub _normalize_whitespace {
     $_[0] =~ s,[\n\r\t\xa0]+,\ ,go;
-    $_[0] =~ s,\ +, ,go;              # \ \ + was 16x slower on bigfile!!
+    $_[0] =~ s,\ +, ,go;    # \ \ + was 16x slower on bigfile!!
 }
 
 sub snip {
@@ -237,12 +238,12 @@ sub _token {
         if ( $#snips > $occur_index ) {
             @snips = @snips[ 0 .. $occur_index ];
         }
-        my $snip = join( $ellip, @snips );
+        my $snip                   = join( $ellip, @snips );
         my $snips_start_with_query = $_[0] =~ m/^\Q$snip\E/;
         my $snips_end_with_query   = $_[0] =~ m/\Q$snip\E$/;
         if ( $self->{as_sentences} ) {
             $snips_start_with_query = 1;
-            $snips_end_with_query = $snip =~ m/[\.\?\!]\s*$/;
+            $snips_end_with_query   = $snip =~ m/[\.\?\!]\s*$/;
         }
 
         # if we are pulling out something less than the entire

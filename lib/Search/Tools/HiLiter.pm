@@ -1,35 +1,37 @@
 package Search::Tools::HiLiter;
-use strict;
-use warnings;
-use base qw( Search::Tools::Object );
+use Moo;
+extends 'Search::Tools::Object';
+with 'Search::Tools::ArgNormalizer';
 use Carp;
 use Search::Tools::Tokenizer;
 use Search::Tools::XML;
 use Search::Tools::UTF8;
 use Data::Dump qw( dump );
 
+use namespace::sweep;
+
 our $VERSION = '0.99_01';
 
 my $XML = Search::Tools::XML->new;
 
-__PACKAGE__->mk_accessors(
-    qw(
-        query
-        tag
-        class
-        style
-        text_color
-        colors
-        tty
-        ttycolors
-        no_html
-        )
+my @attrs = qw(
+    query
+    tag
+    class
+    style
+    text_color
+    colors
+    tty
+    ttycolors
+    no_html
 );
 
-sub init {
+for my $attr (@attrs) {
+    has $attr => ( is => 'rw' );
+}
+
+sub BUILD {
     my $self = shift;
-    my %args = $self->_normalize_args(@_);
-    $self->SUPER::init(%args);
 
     if ( $self->debug ) {
         carp "debug level set at " . $self->debug;

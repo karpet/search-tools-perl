@@ -1,10 +1,10 @@
 package Search::Tools::XML;
-use strict;
-use warnings;
+use Moo;
 use Carp;
-use base qw( Search::Tools::Object );
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
+
+use namespace::sweep;
 
 our $VERSION = '0.99_01';
 

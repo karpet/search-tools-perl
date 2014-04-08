@@ -1,7 +1,6 @@
 package Search::Tools::RegEx;
-use strict;
-use warnings;
-use base qw( Search::Tools::Object );
+use Moo;
+extends 'Search::Tools::Object';
 use Carp;
 use overload
     '""'     => sub { $_[0]->term; },
@@ -10,18 +9,22 @@ use overload
 
 #use Data::Dump qw( dump );
 
+use namespace::sweep;
+
 our $VERSION = '0.99_01';
 
-__PACKAGE__->mk_ro_accessors(
-    qw(
-        plain
-        html
-        term
-        term_re
-        is_phrase
-        phrase_terms
-        )
+my @ro_attrs = qw(
+    plain
+    html
+    term
+    term_re
+    is_phrase
+    phrase_terms
 );
+
+for my $attr (@ro_attrs) {
+    has $attr => ( is => 'ro' );
+}
 
 =head1 NAME
 

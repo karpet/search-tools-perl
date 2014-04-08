@@ -1,7 +1,5 @@
 package Search::Tools::Token;
-use strict;
-use warnings;
-use Carp;
+use Moo;
 use overload
     '""'     => sub { $_[0]->str; },
     'bool'   => sub { $_[0]->len; },

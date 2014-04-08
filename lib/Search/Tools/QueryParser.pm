@@ -1,7 +1,6 @@
 package Search::Tools::QueryParser;
-use strict;
-use warnings;
-use base qw( Search::Tools::Object );
+use Moo;
+extends 'Search::Tools::Object';
 use Carp;
 use Data::Dump qw( dump );
 use Search::Query::Parser;
@@ -11,6 +10,8 @@ use Search::Tools::Query;
 use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
+
+use namespace::sweep;
 
 our $VERSION = '0.99_01';
 
@@ -57,30 +58,22 @@ my %Defaults = (
     word_characters         => q/\w/ . quotemeta(q/'-/),
 );
 
-__PACKAGE__->mk_accessors( keys %Defaults );
-__PACKAGE__->mk_ro_accessors(
-    qw(
-        start_bound
-        end_bound
-        plain_phrase_bound
-        html_phrase_bound
-        )
-);
+for my $attr ( keys %Defaults ) {
+    has( $attr => ( is => 'rw', default => sub { $Defaults{$attr} } ) );
+}
+has 'start_bound'        => ( is => 'ro' );
+has 'end_bound'          => ( is => 'ro' );
+has 'plain_phrase_bound' => ( is => 'ro' );
+has 'html_phrase_bound'  => ( is => 'ro' );
 
 sub get_defaults {
     return {%Defaults};
 }
 
-sub init {
+sub BUILD {
     my $self = shift;
-    $self->SUPER::init(@_);
 
     # TODO handle case where both term_re and word_characters are defined
-
-    for ( keys %Defaults ) {
-        next if defined $self->{$_};
-        $self->{$_} = $Defaults{$_};
-    }
 
     # charset/locale/lang are a bit interdependent
     # so make sure charset/lang are set if locale is explicitly passed.
@@ -102,7 +95,7 @@ sub init {
 }
 
 sub parse {
-    my $self = shift;
+    my $self      = shift;
     my $query_str = shift;
     confess "query required" unless defined $query_str;
     if ( ref $query_str ) {
@@ -155,8 +148,8 @@ TERM: for my $term ( @{ $extracted->{terms} } ) {
 }
 
 sub _extract_terms {
-    my $self          = shift;
-    my $query         = shift;
+    my $self  = shift;
+    my $query = shift;
     confess "need query to extract terms" unless defined $query;
     my $stopwords     = $self->stopwords;
     my $and_word      = $self->and_word;

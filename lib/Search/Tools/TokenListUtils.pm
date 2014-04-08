@@ -1,6 +1,5 @@
 package Search::Tools::TokenListUtils;
-use strict;
-use warnings;
+use Moo::Role;
 use Carp;
 
 our $VERSION = '0.99_01';

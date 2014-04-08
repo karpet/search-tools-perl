@@ -1,17 +1,17 @@
 package Search::Tools::TokenListPP;
-use strict;
-use warnings;
-use base qw( Search::Tools::Object );
+use Moo;
+extends 'Search::Tools::Object';
 use overload
     '""'     => sub { $_[0]->str; },
     'bool'   => sub { $_[0]->len; },
     fallback => 1;
 use Carp;
-use base qw( Search::Tools::TokenListUtils );
+with 'Search::Tools::TokenListUtils';
 
 our $VERSION = '0.99_01';
 
-__PACKAGE__->mk_accessors(qw( pos num ));
+has 'pos' => ( is => 'rw' );
+has 'num' => ( is => 'rw' );
 
 sub len {
     return scalar @{ $_[0]->{tokens} };
@@ -29,7 +29,7 @@ sub next {
         return;
     }
     elsif ( $self->{pos} > $len ) {
-        return; 
+        return;
     }
     else {
         return $tokens->[ $self->{pos}++ ];
