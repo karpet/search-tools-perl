@@ -1,6 +1,6 @@
 Revision history for Perl extension Search::HiLiter.
 
-1.000 xxx
+0.999_01 08 April 2014
  - Drop Rose::ObjectX::CAF object system in favor of Moo + Class::XSAccessor.
    Moo is required by Search::Query (dependency) and 
    Class::XSAccessor was already being used by Rose::Object if present.

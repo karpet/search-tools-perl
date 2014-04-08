@@ -11,9 +11,9 @@ example/qp.pl
 example/swish-e.pl
 example/utf8re.pl
 lib/Search/Tools.pm
+lib/Search/Tools/ArgNormalizer.pm
 lib/Search/Tools/HeatMap.pm
 lib/Search/Tools/HiLiter.pm
-lib/Search/Tools/MethodMaker.pm
 lib/Search/Tools/Object.pm
 lib/Search/Tools/Query.pm
 lib/Search/Tools/QueryParser.pm

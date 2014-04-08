@@ -6,7 +6,7 @@ use Carp;
 use Scalar::Util qw( openhandle );
 use File::Basename;
 
-our $VERSION = '0.99_01';
+our $VERSION = '0.999_02';
 
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
