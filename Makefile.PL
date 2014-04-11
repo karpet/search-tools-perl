@@ -19,6 +19,7 @@ WriteMakefile(
     PL_FILES      => {},
     PREREQ_PM     => {
         'Moo'                => 0,
+        'namespace::sweep'   => 0,
         'Search::Query'      => '0.290_01',
         'Encode'             => '0',
         'Class::XSAccessor'  => '0.14',

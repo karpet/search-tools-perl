@@ -6,7 +6,7 @@ use Carp;
 use Scalar::Util qw( openhandle );
 use File::Basename;
 
-our $VERSION = '0.999_03';
+our $VERSION = '0.999_04';
 
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
@@ -116,6 +116,8 @@ Search::Tools - high-performance tools for building search applications
   
  
 =head1 DESCRIPTION
+
+As of version 1.000 Search::Tools uses L<Moo> and L<Class::XSAccessor>.
 
 Search::Tools is a set of utilities for building search applications.
 Rather than adhering to a particular search application or framework,

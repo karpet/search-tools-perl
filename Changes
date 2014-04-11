@@ -1,5 +1,8 @@
 Revision history for Perl extension Search::HiLiter.
 
+0.999_04 11 April 2014
+ - make namespace::sweep dependency explicit in Makefile.PL. Same issue as 0.999_03.
+
 0.999_03 11 April 2014
  - make Moo dependency explicit as cpantesters does not seem to pull it in
    via Search::Query

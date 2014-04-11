@@ -8,7 +8,7 @@ use overload
 use Carp;
 with 'Search::Tools::TokenListUtils';
 
-our $VERSION = '0.999_03';
+our $VERSION = '0.999_04';
 
 has 'pos' => ( is => 'rw' );
 has 'num' => ( is => 'rw' );

@@ -14,7 +14,7 @@ use Search::Tools::XML;
 
 use namespace::sweep;
 
-our $VERSION = '0.999_03';
+our $VERSION = '0.999_04';
 
 has 'terms'   => ( is => 'ro' );
 has 'fields'  => ( is => 'ro' );
