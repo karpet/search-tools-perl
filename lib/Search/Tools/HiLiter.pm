@@ -10,7 +10,7 @@ use Data::Dump qw( dump );
 
 use namespace::sweep;
 
-our $VERSION = '0.999_02';
+our $VERSION = '0.999_03';
 
 my $XML = Search::Tools::XML->new;
 
