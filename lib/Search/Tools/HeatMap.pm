@@ -6,7 +6,7 @@ extends 'Search::Tools::Object';
 
 use namespace::sweep;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 # debugging only
 my $OPEN  = '[';
@@ -79,7 +79,7 @@ someone wants to abuse and/or improve it.
 Create a new HeatMap. The I<TokenList> object may be either a
 Search::Tools::TokenList or Search::Tools::TokenListPP object.
 
-=head2 init
+=head2 BUILD
 
 Builds the HeatMap object. Called internally by new().
 

@@ -5,7 +5,7 @@ extends 'Search::Tools::Object';
 use Text::Aspell;
 use Search::Tools::QueryParser;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 has 'query_parser' =>
     ( is => 'rw', default => sub { Search::Tools::QueryParser->new() } );
@@ -140,7 +140,7 @@ A Search::Tools::QueryParser object.
 
 =back
 
-=head2 init
+=head2 BUILD
 
 Called internally by new().
 

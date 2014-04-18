@@ -20,7 +20,7 @@ WriteMakefile(
     PREREQ_PM     => {
         'Moo'                => 0,
         'namespace::sweep'   => 0,
-        'Search::Query'      => '0.290_01',
+        'Search::Query'      => '0.300',
         'Encode'             => '0',
         'Class::XSAccessor'  => '0.14',
         'Data::Dump'         => 0,

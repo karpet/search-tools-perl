@@ -13,7 +13,7 @@ use Search::Tools::RegEx;
 
 use namespace::sweep;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;
@@ -684,7 +684,7 @@ The new() method instantiates a QueryParser object. With the exception
 of parse(), all the following methods can be passed as key/value
 pairs in new().
 
-=head2 init
+=head2 BUILD
 
 Called internally by new().
 
@@ -805,6 +805,10 @@ Default: C<*>
 
 Set a locale explicitly. If not set, the locale is inherited from the 
 C<LC_CTYPE> environment variable.
+
+=head2 LC_CTYPE
+
+Imported function by locale pragma. Documented only to satisfy pod tests.
 
 =head2 lang
 

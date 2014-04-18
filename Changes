@@ -1,5 +1,8 @@
 Revision history for Perl extension Search::HiLiter.
 
+1.000 18 April 2014
+ - the official Moo release
+
 0.999_04 11 April 2014
  - make namespace::sweep dependency explicit in Makefile.PL. Same issue as 0.999_03.
 

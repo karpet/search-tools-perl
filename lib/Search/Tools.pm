@@ -6,7 +6,7 @@ use Carp;
 use Scalar::Util qw( openhandle );
 use File::Basename;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 use XSLoader;
 XSLoader::load( 'Search::Tools', $VERSION );
@@ -312,13 +312,13 @@ L<http://search.cpan.org/dist/Search-Tools/>
 
 =head1 COPYRIGHT
 
-Copyright 2006-2009 by Peter Karman.
+Copyright 2006-2009, 2014 by Peter Karman.
 
 This package is free software; you can redistribute it and/or modify it under the 
 same terms as Perl itself.
 
 =head1 SEE ALSO
 
-HTML::HiLiter, SWISH::HiLiter, Class::XSAccessor, Text::Aspell
+HTML::HiLiter, SWISH::HiLiter, L<Moo>, L<Class::XSAccessor>, L<Text::Aspell>
 
 =cut

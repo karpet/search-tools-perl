@@ -7,7 +7,7 @@ use Search::Tools::TokenList;
 use Search::Tools::UTF8;
 use Carp;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 has 're' => ( is => 'rw', default => sub {qr/\w+(?:[\'\-\.]\w+)*/} );
 
@@ -120,7 +120,7 @@ interested in the internals.
 This class inherits from Search::Tools::Object. Only new or overridden
 methods are documented here.
 
-=head2 init
+=head2 BUILD
 
 Called by new().
 

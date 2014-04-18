@@ -10,7 +10,7 @@ use Data::Dump qw( dump );
 has 'ebit' => ( is => 'rw', default => sub {1} );
 has 'map' => ( is => 'ro' );
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 =pod
 
@@ -55,7 +55,7 @@ after new() will have no effect on map().
 
 =back
 
-=head2 init
+=head2 BUILD
 
 Called internally by new().
 

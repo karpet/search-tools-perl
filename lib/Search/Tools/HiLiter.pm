@@ -10,7 +10,7 @@ use Data::Dump qw( dump );
 
 use namespace::sweep;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 my $XML = Search::Tools::XML->new;
 
@@ -658,7 +658,7 @@ accessor method as well:
 
 =back
 
-=head2 init
+=head2 BUILD
 
 Called internally by new().
 

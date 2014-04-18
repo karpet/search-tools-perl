@@ -11,7 +11,7 @@ use Search::Tools::HeatMap;
 
 use namespace::sweep;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';
@@ -824,7 +824,7 @@ or a Search::Tools::Query object
 Many of the following methods
 are also available as key/value pairs to new().
 
-=head2 init
+=head2 BUILD
 
 Called internally by new().
 

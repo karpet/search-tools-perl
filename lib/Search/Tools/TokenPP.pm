@@ -9,7 +9,7 @@ use overload
 
 use namespace::sweep;
 
-our $VERSION = '0.999_04';
+our $VERSION = '1.000';
 
 my @attrs
     = qw( is_match is_hot pos str len u8len is_sentence_start is_sentence_end );
