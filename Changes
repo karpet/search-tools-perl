@@ -1,5 +1,8 @@
 Revision history for Perl extension Search::HiLiter.
 
+1.001 xxx
+ - zap use of File::Slurp in tests
+
 1.000 18 April 2014
  - the official Moo release
 
