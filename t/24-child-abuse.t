@@ -2,7 +2,7 @@ use strict;
 use Search::Tools;
 use Search::Tools::HiLiter;
 use Test::More tests => 8;
-use File::Slurp;
+
 use Data::Dump qw( dump );
 
 ok( my $hiliter = Search::Tools::HiLiter->new(
@@ -15,8 +15,8 @@ ok( my $hiliter = Search::Tools::HiLiter->new(
 
 #dump( $hiliter->query );
 
-my $child_abuse_buf = read_file('t/docs/little-c-child-abuse.html');
-my $Child_abuse_buf = read_file('t/docs/big-C-Child-abuse.html');
+my $child_abuse_buf = Search::Tools->slurp('t/docs/little-c-child-abuse.html');
+my $Child_abuse_buf = Search::Tools->slurp('t/docs/big-C-Child-abuse.html');
 
 ok( my $hilited_little_c = $hiliter->light($child_abuse_buf),
     "hilite little c" );

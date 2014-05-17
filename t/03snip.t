@@ -2,7 +2,7 @@
 use strict;
 use Test::More tests => 20;
 use Data::Dump qw( dump );
-use File::Slurp;
+
 
 BEGIN { use_ok('Search::Tools::Snipper') }
 
@@ -34,7 +34,7 @@ ok( length($snip) < $s->max_chars, "max_chars" );
 
 #diag($s->type_used);
 
-$text = read_file('t/docs/test.txt');
+$text = Search::Tools->slurp('t/docs/test.txt');
 
 @q = qw(intramuralism maimedly sculpt);
 

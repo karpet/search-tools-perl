@@ -4,10 +4,10 @@ use Test::More tests => 2;
 use Search::Tools::Snipper;
 use Search::Tools::XML;
 use Data::Dump qw( dump );
-use File::Slurp;
+
 
 my $file = 't/docs/having-trouble-paying.html';
-ok( my $html = read_file($file), "read buf" );
+ok( my $html = Search::Tools->slurp($file), "read buf" );
 
 #$html = Search::Tools::XML->strip_html($html);
 #$html = Search::Tools::XML->strip_html($html);

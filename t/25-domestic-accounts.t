@@ -4,12 +4,12 @@ use strict;
 use Search::Tools;
 use Search::Tools::XML;
 use Test::More tests => 10;
-use File::Slurp;
+
 use Data::Dump qw( dump );
 
 #dump( $hiliter->query );
 
-ok( my $buf = read_file('t/docs/domestic-accounts.html'), "read buf" );
+ok( my $buf = Search::Tools->slurp('t/docs/domestic-accounts.html'), "read buf" );
 ok( $buf = Search::Tools::XML->strip_markup($buf), "strip markup" );
 
 #diag( $buf );

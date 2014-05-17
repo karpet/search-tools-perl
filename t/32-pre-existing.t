@@ -3,13 +3,13 @@ use strict;
 use Test::More tests => 5;
 use lib 't';
 use Data::Dump qw( dump );
-use File::Slurp;
+
 use_ok('Search::Tools::Snipper');
 use_ok('Search::Tools::HiLiter');
 
 my $file = 't/docs/pre-existing.txt';
 my $q    = qq/pre-existing/;
-my $buf  = read_file($file);
+my $buf  = Search::Tools->slurp($file);
 
 my $snipper = Search::Tools::Snipper->new(
     query         => $q,

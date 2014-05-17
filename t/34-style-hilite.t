@@ -1,6 +1,6 @@
 use Test::More tests => 6;
 use strict;
-use File::Slurp;
+
 use Data::Dump qw( dump );
 
 use_ok('Search::Tools::HiLiter');

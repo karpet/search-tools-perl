@@ -1,6 +1,6 @@
 use Test::More tests => 19;
 use strict;
-use File::Slurp;
+
 use Data::Dump qw( dump );
 
 use_ok('Search::Tools::HiLiter');
@@ -37,7 +37,7 @@ ok( my $l = $h->light($snip), "light" );
 
 # and again
 
-$text = read_file('t/docs/test.txt');
+$text = Search::Tools->slurp('t/docs/test.txt');
 
 @q = qw(intramuralism maimedly sculpt);
 
@@ -67,7 +67,7 @@ ok( $h = Search::Tools::HiLiter->new(
     ),
     "nosnip hiliter"
 );
-$text = read_file('t/docs/test.html');
+$text = Search::Tools->slurp('t/docs/test.html');
 ok( $l = $h->light($text), "nosnip light" );
 
 # test text_color

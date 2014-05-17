@@ -24,7 +24,6 @@ WriteMakefile(
         'Encode'             => '0',
         'Class::XSAccessor'  => '0.14',
         'Data::Dump'         => 0,
-        'File::Slurp'        => 0,
         'Test::More'         => 0.94,
         'Encoding::FixLatin' => 0,
         'File::Basename'     => 0,

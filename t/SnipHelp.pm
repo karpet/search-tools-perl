@@ -3,7 +3,7 @@ use Test::More;
 use strict;
 use warnings;
 use Data::Dump qw( dump );
-use File::Slurp;
+
 use Search::Tools::XML;
 use Search::Tools::Snipper;
 use Search::Tools::UTF8;
@@ -17,7 +17,7 @@ sub test {
     use_ok('Search::Tools::HiLiter');
     use_ok('Search::Tools::XML');
     ok( my $XML   = Search::Tools::XML->new, "new XML object" );
-    ok( my $html  = read_file($file),        "read buf" );
+    ok( my $html  = Search::Tools->slurp($file),        "read buf" );
     ok( my $plain = $XML->strip_html($html), "strip_html" );
 
     if ( $XML->looks_like_html($html) ) {

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Data::Dump qw( dump );
 use Test::More tests => 1263;
-use File::Slurp;
+
 
 # http://code.google.com/p/test-more/issues/detail?id=46
 binmode Test::More->builder->output,         ":utf8";
@@ -37,7 +37,7 @@ my $str2 = <<EOF;
 !@#0^    some strings with non-token at the start and end !@#0^&*() 
 EOF
 
-my $greek = read_file('t/docs/greek_and_ojibwe.txt');
+my $greek = Search::Tools->slurp('t/docs/greek_and_ojibwe.txt');
 
 ok( my $tokenizer = Search::Tools::Tokenizer->new(), "new tokenizer" );
 
