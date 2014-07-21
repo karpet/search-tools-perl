@@ -7,7 +7,7 @@ use Search::Tools::TokenList;
 use Search::Tools::UTF8;
 use Carp;
 
-our $VERSION = '1.001';
+our $VERSION = '1.000_01';
 
 has 're' => ( is => 'rw', default => sub {qr/\w+(?:[\'\-\.]\w+)*/} );
 
