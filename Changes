@@ -1,6 +1,6 @@
 Revision history for Perl extension Search::HiLiter.
 
-1.001 xxx
+1.001 23 July 2014
  - zap use of File::Slurp in tests
  - small optimization to to_utf8() to privilege is_ascii() over
    other encoding tests.

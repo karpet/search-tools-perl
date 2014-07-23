@@ -2,7 +2,7 @@ package Search::Tools::TokenListUtils;
 use Moo::Role;
 use Carp;
 
-our $VERSION = '1.000_01';
+our $VERSION = '1.001';
 
 =head1 NAME
 

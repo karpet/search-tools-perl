@@ -10,7 +10,7 @@ use Data::Dump qw( dump );
 has 'ebit' => ( is => 'rw', default => sub {1} );
 has 'map' => ( is => 'ro' );
 
-our $VERSION = '1.000_01';
+our $VERSION = '1.001';
 
 =pod
 

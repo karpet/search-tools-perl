@@ -13,7 +13,7 @@ use Search::Tools::RegEx;
 
 use namespace::sweep;
 
-our $VERSION = '1.000_01';
+our $VERSION = '1.001';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;
@@ -25,7 +25,6 @@ my $C2E = $XML->char2ent_map;
 my ( $locale, $lang, $charset );
 {
     use POSIX qw(locale_h);
-    #use locale;
     $locale = setlocale(LC_CTYPE);
     ( $lang, $charset ) = split( m/\./, $locale );
     $charset ||= q/UTF-8/;    # <v0.24 this was iso-8895-1

@@ -6,7 +6,7 @@ use Search::Tools::UTF8;
 
 use namespace::sweep;
 
-our $VERSION = '1.000_01';
+our $VERSION = '1.001';
 
 =pod
 

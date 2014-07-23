@@ -11,7 +11,7 @@ use Carp;
 
 use namespace::sweep;
 
-our $VERSION = '1.000_01';
+our $VERSION = '1.001';
 
 1;
 
