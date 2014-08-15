@@ -11,7 +11,7 @@ use Search::Tools::HeatMap;
 
 use namespace::sweep;
 
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';

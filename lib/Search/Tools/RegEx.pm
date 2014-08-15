@@ -11,7 +11,7 @@ use overload
 
 use namespace::sweep;
 
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 
 my @ro_attrs = qw(
     plain

@@ -6,7 +6,7 @@ extends 'Search::Tools::Object';
 
 use namespace::sweep;
 
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 
 # debugging only
 my $OPEN  = '[';

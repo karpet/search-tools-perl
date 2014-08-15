@@ -4,7 +4,7 @@ use Carp;
 use Scalar::Util qw( blessed );
 use Data::Dump qw( dump );
 
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 
 sub BUILDARGS {
     my $self  = shift;
