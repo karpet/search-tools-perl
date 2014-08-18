@@ -1,6 +1,6 @@
 Revision history for Perl extension Search::HiLiter.
 
-1.002 xxx
+1.002 18 Aug 2014
  - warn and skip undefined transliteration mappings
 
 1.001 23 July 2014

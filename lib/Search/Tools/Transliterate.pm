@@ -174,6 +174,7 @@ sub _init_map {
 
     while (<DATA>) {
         chomp;
+        next unless m/^<U/;
         my ( $from, $to ) = (m/^(<U.+?>)\ (.+)$/);
         if ( !defined $to ) {
             warn "Undefined mapping for $_\n";
