@@ -12,9 +12,9 @@ use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::XML;
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 has 'terms'   => ( is => 'ro' );
 has 'fields'  => ( is => 'ro' );

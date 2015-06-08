@@ -4,9 +4,9 @@ use Carp;
 use Search::Tools;    # XS required
 use Search::Tools::UTF8;
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 =pod
 

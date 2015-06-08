@@ -9,9 +9,9 @@ use overload
 use Search::Tools;    # XS required
 use Carp;
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 1;
 

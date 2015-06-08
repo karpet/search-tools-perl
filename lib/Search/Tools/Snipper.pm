@@ -9,9 +9,9 @@ use Search::Tools::UTF8;
 use Search::Tools::Tokenizer;
 use Search::Tools::HeatMap;
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 # extra space here so pmvers works against $VERSION
 our $ellip          = ' ... ';

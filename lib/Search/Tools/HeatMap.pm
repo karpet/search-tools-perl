@@ -4,9 +4,9 @@ use Carp;
 use Data::Dump qw( dump );
 extends 'Search::Tools::Object';
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 # debugging only
 my $OPEN  = '[';

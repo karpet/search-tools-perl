@@ -1,6 +1,6 @@
 package Search::Tools::Object;
 use Moo;
-use namespace::sweep;
+use namespace::autoclean;
 
 has 'debug' => (
     is      => 'rw',
@@ -11,7 +11,7 @@ has 'debug' => (
     }
 );
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 1;
 

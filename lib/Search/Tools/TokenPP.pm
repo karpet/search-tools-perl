@@ -7,9 +7,9 @@ use overload
     'bool'   => sub { $_[0]->len; },
     fallback => 1;
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 my @attrs
     = qw( is_match is_hot pos str len u8len is_sentence_start is_sentence_end );

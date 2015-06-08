@@ -9,9 +9,9 @@ use overload
 
 #use Data::Dump qw( dump );
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 my @ro_attrs = qw(
     plain

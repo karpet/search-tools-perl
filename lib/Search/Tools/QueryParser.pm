@@ -11,9 +11,9 @@ use Search::Tools::UTF8;
 use Search::Tools::XML;
 use Search::Tools::RegEx;
 
-use namespace::sweep;
+use namespace::autoclean;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 my $XML = Search::Tools::XML->new();
 my $C2E = $XML->char2ent_map;

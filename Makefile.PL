@@ -18,16 +18,16 @@ WriteMakefile(
     ABSTRACT_FROM => 'lib/Search/Tools.pm',
     PL_FILES      => {},
     PREREQ_PM     => {
-        'Moo'                => 0,
-        'namespace::sweep'   => 0,
-        'Search::Query'      => '0.300',
-        'Encode'             => '0',
-        'Class::XSAccessor'  => '0.14',
-        'Data::Dump'         => 0,
-        'Test::More'         => 0.94,
-        'Encoding::FixLatin' => 0,
-        'File::Basename'     => 0,
-        'Scalar::Util'       => 0,
+        'Moo'                  => 0,
+        'namespace::autoclean' => 0,
+        'Search::Query'        => '0.300',
+        'Encode'               => '0',
+        'Class::XSAccessor'    => '0.14',
+        'Data::Dump'           => 0,
+        'Test::More'           => 0.94,
+        'Encoding::FixLatin'   => 0,
+        'File::Basename'       => 0,
+        'Scalar::Util'         => 0,
 
         #'Text::Aspell'          => '0.06',  # optional
 
@@ -49,7 +49,8 @@ WriteMakefile(
                     homepage => 'https://github.com/karpet/search-tools-perl',
                     bugtracker =>
                         'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Search-Tools',
-                    repository => 'https://github.com/karpet/search-tools-perl',
+                    repository =>
+                        'https://github.com/karpet/search-tools-perl',
                 },
             }
             )
