@@ -1,5 +1,8 @@
 Revision history for Perl extension Search::HiLiter.
 
+1.004 11 Marh 2016
+ - Carp::cluck() in to_utf8() is the string argument is undefined
+
 1.003 08 June 2015
  - swapped namespace::autoclean in, namespace::sweep out. See https://rt.cpan.org/Ticket/Display.html?id=104823
 
