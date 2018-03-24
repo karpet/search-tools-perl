@@ -35,7 +35,7 @@ perldoc command.
 
 The home page is:
 
-    http://perl.peknet.com/wiki/SearchTools
+    https://github.com/karpet/search-tools-perl
 
 You can also look for information at:
 
