@@ -1,7 +1,14 @@
-Search-Tools 
-===========================
+=head1 Search-Tools
 
-INSTALLATION
+=begin html
+
+<p>
+  <img src="https://travis-ci.org/karpet/search-tools-perl.png?branch=master" alt="Travis CI build status">
+</p>
+
+=end html
+
+=head2 INSTALLATION
 
 To install this module type the following:
 
@@ -10,7 +17,7 @@ To install this module type the following:
    make test
    make install
 
-DEPENDENCIES
+=head2 DEPENDENCIES
 
 This module requires these other modules and libraries:
 
@@ -19,7 +26,7 @@ This module requires these other modules and libraries:
   Encode
   Carp
   
-SUPPORT AND DOCUMENTATION
+=head2 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
 perldoc command.
@@ -45,9 +52,9 @@ You can also look for information at:
         http://search.cpan.org/dist/Search-Tools/
 
 
-COPYRIGHT AND LICENCE
+=head2 COPYRIGHT AND LICENCE
 
-Copyright (C) 2006-2009 by Peter Karman
+Copyright (C) 2006-2018 by Peter Karman
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
