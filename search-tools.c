@@ -1046,7 +1046,7 @@ st_string_to_lower(const unsigned char *ptr, IV len)
     while (s < send) {
         const STRLEN u = UTF8SKIP(s);
         STRLEN ulen;
-        const UV uv = to_utf8_lower(s, tmpbuf, &ulen);
+        const UV uv = toLOWER_utf8_safe(s, send, tmpbuf, &ulen);
         Copy(tmpbuf, lc, ulen, U8);
         lc += ulen;
         s += u; 
