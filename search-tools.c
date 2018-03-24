@@ -1046,7 +1046,11 @@ st_string_to_lower(const unsigned char *ptr, IV len)
     while (s < send) {
         const STRLEN u = UTF8SKIP(s);
         STRLEN ulen;
+#if ((PERL_VERSION > 24) || (PERL_VERSION == 26 && PERL_SUBVERSION >= 5))
         const UV uv = toLOWER_utf8_safe(s, send, tmpbuf, &ulen);
+#else
+        const UV uv = toLOWER_utf8(s, tmpbuf, &ulen);
+#endif
         Copy(tmpbuf, lc, ulen, U8);
         lc += ulen;
         s += u; 
