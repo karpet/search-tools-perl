@@ -931,7 +931,7 @@ st_looks_like_sentence_start(const unsigned char *ptr, IV len)
         warn("%s: >%s< %ld\n", FUNCTION__, ptr, len); 
     
     /* optimized for ASCII */
-    if (st_char_is_ascii((char*)ptr, len)) {
+    if (st_char_is_ascii((unsigned char*)ptr, len)) {
         
         /* if the string is more than one byte long,
            make sure the second char is NOT UPPER
@@ -1079,7 +1079,7 @@ st_is_abbreviation(const unsigned char *ptr, IV len)
     }
     ptr_lc = (unsigned char*)st_string_to_lower(ptr, len);
     //warn("ptr=%s ptr_lc=%s\n", ptr, ptr_lc);
-    i = hv_fetch(ST_ABBREVS, ptr_lc, len, 0) ? 1 : 0;
+    i = hv_fetch(ST_ABBREVS, (const char *)ptr_lc, len, 0) ? 1 : 0;
     free(ptr_lc);
     return i;
 }
